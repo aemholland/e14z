@@ -70,7 +70,7 @@ function handleToolsList(id: any) {
     result: {
       tools: [
         {
-          name: 'discover_mcps',
+          name: 'discover',
           description: 'Search and discover MCP servers',
           inputSchema: {
             type: 'object',
@@ -102,7 +102,7 @@ function handleToolsList(id: any) {
           }
         },
         {
-          name: 'get_mcp_details',
+          name: 'details',
           description: 'Get detailed information about a specific MCP',
           inputSchema: {
             type: 'object',
@@ -116,7 +116,7 @@ function handleToolsList(id: any) {
           }
         },
         {
-          name: 'submit_review',
+          name: 'review',
           description: 'Submit a review after using an MCP',
           inputSchema: {
             type: 'object',
@@ -166,13 +166,13 @@ async function handleToolsCall(params: any, id: any, request: NextRequest) {
 
   try {
     switch (name) {
-      case 'discover_mcps':
+      case 'discover':
         return await handleDiscoverMCPs(args, id, request)
       
-      case 'get_mcp_details':
+      case 'details':
         return await handleGetMCPDetails(args, id)
       
-      case 'submit_review':
+      case 'review':
         return await handleSubmitReview(args, id, request)
       
       default:

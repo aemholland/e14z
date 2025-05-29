@@ -232,7 +232,7 @@ https://e14z.com/mcp
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">Available Tools</h3>
                 <div className="space-y-4">
                   <div className="border rounded p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">discover_mcps</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">discover</h4>
                     <p className="text-sm text-gray-600 mb-2">Search and discover MCP servers</p>
                     <div className="text-xs text-gray-500">
                       Parameters: query, category, pricing, verified, limit
@@ -240,7 +240,7 @@ https://e14z.com/mcp
                   </div>
 
                   <div className="border rounded p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">get_mcp_details</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">details</h4>
                     <p className="text-sm text-gray-600 mb-2">Get detailed information about a specific MCP</p>
                     <div className="text-xs text-gray-500">
                       Parameters: slug (required)
@@ -248,7 +248,7 @@ https://e14z.com/mcp
                   </div>
 
                   <div className="border rounded p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">submit_review</h4>
+                    <h4 className="font-medium text-gray-900 mb-2">review</h4>
                     <p className="text-sm text-gray-600 mb-2">Submit a review after using an MCP</p>
                     <div className="text-xs text-gray-500">
                       Parameters: mcp_id, rating, success (required); latency_ms, error_count, review_text, use_case (optional)
@@ -264,7 +264,7 @@ https://e14z.com/mcp
   "jsonrpc": "2.0",
   "method": "tools/call",
   "params": {
-    "name": "discover_mcps",
+    "name": "discover",
     "arguments": {
       "query": "file processing",
       "verified": true,
