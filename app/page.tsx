@@ -1,4 +1,34 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { SearchBar } from '@/components/search/SearchBar'
+import { MCPCard } from '@/components/mcp/MCPCard'
+import { searchMCPs } from '@/lib/search/engine'
+import type { RankedResult } from '@/types'
+
 export default function Home() {
+  const [trendingMCPs, setTrendingMCPs] = useState<RankedResult[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadTrendingMCPs()
+  }, [])
+
+  const loadTrendingMCPs = async () => {
+    try {
+      const { results } = await searchMCPs({ 
+        query: '', 
+        filters: { verified: true }, 
+        limit: 6 
+      })
+      setTrendingMCPs(results)
+    } catch (error) {
+      console.error('Failed to load trending MCPs:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -14,27 +44,26 @@ export default function Home() {
           {/* Search Bar */}
           <div className="mt-10 flex justify-center">
             <div className="w-full max-w-2xl">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search for MCP servers... (e.g., 'invoice processing')"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button className="absolute right-2 top-2 px-4 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                  Search
-                </button>
-              </div>
+              <SearchBar />
             </div>
           </div>
           
           {/* Quick Categories */}
           <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {['Search & Web', 'File Systems', 'Databases', 'Communication', 'AI Models', 'Productivity'].map((category) => (
+            {[
+              { label: 'Search & Web', value: 'search' },
+              { label: 'File Systems', value: 'file-system' },
+              { label: 'Databases', value: 'database' },
+              { label: 'Communication', value: 'communication' },
+              { label: 'AI Models', value: 'ai-models' },
+              { label: 'Development', value: 'development' }
+            ].map((category) => (
               <button
-                key={category}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-50"
+                key={category.value}
+                onClick={() => window.location.href = `/browse?category=${category.value}`}
+                className="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-50 cursor-pointer"
               >
-                {category}
+                {category.label}
               </button>
             ))}
           </div>
@@ -43,7 +72,7 @@ export default function Home() {
         {/* Stats */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">50+</div>
+            <div className="text-2xl font-bold text-gray-900">{trendingMCPs.length}+</div>
             <div className="text-sm text-gray-500">MCP Servers</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
@@ -58,30 +87,38 @@ export default function Home() {
 
         {/* Trending MCPs */}
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Trending Today</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Placeholder MCP Cards */}
-            {[
-              { name: 'Brave Search', description: 'Web search using Brave Search API', category: 'Search', status: 'healthy' },
-              { name: 'PostgreSQL', description: 'Query PostgreSQL databases', category: 'Database', status: 'healthy' },
-              { name: 'GitHub', description: 'Interact with GitHub repositories', category: 'Development', status: 'healthy' },
-            ].map((mcp) => (
-              <div key={mcp.name} className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{mcp.name}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{mcp.description}</p>
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mt-2">
-                      {mcp.category}
-                    </span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Verified MCPs</h2>
+            <a 
+              href="/browse" 
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
+              View all →
+            </a>
+          </div>
+          
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-white p-6 rounded-lg shadow-sm border">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full mb-3"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {trendingMCPs.slice(0, 6).map((result) => (
+                <MCPCard 
+                  key={result.mcp.id} 
+                  mcp={result.mcp}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
