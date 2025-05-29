@@ -72,16 +72,16 @@ export default function Home() {
         {/* Stats */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">{trendingMCPs.length}+</div>
-            <div className="text-sm text-gray-500">MCP Servers</div>
+            <div className="text-2xl font-bold text-gray-900">{trendingMCPs.length}</div>
+            <div className="text-sm text-gray-500">Verified MCPs</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">98.5%</div>
-            <div className="text-sm text-gray-500">Operational</div>
+            <div className="text-2xl font-bold text-gray-900">100%</div>
+            <div className="text-sm text-gray-500">From Official Sources</div>
           </div>
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">1M+</div>
-            <div className="text-sm text-gray-500">API Calls</div>
+            <div className="text-2xl font-bold text-gray-900">Ready</div>
+            <div className="text-sm text-gray-500">For AI Agents</div>
           </div>
         </div>
 
