@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
+import { checkForDuplicates, generateSlug } from '@/lib/utils/deduplication'
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,53 +44,25 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate slug from name
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+    const slug = generateSlug(name)
 
-    // Check for duplicate slug
-    const { data: existingMcp } = await supabase
-      .from('mcps')
-      .select('id')
-      .eq('slug', slug)
-      .single()
+    // Comprehensive duplicate check
+    const duplicateCheck = await checkForDuplicates({
+      name,
+      endpoint,
+      github_url,
+      slug
+    })
 
-    if (existingMcp) {
+    if (duplicateCheck.isDuplicate) {
       return NextResponse.json(
-        { error: 'An MCP with this name already exists' },
+        { 
+          error: duplicateCheck.reason,
+          duplicate_type: duplicateCheck.duplicateType,
+          existing_mcp: duplicateCheck.existingMCP
+        },
         { status: 409 }
       )
-    }
-
-    // Check for duplicate endpoint
-    const { data: existingEndpoint } = await supabase
-      .from('mcps')
-      .select('id')
-      .eq('endpoint', endpoint)
-      .single()
-
-    if (existingEndpoint) {
-      return NextResponse.json(
-        { error: 'An MCP with this endpoint already exists' },
-        { status: 409 }
-      )
-    }
-
-    // Check for duplicate GitHub URL if provided
-    if (github_url) {
-      const { data: existingGithub } = await supabase
-        .from('mcps')
-        .select('id')
-        .eq('github_url', github_url)
-        .single()
-
-      if (existingGithub) {
-        return NextResponse.json(
-          { error: 'An MCP with this GitHub URL already exists' },
-          { status: 409 }
-        )
-      }
     }
 
     const userAgent = request.headers.get('user-agent') || ''
