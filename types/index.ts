@@ -1,19 +1,34 @@
+export interface InstallationMethod {
+  type: 'npm' | 'pip' | 'git' | 'docker' | 'binary' | 'other'
+  command: string
+  description?: string
+  priority: number
+  confidence: number
+}
+
+export interface Tool {
+  name: string
+  description?: string
+  category?: string
+  parameters?: string[]
+}
+
 export interface MCP {
   id: string
   slug: string
   name: string
   description?: string
   endpoint: string
+  install_type?: 'npm' | 'pip' | 'git' | 'docker' | 'binary' | 'other'
+  installation_methods?: InstallationMethod[]
+  tools?: Tool[]
   connection_type: 'stdio' | 'http' | 'websocket'
   auth_method?: string
   protocol_version: string
-  capabilities: {
-    tools?: boolean
-    resources?: boolean
-    prompts?: boolean
-  }
+  rating?: number
+  tool_endpoints: string[]
   category: string
-  tags: string[]
+  tags: string[] // Keep in type but hide from UI
   use_cases: string[]
   verified: boolean
   verified_at?: string

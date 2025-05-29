@@ -111,16 +111,41 @@ export async function checkForDuplicates(mcpData: MCPInput): Promise<DuplicateCh
 }
 
 /**
- * Generate a URL-friendly slug from MCP name
+ * Generate a URL-friendly slug from MCP name and author
+ * Official MCPs: just the name (remove "Official" suffix)
+ * Community MCPs: {name}-{author}
  */
-export function generateSlug(name: string): string {
-  return name
+export function generateSlug(name: string, author?: string, verified?: boolean): string {
+  // Clean the base name
+  let cleanName = name
+    .replace(/\s+(Official|Community)$/i, '') // Remove Official/Community suffix
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
     .replace(/\s+/g, '-') // Replace spaces with hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with single
     .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+
+  // For official MCPs, just return the clean name
+  if (verified) {
+    return cleanName
+  }
+
+  // For community MCPs, append author if available
+  if (author) {
+    const cleanAuthor = author
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single
+      .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+
+    return `${cleanName}-${cleanAuthor}`
+  }
+
+  // Fallback to just the clean name
+  return cleanName
 }
 
 /**

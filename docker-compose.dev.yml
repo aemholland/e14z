@@ -1,0 +1,30 @@
+# Development-focused Docker Compose
+# Optimized for fast development with hot reload
+
+services:
+  e14z-dev:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    env_file:
+      - .env.local
+    volumes:
+      # Mount source for hot reload
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

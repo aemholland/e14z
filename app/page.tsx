@@ -1,124 +1,201 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { SearchBar } from '@/components/search/SearchBar'
-import { MCPCard } from '@/components/mcp/MCPCard'
-import { searchMCPs } from '@/lib/search/engine'
-import type { RankedResult } from '@/types'
+import { Search, Star, GitFork, Code2 } from 'lucide-react'
 
 export default function Home() {
-  const [trendingMCPs, setTrendingMCPs] = useState<RankedResult[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    loadTrendingMCPs()
-  }, [])
-
-  const loadTrendingMCPs = async () => {
-    try {
-      const { results } = await searchMCPs({ 
-        query: '', 
-        filters: { verified: true }, 
-        limit: 6 
-      })
-      setTrendingMCPs(results)
-    } catch (error) {
-      console.error('Failed to load trending MCPs:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Hero Section */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 sm:text-6xl">
-            E14Z
-          </h1>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
-            The npm for AI agents. Discover, evaluate, and connect to MCP servers.
-          </p>
-          
-          {/* Search Bar */}
-          <div className="mt-10 flex justify-center">
-            <div className="w-full max-w-2xl">
-              <SearchBar />
+    <div className="container" style={{padding: '64px 16px'}}>
+      {/* Hero Section */}
+      <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '64px'}}>
+        <h1 className="text-title" style={{marginBottom: '24px'}}>
+          The npm for <span className="text-accent">AI agents</span>
+        </h1>
+        <p className="text-body text-secondary" style={{marginBottom: '32px', maxWidth: '32rem'}}>
+          Discover, evaluate, and connect to Model Context Protocol (MCP) servers. 
+          Build powerful AI applications with curated, reliable tools.
+        </p>
+        
+        {/* Search Bar */}
+        <div style={{width: '100%', maxWidth: '32rem', marginBottom: '32px'}}>
+          <div style={{display: 'flex'}}>
+            <div style={{position: 'relative', flex: 1}}>
+              <Search className="text-tertiary" size={16} style={{position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)'}} />
+              <input
+                type="text"
+                placeholder="Search MCP servers... (e.g., 'github', 'slack', 'database')"
+                className="form-control text-body"
+                style={{paddingLeft: '40px', paddingRight: '16px', paddingTop: '12px', paddingBottom: '12px', width: '100%'}}
+              />
             </div>
-          </div>
-          
-          {/* Quick Categories */}
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {[
-              { label: 'Search & Web', value: 'search' },
-              { label: 'File Systems', value: 'file-system' },
-              { label: 'Databases', value: 'database' },
-              { label: 'Communication', value: 'communication' },
-              { label: 'AI Models', value: 'ai-models' },
-              { label: 'Development', value: 'development' }
-            ].map((category) => (
-              <button
-                key={category.value}
-                onClick={() => window.location.href = `/browse?category=${category.value}`}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-full text-sm hover:bg-gray-50 cursor-pointer"
-              >
-                {category.label}
-              </button>
-            ))}
+            <button className="btn btn-primary" style={{marginLeft: '8px', paddingLeft: '24px', paddingRight: '24px'}}>
+              Search
+            </button>
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">{trendingMCPs.length}</div>
-            <div className="text-sm text-gray-500">Verified MCPs</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">100%</div>
-            <div className="text-sm text-gray-500">From Official Sources</div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">Ready</div>
-            <div className="text-sm text-gray-500">For AI Agents</div>
+        {/* Quick Actions */}
+        <div style={{display: 'flex', gap: '16px'}}>
+          <a href="/browse" className="btn btn-primary">
+            Browse MCPs
+          </a>
+          <a href="/submit" className="btn btn-secondary">
+            Submit MCP
+          </a>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px', marginBottom: '64px'}}>
+        <div className="Box" style={{textAlign: 'center'}}>
+          <div className="Box-body">
+            <div className="text-title" style={{marginBottom: '8px'}}>50+</div>
+            <div className="text-secondary">MCP Servers</div>
           </div>
         </div>
-
-        {/* Trending MCPs */}
-        <div className="mt-16">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Verified MCPs</h2>
-            <a 
-              href="/browse" 
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
-              View all →
-            </a>
+        <div className="Box" style={{textAlign: 'center'}}>
+          <div className="Box-body">
+            <div className="text-title" style={{marginBottom: '8px'}}>98.5%</div>
+            <div className="text-secondary">Uptime</div>
           </div>
-          
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white p-6 rounded-lg shadow-sm border">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-full mb-3"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+        </div>
+        <div className="Box" style={{textAlign: 'center'}}>
+          <div className="Box-body">
+            <div className="text-title" style={{marginBottom: '8px'}}>1M+</div>
+            <div className="text-secondary">API Calls</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Featured MCPs */}
+      <div style={{marginBottom: '64px'}}>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px'}}>
+          <h2 className="text-subtitle">Trending MCPs</h2>
+          <a href="/browse" className="text-accent">View all →</a>
+        </div>
+        
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px'}}>
+          {[
+            {
+              name: 'GitHub Official',
+              description: 'Interact with GitHub repositories, issues, and pull requests directly from your AI agent.',
+              category: 'Development',
+              verified: true,
+              stats: { stars: 1250, forks: 89 },
+              slug: 'github'
+            },
+            {
+              name: 'MongoDB',
+              description: 'Query and manage MongoDB databases with intelligent schema understanding.',
+              category: 'Database',
+              verified: true,
+              stats: { stars: 890, forks: 45 },
+              slug: 'mongodb-quantgeekdev'
+            },
+            {
+              name: 'Docker',
+              description: 'Manage Docker containers, images, and orchestration from your AI agent.',
+              category: 'Development',
+              verified: false,
+              stats: { stars: 567, forks: 34 },
+              slug: 'docker-quantgeekdev'
+            }
+          ].map((mcp, idx) => {
+            return (
+            <a key={idx} href={`/mcp/${mcp.slug}`} style={{textDecoration: 'none'}}>
+              <div className="Box" style={{height: '100%', transition: 'all 0.2s ease', cursor: 'pointer'}} onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.borderColor = 'var(--color-border-muted)'
+              }} onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.borderColor = 'var(--color-border-default)'
+              }}>
+                <div className="Box-body" style={{padding: '24px'}}>
+                  <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', flex: 1}}>
+                      <h3 className="text-body text-primary" style={{margin: 0}}>{mcp.name}</h3>
+                      {mcp.verified && (
+                        <span className="Label Label--success">Official</span>
+                      )}
+                    </div>
+                    <div className="status-indicator status-indicator--success"></div>
+                  </div>
+                  
+                  <p className="text-small text-secondary" style={{marginBottom: '20px', lineHeight: '1.6', minHeight: '48px'}}>
+                    {mcp.description}
+                  </p>
+                  
+                  <div style={{display: 'flex', alignItems: 'center', gap: '20px'}} className="text-small text-tertiary">
+                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                      <Star size={14} />
+                      <span>{mcp.stats.stars}</span>
+                    </div>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                      <GitFork size={14} />
+                      <span>{mcp.stats.forks}</span>
+                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            </a>
+          )})
+        }
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div style={{marginBottom: '64px'}}>
+        <h2 className="text-subtitle" style={{marginBottom: '32px'}}>Browse by Category</h2>
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px'}}>
+          {[
+            { name: 'Development', count: 15, icon: Code2 },
+            { name: 'Communication', count: 12, icon: Search },
+            { name: 'Database', count: 8, icon: Search },
+            { name: 'File Systems', count: 6, icon: Search },
+            { name: 'AI & ML', count: 5, icon: Search },
+            { name: 'Productivity', count: 4, icon: Search }
+          ].map((category, idx) => (
+            <a
+              key={idx}
+              href={`/browse?category=${category.name.toLowerCase()}`}
+              className="Box hover-lift"
+              style={{textDecoration: 'none'}}
+            >
+              <div className="Box-body" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                  <category.icon size={20} className="text-accent" />
+                  <div>
+                    <div className="text-small text-primary">{category.name}</div>
+                    <div className="text-small text-tertiary">{category.count} servers</div>
+                  </div>
+                </div>
+                <div className="text-tertiary">→</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Developer Section */}
+      <div className="Box">
+        <div className="Box-body" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+          <div>
+            <h2 className="text-subtitle" style={{marginBottom: '8px'}}>For Developers</h2>
+            <p className="text-secondary" style={{marginBottom: '16px'}}>
+              Build and submit your own MCP servers. Join our community of developers
+              creating the future of AI tooling.
+            </p>
+            <div style={{display: 'flex', gap: '16px'}}>
+              <a href="/docs" className="btn btn-primary">
+                Get Started
+              </a>
+              <a href="/submit" className="btn btn-secondary">
+                Submit MCP
+              </a>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {trendingMCPs.slice(0, 6).map((result) => (
-                <MCPCard 
-                  key={result.mcp.id} 
-                  mcp={result.mcp}
-                />
-              ))}
-            </div>
-          )}
+          </div>
+          <div style={{fontSize: '4rem', opacity: 0.2}} className="text-tertiary">
+            <Code2 size={80} />
+          </div>
         </div>
       </div>
     </div>

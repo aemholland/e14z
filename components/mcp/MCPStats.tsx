@@ -24,44 +24,64 @@ export function MCPStats({ mcpId }: MCPStatsProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Stats</h3>
-        <div className="space-y-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-1"></div>
-              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            </div>
-          ))}
+      <div className="Box">
+        <div className="Box-header">
+          <h3 className="text-body text-primary">Performance Stats</h3>
+        </div>
+        <div className="Box-body" style={{minHeight: '200px'}}>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} style={{animation: 'pulse 1.5s ease-in-out infinite'}}>
+                <div style={{height: '16px', backgroundColor: 'var(--color-neutral-muted)', borderRadius: '4px', width: '75%', marginBottom: '8px'}}></div>
+                <div style={{height: '12px', backgroundColor: 'var(--color-neutral-muted)', borderRadius: '4px', width: '50%'}}></div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance Stats</h3>
-      
-      <div className="text-center py-8">
-        <div className="text-gray-400 mb-3">
-          <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-        <h4 className="text-sm font-medium text-gray-700 mb-1">Performance Stats</h4>
-        <p className="text-xs text-gray-500 mb-3">Coming with E14Z Pulse</p>
-        <div className="space-y-2 text-xs text-gray-400">
-          <div>• Real-time latency monitoring</div>
-          <div>• Success rate tracking</div>
-          <div>• Uptime percentages</div>
-          <div>• Usage analytics</div>
-        </div>
+    <div className="Box">
+      <div className="Box-header">
+        <h3 className="text-body text-primary">Performance Stats</h3>
       </div>
       
-      <div className="mt-4 pt-4 border-t">
-        <p className="text-xs text-gray-400">
-          Stats collected by E14Z Pulse monitoring
-        </p>
+      <div className="Box-body" style={{minHeight: '280px', display: 'flex', flexDirection: 'column'}}>
+        <div style={{textAlign: 'center', padding: '32px 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+          <div className="text-tertiary" style={{marginBottom: '16px'}}>
+            <svg style={{width: '48px', height: '48px', margin: '0 auto'}} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h4 className="text-small text-primary" style={{marginBottom: '8px', fontWeight: 500}}>Performance Stats</h4>
+          <p className="text-small text-secondary" style={{marginBottom: '20px'}}>Coming with E14Z Pulse</p>
+          <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}} className="text-small text-tertiary">
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <span style={{color: 'var(--color-accent-fg)'}}>•</span>
+              <span>Real-time latency monitoring</span>
+            </div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <span style={{color: 'var(--color-accent-fg)'}}>•</span>
+              <span>Success rate tracking</span>
+            </div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <span style={{color: 'var(--color-accent-fg)'}}>•</span>
+              <span>Uptime percentages</span>
+            </div>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <span style={{color: 'var(--color-accent-fg)'}}>•</span>
+              <span>Usage analytics</span>
+            </div>
+          </div>
+        </div>
+        
+        <div style={{marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--color-border-muted)'}}>
+          <p className="text-small text-tertiary">
+            Stats collected by E14Z Pulse monitoring
+          </p>
+        </div>
       </div>
     </div>
   )

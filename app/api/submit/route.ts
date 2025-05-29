@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate slug from name
-    const slug = generateSlug(name)
+    // Generate slug from name, author, and verified status
+    const slug = generateSlug(name, author, false) // Submissions are unverified by default
 
     // Comprehensive duplicate check
     const duplicateCheck = await checkForDuplicates({

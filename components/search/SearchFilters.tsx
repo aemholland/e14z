@@ -1,6 +1,7 @@
 'use client'
 
 import type { SearchOptions } from '@/types'
+import { formatCategory } from '@/lib/utils/formatting'
 
 interface SearchFiltersProps {
   categories: string[]
@@ -26,91 +27,32 @@ export function SearchFilters({ categories, filters = {}, onFilterChange }: Sear
   const hasActiveFilters = Object.keys(filters).length > 0
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium text-gray-900">Filters</h3>
+    <div className="Box">
+      <div className="Box-header" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+        <h3 className="text-body text-primary">Filters</h3>
         {hasActiveFilters && (
           <button 
             onClick={clearAllFilters}
-            className="text-sm text-blue-600 hover:text-blue-700"
+            className="text-small text-accent"
+            style={{textDecoration: 'underline', border: 'none', background: 'transparent', cursor: 'pointer'}}
           >
             Clear all
           </button>
         )}
       </div>
 
-      <div className="space-y-6">
+      <div className="Box-body" style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
         
-        {/* Categories */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Category
-          </label>
-          <select 
-            value={filters.category || ''}
-            onChange={(e) => updateFilter('category', e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-          >
-            <option value="">All Categories</option>
-            {categories.map(category => (
-              <option key={category} value={category}>
-                {category.charAt(0).toUpperCase() + category.slice(1).replace('-', ' ')}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Pricing */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Pricing
-          </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pricing"
-                value=""
-                checked={!filters.pricing}
-                onChange={(e) => updateFilter('pricing', undefined)}
-                className="mr-2"
-              />
-              <span className="text-sm">All</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pricing"
-                value="free"
-                checked={filters.pricing === 'free'}
-                onChange={(e) => updateFilter('pricing', 'free')}
-                className="mr-2"
-              />
-              <span className="text-sm">Free</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="pricing"
-                value="paid"
-                checked={filters.pricing === 'paid'}
-                onChange={(e) => updateFilter('pricing', 'paid')}
-                className="mr-2"
-              />
-              <span className="text-sm">Paid</span>
-            </label>
-          </div>
-        </div>
-
         {/* Health Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="text-small text-tertiary" style={{display: 'block', marginBottom: '8px'}}>
             Health Status
           </label>
           <select 
             value={filters.healthStatus || ''}
             onChange={(e) => updateFilter('healthStatus', e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="form-control text-small"
+            style={{width: '100%'}}
           >
             <option value="">All Status</option>
             <option value="healthy">Healthy</option>
@@ -121,61 +63,68 @@ export function SearchFilters({ categories, filters = {}, onFilterChange }: Sear
 
         {/* Verification */}
         <div>
-          <label className="flex items-center">
+          <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
             <input
               type="checkbox"
               checked={filters.verified === true}
               onChange={(e) => updateFilter('verified', e.target.checked ? true : undefined)}
-              className="mr-2"
+              style={{
+                width: '16px',
+                height: '16px',
+                borderRadius: '4px',
+                border: '1px solid var(--color-border-default)',
+                backgroundColor: 'var(--color-canvas-default)',
+                accentColor: 'var(--color-accent-fg)'
+              }}
             />
-            <span className="text-sm">Verified only</span>
+            <span className="text-small text-secondary">Verified only</span>
           </label>
         </div>
 
         {/* Active Filters Summary */}
         {hasActiveFilters && (
-          <div className="pt-4 border-t">
-            <p className="text-xs text-gray-500 mb-2">Active filters:</p>
-            <div className="space-y-1">
-              {filters.category && (
-                <div className="flex items-center justify-between text-xs">
-                  <span>Category: {filters.category}</span>
-                  <button 
-                    onClick={() => updateFilter('category', undefined)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-              {filters.pricing && (
-                <div className="flex items-center justify-between text-xs">
-                  <span>Pricing: {filters.pricing}</span>
-                  <button 
-                    onClick={() => updateFilter('pricing', undefined)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
+          <div style={{paddingTop: '16px', borderTop: '1px solid var(--color-border-muted)'}}>
+            <p className="text-small text-tertiary" style={{marginBottom: '8px'}}>Active filters:</p>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '4px'}}>
               {filters.healthStatus && (
-                <div className="flex items-center justify-between text-xs">
-                  <span>Health: {filters.healthStatus}</span>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}} className="text-small">
+                  <span className="text-secondary">Health: {filters.healthStatus}</span>
                   <button 
                     onClick={() => updateFilter('healthStatus', undefined)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-danger"
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      width: '16px',
+                      height: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px'
+                    }}
                   >
                     ×
                   </button>
                 </div>
               )}
               {filters.verified && (
-                <div className="flex items-center justify-between text-xs">
-                  <span>Verified only</span>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}} className="text-small">
+                  <span className="text-secondary">Verified only</span>
                   <button 
                     onClick={() => updateFilter('verified', undefined)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-danger"
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      width: '16px',
+                      height: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '14px'
+                    }}
                   >
                     ×
                   </button>

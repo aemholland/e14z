@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Star, GitFork, Calendar, ExternalLink } from 'lucide-react'
 import type { MCP } from '@/types'
 import { HealthBadge } from './HealthBadge'
 
@@ -12,80 +13,63 @@ interface MCPCardProps {
 
 export function MCPCard({ mcp, highlights }: MCPCardProps) {
   return (
-    <Link href={`/mcp/${mcp.slug}`}>
-      <div className="bg-white p-6 rounded-lg shadow-sm border hover:shadow-md transition-shadow cursor-pointer">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-gray-900">
+    <Link href={`/mcp/${mcp.slug}`} style={{textDecoration: 'none'}}>
+      <div className="Box hover-lift" style={{height: '100%', display: 'flex', flexDirection: 'column'}}>
+        <div className="Box-body" style={{display: 'flex', flexDirection: 'column', height: '100%', padding: '24px'}}>
+          {/* Header */}
+          <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0}}>
+              <h3 className="text-body text-primary" style={{margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
                 {highlights?.name ? (
                   <span dangerouslySetInnerHTML={{ __html: highlights.name }} />
                 ) : (
-                  mcp.name
+                  mcp.name.replace(/\s+(Official|Community)$/i, '')
                 )}
               </h3>
               {mcp.verified && (
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  ✓ Verified
-                </span>
+                <span className="Label Label--success">Official</span>
               )}
             </div>
-            
-            <p className="text-sm text-gray-500 mt-1 mb-3">
-              {highlights?.description ? (
-                <span dangerouslySetInnerHTML={{ __html: highlights.description }} />
-              ) : (
-                mcp.description || 'No description available'
+            <HealthBadge status={mcp.health_status} />
+          </div>
+
+          {/* Author */}
+          {mcp.author && (
+            <div className="text-small text-tertiary" style={{marginBottom: '12px'}}>
+              by {mcp.author}
+            </div>
+          )}
+
+          {/* Description */}
+          <p className="text-small text-secondary" style={{marginBottom: '20px', lineHeight: 1.6, flex: 1, minHeight: '48px'}}>
+            {highlights?.description ? (
+              <span dangerouslySetInnerHTML={{ __html: highlights.description }} />
+            ) : (
+              mcp.description || 'No description available'
+            )}
+          </p>
+
+
+          {/* Footer */}
+          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', marginTop: 'auto', borderTop: '1px solid var(--color-border-muted)'}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '20px'}} className="text-small text-tertiary">
+              <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                <Calendar size={14} />
+                <span>{new Date(mcp.created_at).toLocaleDateString()}</span>
+              </div>
+              {mcp.rating && (
+                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
+                  <Star size={14} />
+                  <span>{mcp.rating.toFixed(1)}</span>
+                </div>
               )}
-            </p>
-            
-            <div className="flex items-center gap-2 mb-2">
-              <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                {mcp.category}
-              </span>
-              <span className="text-xs text-gray-400">•</span>
-              <span className="text-xs text-gray-500 capitalize">
-                {mcp.connection_type}
-              </span>
-              <span className="text-xs text-gray-400">•</span>
-              <span className="text-xs text-gray-500 capitalize">
-                {mcp.pricing_model}
-              </span>
             </div>
 
-            {mcp.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {mcp.tags.slice(0, 3).map((tag) => (
-                  <span 
-                    key={tag}
-                    className="inline-block bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {mcp.tags.length > 3 && (
-                  <span className="text-xs text-gray-400">
-                    +{mcp.tags.length - 3} more
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          
-          <div className="flex flex-col items-end gap-2">
-            <HealthBadge status={mcp.health_status} />
             {mcp.github_url && (
-              <a 
-                href={mcp.github_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-600"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-                </svg>
-              </a>
+              <div className="text-tertiary text-small" style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '4px'}}>
+                <ExternalLink size={14} />
+                <span>GitHub</span>
+              </div>
             )}
           </div>
         </div>
