@@ -234,7 +234,7 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
                                     <div style={{display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px'}}>
                                       {tool.parameters.map((param, paramIndex) => (
                                         <span key={paramIndex} className="Label Label--secondary">
-                                          {param}
+                                          {typeof param === 'string' ? param : `${param.name}${param.required ? '*' : ''}: ${param.type}`}
                                         </span>
                                       ))}
                                     </div>

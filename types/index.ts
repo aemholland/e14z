@@ -6,11 +6,18 @@ export interface InstallationMethod {
   confidence: number
 }
 
+export interface ToolParameter {
+  name: string
+  type: string
+  required: boolean
+  description?: string
+}
+
 export interface Tool {
   name: string
   description?: string
   category?: string
-  parameters?: string[]
+  parameters?: (string | ToolParameter)[]
 }
 
 export interface MCP {
