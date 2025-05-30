@@ -35,6 +35,15 @@ const mcpServer = {
           }
         };
         
+      case 'initialized':
+        // Client notification that initialization is complete
+        // Notifications MUST NOT return a response per JSON-RPC 2.0
+        return null;
+        
+      case 'notifications/initialized':
+        // Alternative notification format
+        return null;
+        
       case 'tools/list':
         return {
           tools: [
@@ -215,62 +224,6 @@ class MCPServer {
   }
   
   async start() {
-    // Handle stdin/stdout for MCP protocol
-    process.stdin.setEncoding('utf8');
-    
-    let buffer = '';
-    
-    process.stdin.on('data', async (chunk) => {
-      buffer += chunk;
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-      
-      for (const line of lines) {
-        if (line.trim()) {
-          let request = null;
-          try {
-            request = JSON.parse(line);
-            const response = await this.server.handleRequest(request);
-            
-            console.log(JSON.stringify({
-              jsonrpc: "2.0",
-              id: request.id,
-              result: response
-            }));
-          } catch (error) {
-            console.error('MCP Protocol Error:', error.message);
-            
-            // Determine appropriate error code
-            let errorCode = -32603; // Internal error default
-            if (error.message.includes('Unknown method')) {
-              errorCode = -32601; // Method not found
-            } else if (error.message.includes('Invalid params')) {
-              errorCode = -32602; // Invalid params
-            } else if (line.trim() && !request) {
-              errorCode = -32700; // Parse error
-            }
-            
-            console.log(JSON.stringify({
-              jsonrpc: "2.0", 
-              id: request?.id || null,
-              error: {
-                code: errorCode,
-                message: error.message,
-                data: {
-                  type: error.constructor.name,
-                  details: error.stack ? error.stack.split('\n')[0] : error.message
-                }
-              }
-            }));
-          }
-        }
-      }
-    });
-    
-    process.stdin.on('end', () => {
-      process.exit(0);
-    });
-    
     // Handle HTTP mode (for testing)
     if (process.argv.includes('--http')) {
       const http = require('http');
@@ -309,7 +262,70 @@ class MCPServer {
       server.listen(port, () => {
         console.error(`E14Z MCP Server running on http://localhost:${port}`);
       });
+      return;
     }
+    
+    // Handle stdin/stdout for MCP protocol
+    process.stdin.setEncoding('utf8');
+    
+    let buffer = '';
+    
+    process.stdin.on('data', async (chunk) => {
+      buffer += chunk;
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        if (line.trim()) {
+          let request = null;
+          try {
+            request = JSON.parse(line);
+            const response = await this.server.handleRequest(request);
+            
+            // Only send response for requests (with ID), not notifications
+            if (request.id !== undefined) {
+              console.log(JSON.stringify({
+                jsonrpc: "2.0",
+                id: request.id,
+                result: response
+              }));
+            }
+          } catch (error) {
+            console.error('MCP Protocol Error:', error.message);
+            
+            // Determine appropriate error code
+            let errorCode = -32603; // Internal error default
+            if (error.message.includes('Unknown method')) {
+              errorCode = -32601; // Method not found
+            } else if (error.message.includes('Invalid params')) {
+              errorCode = -32602; // Invalid params
+            } else if (line.trim() && !request) {
+              errorCode = -32700; // Parse error
+            }
+            
+            // Only send error response for requests (with ID), not notifications
+            if (request?.id !== undefined) {
+              console.log(JSON.stringify({
+                jsonrpc: "2.0", 
+                id: request.id,
+                error: {
+                  code: errorCode,
+                  message: error.message,
+                  data: {
+                    type: error.constructor.name,
+                    details: error.stack ? error.stack.split('\n')[0] : error.message
+                  }
+                }
+              }));
+            }
+          }
+        }
+      }
+    });
+    
+    process.stdin.on('end', () => {
+      process.exit(0);
+    });
   }
 }
 
