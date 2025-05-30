@@ -43,6 +43,23 @@ next-env.d.ts
 # PRIVATE/SENSITIVE - DO NOT COMMIT TO PUBLIC REPO
 # =============================================================================
 
+# Documentation & Process Files (Internal IP)
+*.md
+!README.md
+docs/
+VALIDATION_SYSTEM.md
+START_MCP_RESCRAPING.md
+CLAUDE_MCP_RESCRAPING.md
+MCP_DISCOVERY_WORKFLOW.md
+CONTRIBUTING.md
+DOCKER.md
+CRAWLER.md
+
+# Infrastructure & Deployment
+Dockerfile*
+docker-compose*.yml
+docker-compose*.yaml
+
 # Data collection & scraping (competitive advantage)
 lib/crawler/
 lib/ai/
@@ -52,12 +69,6 @@ lib/mcp/installationDetector.ts
 lib/mcp/multiInstallationDetector.ts
 lib/utils/deduplication.ts
 
-# Internal documentation & methodology
-*_RESCRAPING.md
-*_DISCOVERY_WORKFLOW.md
-CRAWLER.md
-PRIVATE_REPO_STRATEGY.md
-
 # Database & infrastructure
 sql/
 supabase/
@@ -66,3 +77,8 @@ supabase/
 # Private configurations
 *.private.*
 .env*
+claude_desktop_config.json
+
+# Backup files
+*.bak
+package.json.bak
