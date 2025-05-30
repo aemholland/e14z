@@ -14,7 +14,7 @@ const path = require('path');
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.2",
+  version: "1.0.4",
   
   // MCP Protocol handlers
   async handleRequest(request) {
