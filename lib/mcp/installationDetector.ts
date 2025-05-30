@@ -263,7 +263,22 @@ export function cleanInstallationCommand(command: string, installType: string): 
   // Remove $ or > prompts
   command = command.replace(/^[\$>]\s*/gm, '')
   
-  // Clean up extra whitespace
+  // Fix common parameter concatenation issues
+  command = command
+    // Add spaces before parameters that start with dashes
+    .replace(/([a-zA-Z0-9])(-[a-zA-Z])/g, '$1 $2')
+    // Add spaces around common parameter patterns
+    .replace(/([a-zA-Z0-9])(--[a-zA-Z])/g, '$1 $2')
+    // Fix Docker parameter concatenation
+    .replace(/([a-zA-Z0-9])(-e\s+)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-p\s+)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-v\s+)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-i)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(--rm)/g, '$1 $2')
+    // Fix NPM parameter concatenation 
+    .replace(/([a-zA-Z0-9])(@[a-zA-Z])/g, '$1 $2')
+  
+  // Clean up extra whitespace after fixes
   command = command.replace(/\s+/g, ' ').trim()
   
   // Ensure reasonable length (prevent extremely long commands)

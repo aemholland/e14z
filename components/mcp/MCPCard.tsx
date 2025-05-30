@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Star, GitFork, Calendar, ExternalLink } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import type { MCP } from '@/types'
 import { HealthBadge } from './HealthBadge'
 
@@ -51,27 +51,14 @@ export function MCPCard({ mcp, highlights }: MCPCardProps) {
 
 
           {/* Footer */}
-          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '16px', marginTop: 'auto', borderTop: '1px solid var(--color-border-muted)'}}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '20px'}} className="text-small text-tertiary">
-              <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                <Calendar size={14} />
-                <span>{new Date(mcp.created_at).toLocaleDateString()}</span>
-              </div>
-              {mcp.rating && (
-                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                  <Star size={14} />
-                  <span>{mcp.rating.toFixed(1)}</span>
-                </div>
-              )}
-            </div>
-
-            {mcp.github_url && (
-              <div className="text-tertiary text-small" style={{display: 'flex', alignItems: 'center', gap: '6px', padding: '4px'}}>
+          {mcp.github_url && (
+            <div style={{display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', marginTop: 'auto', borderTop: '1px solid var(--color-border-muted)'}}>
+              <div className="text-tertiary text-small" style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
                 <ExternalLink size={14} />
                 <span>GitHub</span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </Link>

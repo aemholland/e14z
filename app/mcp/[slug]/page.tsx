@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Copy, Check, Star, ExternalLink, Calendar, User, Shield, Zap } from 'lucide-react'
+import { ArrowLeft, Copy, Check, ExternalLink, User, Zap, Link } from 'lucide-react'
 import { getMCPBySlug } from '@/lib/search/engine'
 import { HealthBadge } from '@/components/mcp/HealthBadge'
 import { MCPStats } from '@/components/mcp/MCPStats'
@@ -89,24 +89,12 @@ export default async function MCPDetailPage({ params }: PageProps) {
               {mcp.description || 'No description available'}
             </p>
             
-            <div style={{display: 'flex', alignItems: 'center', gap: '20px'}} className="text-small text-tertiary">
-              {mcp.author && (
-                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                  <User size={16} />
-                  <span>{mcp.author}</span>
-                </div>
-              )}
-              <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                <Calendar size={16} />
-                <span>{new Date(mcp.created_at).toLocaleDateString()}</span>
+            {mcp.author && (
+              <div style={{display: 'flex', alignItems: 'center', gap: '6px'}} className="text-small text-tertiary">
+                <User size={16} />
+                <span>by {mcp.author}</span>
               </div>
-              {mcp.rating && (
-                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                  <Star size={16} className="text-accent" />
-                  <span>{mcp.rating.toFixed(1)}</span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
           
           <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
@@ -220,6 +208,70 @@ export default async function MCPDetailPage({ params }: PageProps) {
                     <p className="text-small text-primary">{mcp.protocol_version}</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* E14Z MCP Connection */}
+          <div className="Box">
+            <div className="Box-header">
+              <h2 className="text-subtitle" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <Link size={20} className="text-accent" />
+                Connect via E14Z MCP
+              </h2>
+            </div>
+            <div className="Box-body">
+              <p className="text-secondary" style={{marginBottom: '24px'}}>
+                Use our E14Z MCP server to discover and connect to this MCP directly from your AI agent. 
+                Get installation instructions, browse tools, and connect seamlessly without leaving your conversation.
+              </p>
+              
+              <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '24px'}}>
+                <div className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
+                  <div className="Box-body" style={{padding: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px'}}>
+                      <span className="text-small text-primary font-semibold">Claude Desktop</span>
+                      <button 
+                        className="btn btn-sm" 
+                        style={{fontSize: '12px'}} 
+                        onClick={() => navigator.clipboard.writeText('npx e14z-mcp')}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <code className="text-mono text-small" style={{color: 'var(--color-fg-default)'}}>
+                      npx e14z-mcp
+                    </code>
+                  </div>
+                </div>
+                
+                <div className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
+                  <div className="Box-body" style={{padding: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px'}}>
+                      <span className="text-small text-primary font-semibold">Docker</span>
+                      <button 
+                        className="btn btn-sm" 
+                        style={{fontSize: '12px'}} 
+                        onClick={() => navigator.clipboard.writeText('docker run -i --rm e14z/mcp-server')}
+                      >
+                        Copy
+                      </button>
+                    </div>
+                    <code className="text-mono text-small" style={{color: 'var(--color-fg-default)'}}>
+                      docker run -i --rm e14z/mcp-server
+                    </code>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{display: 'flex', gap: '16px'}}>
+                <a href="/docs" className="btn btn-primary">
+                  <ExternalLink size={16} style={{marginRight: '8px'}} />
+                  Setup Guide
+                </a>
+                <a href="/mcp/e14z" className="btn btn-secondary">
+                  View E14Z MCP
+                </a>
               </div>
             </div>
           </div>

@@ -59,11 +59,11 @@ export function analyzeInstallationMethods(content: string, githubUrl?: string):
     const dockerImageMatch = content.match(/ghcr\.io\/[^\s"]+/i)
     if (dockerImageMatch) {
       const dockerImage = dockerImageMatch[0]
-      const dockerCommand = `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ${dockerImage}`
+      const dockerCommand = `docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN=${process.env.GITHUB_PERSONAL_ACCESS_TOKEN || 'your_token_here'} ${dockerImage}`
       methods.push({
         type: 'docker',
         command: dockerCommand,
-        description: 'Run via Docker',
+        description: 'Run via Docker with GitHub authentication',
         priority: 2,
         confidence: 0.9
       })
@@ -339,6 +339,15 @@ function cleanCommand(command: string): string {
   return command
     .replace(/```[a-z]*\n?/g, '')
     .replace(/^[\$>]\s*/gm, '')
+    // Fix common parameter concatenation issues
+    .replace(/([a-zA-Z0-9])(-[a-zA-Z])/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(--[a-zA-Z])/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-e\s+)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-p\s+)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-v\s+)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(-i)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(--rm)/g, '$1 $2')
+    .replace(/([a-zA-Z0-9])(@[a-zA-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
 }

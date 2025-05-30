@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, Star, GitFork, Code2 } from 'lucide-react'
+import { Search, Code2, Link, ExternalLink } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -44,28 +44,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px', marginBottom: '64px'}}>
-        <div className="Box" style={{textAlign: 'center'}}>
-          <div className="Box-body">
-            <div className="text-title" style={{marginBottom: '8px'}}>50+</div>
-            <div className="text-secondary">MCP Servers</div>
-          </div>
-        </div>
-        <div className="Box" style={{textAlign: 'center'}}>
-          <div className="Box-body">
-            <div className="text-title" style={{marginBottom: '8px'}}>98.5%</div>
-            <div className="text-secondary">Uptime</div>
-          </div>
-        </div>
-        <div className="Box" style={{textAlign: 'center'}}>
-          <div className="Box-body">
-            <div className="text-title" style={{marginBottom: '8px'}}>1M+</div>
-            <div className="text-secondary">API Calls</div>
-          </div>
-        </div>
-      </div>
-
       {/* Featured MCPs */}
       <div style={{marginBottom: '64px'}}>
         <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px'}}>
@@ -76,28 +54,25 @@ export default function Home() {
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px'}}>
           {[
             {
-              name: 'GitHub Official',
+              name: 'GitHub',
               description: 'Interact with GitHub repositories, issues, and pull requests directly from your AI agent.',
               category: 'Development',
               verified: true,
-              stats: { stars: 1250, forks: 89 },
               slug: 'github'
+            },
+            {
+              name: 'Stripe',
+              description: 'Process payments, manage customers, and handle subscriptions with the official Stripe MCP.',
+              category: 'Payment Processing',
+              verified: true,
+              slug: 'stripe'
             },
             {
               name: 'MongoDB',
               description: 'Query and manage MongoDB databases with intelligent schema understanding.',
               category: 'Database',
-              verified: true,
-              stats: { stars: 890, forks: 45 },
-              slug: 'mongodb-quantgeekdev'
-            },
-            {
-              name: 'Docker',
-              description: 'Manage Docker containers, images, and orchestration from your AI agent.',
-              category: 'Development',
               verified: false,
-              stats: { stars: 567, forks: 34 },
-              slug: 'docker-quantgeekdev'
+              slug: 'mongodb'
             }
           ].map((mcp, idx) => {
             return (
@@ -120,20 +95,9 @@ export default function Home() {
                     <div className="status-indicator status-indicator--success"></div>
                   </div>
                   
-                  <p className="text-small text-secondary" style={{marginBottom: '20px', lineHeight: '1.6', minHeight: '48px'}}>
+                  <p className="text-small text-secondary" style={{marginBottom: '0', lineHeight: '1.6', minHeight: '48px'}}>
                     {mcp.description}
                   </p>
-                  
-                  <div style={{display: 'flex', alignItems: 'center', gap: '20px'}} className="text-small text-tertiary">
-                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      <Star size={14} />
-                      <span>{mcp.stats.stars}</span>
-                    </div>
-                    <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                      <GitFork size={14} />
-                      <span>{mcp.stats.forks}</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </a>
@@ -142,17 +106,79 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Connect to E14Z MCP */}
+      <div className="Box" style={{marginBottom: '64px'}}>
+        <div className="Box-body" style={{padding: '32px'}}>
+          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+            <div style={{flex: 1}}>
+              <h2 className="text-subtitle" style={{marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '12px'}}>
+                <Link size={24} className="text-accent" />
+                Connect to E14Z MCP
+              </h2>
+              <p className="text-secondary" style={{marginBottom: '24px', maxWidth: '500px'}}>
+                Use our E14Z MCP server to discover and connect to any MCP in our registry directly from your AI agent. 
+                Browse, search, and get installation instructions without leaving your conversation.
+              </p>
+              
+              <div style={{display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px'}}>
+                <div className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
+                  <div className="Box-body" style={{padding: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px'}}>
+                      <span className="text-small text-primary font-semibold">Claude Desktop</span>
+                      <button className="btn btn-sm" style={{fontSize: '12px'}} onClick={() => navigator.clipboard.writeText('npx e14z-mcp')}>
+                        Copy
+                      </button>
+                    </div>
+                    <code className="text-mono text-small" style={{color: 'var(--color-fg-default)'}}>
+                      npx e14z-mcp
+                    </code>
+                  </div>
+                </div>
+                
+                <div className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
+                  <div className="Box-body" style={{padding: '16px'}}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px'}}>
+                      <span className="text-small text-primary font-semibold">Docker</span>
+                      <button className="btn btn-sm" style={{fontSize: '12px'}} onClick={() => navigator.clipboard.writeText('docker run -i --rm e14z/mcp-server')}>
+                        Copy
+                      </button>
+                    </div>
+                    <code className="text-mono text-small" style={{color: 'var(--color-fg-default)'}}>
+                      docker run -i --rm e14z/mcp-server
+                    </code>
+                  </div>
+                </div>
+              </div>
+              
+              <div style={{display: 'flex', gap: '16px'}}>
+                <a href="/docs" className="btn btn-primary">
+                  <ExternalLink size={16} style={{marginRight: '8px'}} />
+                  Setup Guide
+                </a>
+                <a href="/mcp/e14z" className="btn btn-secondary">
+                  View Documentation
+                </a>
+              </div>
+            </div>
+            
+            <div style={{fontSize: '4rem', opacity: 0.1, marginLeft: '32px'}} className="text-tertiary">
+              <Link size={120} />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Categories */}
       <div style={{marginBottom: '64px'}}>
         <h2 className="text-subtitle" style={{marginBottom: '32px'}}>Browse by Category</h2>
         <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px'}}>
           {[
-            { name: 'Development', count: 15, icon: Code2 },
-            { name: 'Communication', count: 12, icon: Search },
-            { name: 'Database', count: 8, icon: Search },
-            { name: 'File Systems', count: 6, icon: Search },
-            { name: 'AI & ML', count: 5, icon: Search },
-            { name: 'Productivity', count: 4, icon: Search }
+            { name: 'Development', count: 8, icon: Code2 },
+            { name: 'Communication', count: 4, icon: Search },
+            { name: 'Database', count: 3, icon: Search },
+            { name: 'Payment Processing', count: 2, icon: Search },
+            { name: 'Infrastructure', count: 2, icon: Search },
+            { name: 'Productivity', count: 1, icon: Search }
           ].map((category, idx) => (
             <a
               key={idx}
