@@ -1,0 +1,391 @@
+/**
+ * MCP Validation Service
+ * Integrates duplicate detection and verification with database operations
+ */
+
+import { supabase } from '@/lib/supabase/client'
+import { 
+  validateAndDeduplicateMCP, 
+  checkVerificationStatus,
+  parseGitHubURL,
+  type MCPCandidate 
+} from '@/lib/utils/deduplication'
+
+interface MCPValidationOptions {
+  autoVerify?: boolean
+  skipDuplicateCheck?: boolean
+  forceAdd?: boolean
+}
+
+interface ValidationResult {
+  success: boolean
+  action: 'created' | 'updated' | 'skipped' | 'error'
+  mcpId?: string
+  slug?: string
+  messages: string[]
+  verification?: {
+    isOfficial: boolean
+    reason: string
+    confidence: number
+  }
+}
+
+/**
+ * Get existing MCPs for duplicate checking
+ */
+async function getExistingMCPs(): Promise<{ mcps: MCPCandidate[], slugs: string[] }> {
+  const { data: mcps, error } = await supabase
+    .from('mcps')
+    .select('id, name, slug, github_url, author, description')
+
+  if (error) {
+    throw new Error(`Failed to fetch existing MCPs: ${error.message}`)
+  }
+
+  return {
+    mcps: mcps || [],
+    slugs: (mcps || []).map(mcp => mcp.slug)
+  }
+}
+
+/**
+ * Auto-update verification status for existing MCPs
+ */
+export async function updateVerificationStatuses(): Promise<{
+  updated: number
+  errors: string[]
+}> {
+  const errors: string[] = []
+  let updated = 0
+
+  try {
+    const { data: mcps, error } = await supabase
+      .from('mcps')
+      .select('id, name, github_url, author, verified')
+
+    if (error) {
+      throw new Error(`Failed to fetch MCPs: ${error.message}`)
+    }
+
+    for (const mcp of mcps || []) {
+      try {
+        const verification = checkVerificationStatus({
+          name: mcp.name,
+          github_url: mcp.github_url,
+          author: mcp.author
+        })
+
+        // Only update if verification status has changed and confidence is high
+        if (verification.confidence >= 0.8 && verification.isOfficial !== mcp.verified) {
+          const { error: updateError } = await supabase
+            .from('mcps')
+            .update({
+              verified: verification.isOfficial,
+              verification_notes: verification.reason,
+              verified_at: verification.isOfficial ? new Date().toISOString() : null,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', mcp.id)
+
+          if (updateError) {
+            errors.push(`Failed to update ${mcp.name}: ${updateError.message}`)
+          } else {
+            updated++
+            console.log(`Updated verification for ${mcp.name}: ${verification.isOfficial ? 'verified' : 'unverified'} (${verification.reason})`)
+          }
+        }
+      } catch (err) {
+        errors.push(`Error processing ${mcp.name}: ${err}`)
+      }
+
+      // Rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+  } catch (err) {
+    errors.push(`Global error: ${err}`)
+  }
+
+  return { updated, errors }
+}
+
+/**
+ * Validate and add new MCP with comprehensive checks
+ */
+export async function validateAndAddMCP(
+  candidate: MCPCandidate,
+  options: MCPValidationOptions = {}
+): Promise<ValidationResult> {
+  const messages: string[] = []
+
+  try {
+    // Get existing data for validation
+    const { mcps: existingMCPs, slugs: existingSlugs } = await getExistingMCPs()
+
+    // Run comprehensive validation
+    const validation = await validateAndDeduplicateMCP(candidate, existingMCPs, existingSlugs)
+
+    if (!validation.isValid) {
+      return {
+        success: false,
+        action: 'error',
+        messages: [`Validation failed: ${validation.issues.join(', ')}`]
+      }
+    }
+
+    // Handle duplicate detection
+    if (validation.deduplication.isDuplicate && !options.forceAdd) {
+      messages.push(`Duplicate detected: ${validation.deduplication.reason}`)
+      
+      if (validation.deduplication.shouldReplace) {
+        messages.push('Candidate should replace existing MCP')
+        // TODO: Implement replacement logic
+        return {
+          success: false,
+          action: 'skipped',
+          messages: messages.concat(['Replacement logic not yet implemented'])
+        }
+      }
+
+      return {
+        success: false,
+        action: 'skipped',
+        messages
+      }
+    }
+
+    // Parse GitHub info for additional metadata
+    const githubInfo = parseGitHubURL(candidate.github_url)
+    if (!githubInfo) {
+      return {
+        success: false,
+        action: 'error',
+        messages: ['Invalid GitHub URL']
+      }
+    }
+
+    // Prepare MCP data for insertion
+    const mcpData = {
+      slug: validation.suggestedSlug,
+      name: candidate.name,
+      description: candidate.description || '',
+      endpoint: candidate.github_url, // Will be updated with actual installation command
+      github_url: candidate.github_url,
+      author: candidate.author || githubInfo.owner,
+      
+      // Verification
+      verified: options.autoVerify ? validation.verification.isOfficial : false,
+      verification_notes: validation.verification.reason,
+      verified_at: (options.autoVerify && validation.verification.isOfficial) ? new Date().toISOString() : null,
+      
+      // Metadata
+      connection_type: 'stdio', // Default, will be updated during enhancement
+      protocol_version: '2024-11-05',
+      category: 'productivity', // Default, will be updated during enhancement
+      pricing_model: 'free', // Default
+      
+      // Quality scoring
+      quality_score: validation.verification.confidence * 10,
+      
+      // Tracking
+      auto_discovered: true,
+      discovery_source: 'automated_validation',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+
+    // Insert into database
+    const { data: insertedMCP, error: insertError } = await supabase
+      .from('mcps')
+      .insert(mcpData)
+      .select('id, slug')
+      .single()
+
+    if (insertError) {
+      return {
+        success: false,
+        action: 'error',
+        messages: [`Database insertion failed: ${insertError.message}`]
+      }
+    }
+
+    messages.push(`Successfully added MCP: ${candidate.name}`)
+    if (validation.verification.isOfficial) {
+      messages.push(`Auto-verified as official (${validation.verification.reason})`)
+    }
+
+    return {
+      success: true,
+      action: 'created',
+      mcpId: insertedMCP.id,
+      slug: insertedMCP.slug,
+      messages,
+      verification: {
+        isOfficial: validation.verification.isOfficial,
+        reason: validation.verification.reason,
+        confidence: validation.verification.confidence
+      }
+    }
+
+  } catch (err) {
+    return {
+      success: false,
+      action: 'error',
+      messages: [`Unexpected error: ${err}`]
+    }
+  }
+}
+
+/**
+ * Batch validation for multiple MCPs
+ */
+export async function validateMCPBatch(
+  candidates: MCPCandidate[],
+  options: MCPValidationOptions = {}
+): Promise<{
+  results: ValidationResult[]
+  summary: {
+    total: number
+    created: number
+    updated: number
+    skipped: number
+    errors: number
+  }
+}> {
+  const results: ValidationResult[] = []
+  const summary = { total: candidates.length, created: 0, updated: 0, skipped: 0, errors: 0 }
+
+  for (const candidate of candidates) {
+    try {
+      const result = await validateAndAddMCP(candidate, options)
+      results.push(result)
+      
+      summary[result.action]++
+      
+      // Rate limiting between validations
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+    } catch (err) {
+      const errorResult: ValidationResult = {
+        success: false,
+        action: 'error',
+        messages: [`Batch processing error: ${err}`]
+      }
+      results.push(errorResult)
+      summary.errors++
+    }
+  }
+
+  return { results, summary }
+}
+
+/**
+ * Audit existing MCPs for duplicates and verification issues
+ */
+export async function auditExistingMCPs(): Promise<{
+  potentialDuplicates: Array<{
+    mcp1: any
+    mcp2: any
+    reason: string
+    confidence: number
+  }>
+  verificationUpdates: Array<{
+    mcp: any
+    currentStatus: boolean
+    suggestedStatus: boolean
+    reason: string
+    confidence: number
+  }>
+}> {
+  const potentialDuplicates: any[] = []
+  const verificationUpdates: any[] = []
+
+  const { data: mcps, error } = await supabase
+    .from('mcps')
+    .select('*')
+
+  if (error || !mcps) {
+    throw new Error(`Failed to fetch MCPs for audit: ${error?.message}`)
+  }
+
+  // Check for potential duplicates
+  for (let i = 0; i < mcps.length; i++) {
+    for (let j = i + 1; j < mcps.length; j++) {
+      const mcp1 = mcps[i]
+      const mcp2 = mcps[j]
+
+      // Check URL similarity
+      const github1 = parseGitHubURL(mcp1.github_url)
+      const github2 = parseGitHubURL(mcp2.github_url)
+
+      if (github1 && github2) {
+        // Same repo name, different owners
+        if (github1.repo === github2.repo && github1.owner !== github2.owner) {
+          potentialDuplicates.push({
+            mcp1,
+            mcp2,
+            reason: `Same repository name: ${github1.repo}`,
+            confidence: 0.8
+          })
+        }
+
+        // Same owner, similar repo names
+        if (github1.owner === github2.owner) {
+          const repoSimilarity = calculateStringSimilarity(github1.repo, github2.repo)
+          if (repoSimilarity > 0.7) {
+            potentialDuplicates.push({
+              mcp1,
+              mcp2,
+              reason: `Similar repository names under ${github1.owner}`,
+              confidence: repoSimilarity
+            })
+          }
+        }
+      }
+
+      // Check name similarity
+      const nameSimilarity = calculateStringSimilarity(mcp1.name, mcp2.name)
+      if (nameSimilarity > 0.8) {
+        potentialDuplicates.push({
+          mcp1,
+          mcp2,
+          reason: `Similar names: "${mcp1.name}" vs "${mcp2.name}"`,
+          confidence: nameSimilarity
+        })
+      }
+    }
+  }
+
+  // Check verification status
+  for (const mcp of mcps) {
+    const verification = checkVerificationStatus({
+      name: mcp.name,
+      github_url: mcp.github_url,
+      author: mcp.author
+    })
+
+    if (verification.confidence >= 0.8 && verification.isOfficial !== mcp.verified) {
+      verificationUpdates.push({
+        mcp,
+        currentStatus: mcp.verified,
+        suggestedStatus: verification.isOfficial,
+        reason: verification.reason,
+        confidence: verification.confidence
+      })
+    }
+  }
+
+  return { potentialDuplicates, verificationUpdates }
+}
+
+// Helper function for string similarity (simplified Jaccard similarity)
+function calculateStringSimilarity(str1: string, str2: string): number {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, ' ').split(' ').filter(w => w.length > 0)
+  
+  const words1 = new Set(normalize(str1))
+  const words2 = new Set(normalize(str2))
+  
+  const intersection = new Set([...words1].filter(word => words2.has(word)))
+  const union = new Set([...words1, ...words2])
+  
+  return intersection.size / union.size
+}

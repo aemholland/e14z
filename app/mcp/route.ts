@@ -236,11 +236,17 @@ async function handleDiscoverMCPs(args: any, id: any, request: NextRequest) {
         connection: {
           type: result.mcp.connection_type,
           auth_method: result.mcp.auth_method,
-          protocol_version: result.mcp.protocol_version,
-          capabilities: result.mcp.capabilities
+          protocol_version: result.mcp.protocol_version
         },
         category: result.mcp.category,
         tags: result.mcp.tags,
+        tools: result.mcp.tools?.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          category: tool.category,
+          parameters: tool.parameters || []
+        })) || [],
+        tool_count: result.mcp.tools?.length || 0,
         verified: result.mcp.verified,
         health_status: result.mcp.health_status,
         pricing_model: result.mcp.pricing_model,
@@ -290,8 +296,7 @@ async function handleGetMCPDetails(args: any, id: any) {
         connection: {
           type: mcp.connection_type,
           auth_method: mcp.auth_method,
-          protocol_version: mcp.protocol_version,
-          capabilities: mcp.capabilities
+          protocol_version: mcp.protocol_version
         },
         category: mcp.category,
         tags: mcp.tags,

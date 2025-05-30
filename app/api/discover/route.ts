@@ -81,9 +81,16 @@ export async function GET(request: NextRequest) {
         connection: {
           type: result.mcp.connection_type,
           auth_method: result.mcp.auth_method,
-          protocol_version: result.mcp.protocol_version,
-          capabilities: result.mcp.capabilities
+          protocol_version: result.mcp.protocol_version
         },
+        
+        tools: result.mcp.tools?.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          category: tool.category,
+          parameters: tool.parameters || []
+        })) || [],
+        tool_count: result.mcp.tools?.length || 0,
         
         pricing: {
           model: result.mcp.pricing_model,
@@ -105,6 +112,19 @@ export async function GET(request: NextRequest) {
         verified: result.mcp.verified,
         github_url: result.mcp.github_url,
         documentation_url: result.mcp.documentation_url,
+        website_url: result.mcp.website_url,
+        use_cases: result.mcp.use_cases,
+        
+        metadata: {
+          author: result.mcp.author,
+          company: result.mcp.company,
+          license: result.mcp.license,
+          created_at: result.mcp.created_at,
+          updated_at: result.mcp.updated_at
+        },
+        
+        installation_methods: result.mcp.installation_methods,
+        install_type: result.mcp.install_type,
         last_active: result.mcp.updated_at
       })),
       total_results: total,
