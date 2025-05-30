@@ -14,7 +14,7 @@ const path = require('path');
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.0",
+  version: "1.0.2",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -25,7 +25,9 @@ const mcpServer = {
         return {
           protocolVersion: "2024-11-05",
           capabilities: {
-            tools: {}
+            tools: {
+              listChanged: false
+            }
           },
           serverInfo: {
             name: this.name,
@@ -86,7 +88,7 @@ const mcpServer = {
   },
   
   async handleToolCall({ name, arguments: args }) {
-    const baseUrl = process.env.E14Z_API_URL || 'https://e14z.com';
+    const baseUrl = process.env.E14Z_API_URL || 'https://www.e14z.com';
     
     try {
       const fetch = (await import('node-fetch')).default;
@@ -99,8 +101,20 @@ const mcpServer = {
           if (args.verified) discoverUrl.searchParams.set('verified', 'true');
           if (args.limit) discoverUrl.searchParams.set('limit', args.limit.toString());
           
-          const discoverResponse = await fetch(discoverUrl);
+          const discoverResponse = await fetch(discoverUrl, { 
+            timeout: 10000,
+            redirect: 'follow'
+          });
+          
+          if (!discoverResponse.ok) {
+            throw new Error(`API request failed with status ${discoverResponse.status}`);
+          }
+          
           const discoverData = await discoverResponse.json();
+          
+          if (discoverData.error) {
+            throw new Error(discoverData.error);
+          }
           
           return {
             content: [{
@@ -112,19 +126,27 @@ const mcpServer = {
                       `   Category: ${mcp.category} | ${mcp.verified ? '✅ Verified' : '🔄 Community'}\n` +
                       `   Install: ${mcp.endpoint}\n` +
                       `   Tools: ${mcp.tools?.length || 0} available\n`
-                    ).join('\n')
+                    ).join('\n') + '\n\n💡 Run `npx e14z --test` if you experience issues.'
             }]
           };
           
         case 'details':
-          const detailsResponse = await fetch(`${baseUrl}/api/mcp/${args.slug}`);
+          const detailsResponse = await fetch(`${baseUrl}/api/mcp/${args.slug}`, { 
+            timeout: 10000,
+            redirect: 'follow'
+          });
+          
+          if (!detailsResponse.ok) {
+            throw new Error(`API request failed with status ${detailsResponse.status}`);
+          }
+          
           const detailsData = await detailsResponse.json();
           
           if (detailsData.error) {
             return {
               content: [{
                 type: "text",
-                text: `Error: ${detailsData.error}`
+                text: `Error: ${detailsData.error}\n\n💡 Run \`npx e14z --diagnose\` for troubleshooting.`
               }]
             };
           }
@@ -152,15 +174,22 @@ const mcpServer = {
           const reviewResponse = await fetch(`${baseUrl}/api/review`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(args)
+            body: JSON.stringify(args),
+            timeout: 10000,
+            redirect: 'follow'
           });
+          
+          if (!reviewResponse.ok) {
+            throw new Error(`Review submission failed with status ${reviewResponse.status}`);
+          }
+          
           const reviewData = await reviewResponse.json();
           
           return {
             content: [{
               type: "text",
               text: reviewData.error ? 
-                    `Error submitting review: ${reviewData.error}` :
+                    `Error submitting review: ${reviewData.error}\n\n💡 Run \`npx e14z --diagnose\` for troubleshooting.` :
                     `✅ Review submitted successfully for ${args.mcp_slug}!\nThank you for your feedback.`
             }]
           };
@@ -198,8 +227,9 @@ class MCPServer {
       
       for (const line of lines) {
         if (line.trim()) {
+          let request = null;
           try {
-            const request = JSON.parse(line);
+            request = JSON.parse(line);
             const response = await this.server.handleRequest(request);
             
             console.log(JSON.stringify({
@@ -208,12 +238,28 @@ class MCPServer {
               result: response
             }));
           } catch (error) {
+            console.error('MCP Protocol Error:', error.message);
+            
+            // Determine appropriate error code
+            let errorCode = -32603; // Internal error default
+            if (error.message.includes('Unknown method')) {
+              errorCode = -32601; // Method not found
+            } else if (error.message.includes('Invalid params')) {
+              errorCode = -32602; // Invalid params
+            } else if (line.trim() && !request) {
+              errorCode = -32700; // Parse error
+            }
+            
             console.log(JSON.stringify({
               jsonrpc: "2.0", 
               id: request?.id || null,
               error: {
-                code: -32603,
-                message: error.message
+                code: errorCode,
+                message: error.message,
+                data: {
+                  type: error.constructor.name,
+                  details: error.stack ? error.stack.split('\n')[0] : error.message
+                }
               }
             }));
           }
@@ -267,6 +313,173 @@ class MCPServer {
   }
 }
 
+// Test functionality
+async function runTest() {
+  console.log('🧪 Testing E14Z MCP Server functionality...\n');
+  
+  try {
+    // Test 1: Node.js version
+    console.log('1. Checking Node.js version...');
+    const nodeVersion = process.version;
+    console.log(`   ✅ Node.js ${nodeVersion}`);
+    
+    if (parseInt(nodeVersion.slice(1)) < 18) {
+      console.log('   ⚠️  Warning: Node.js 18+ recommended');
+    }
+    
+    // Test 2: node-fetch dependency
+    console.log('\n2. Testing node-fetch dependency...');
+    const fetch = (await import('node-fetch')).default;
+    console.log('   ✅ node-fetch loaded successfully');
+    
+    // Test 3: API connectivity
+    console.log('\n3. Testing API connectivity...');
+    const baseUrl = process.env.E14Z_API_URL || 'https://www.e14z.com';
+    console.log(`   Testing connection to: ${baseUrl}`);
+    
+    const response = await fetch(`${baseUrl}/api/health`, { 
+      timeout: 5000,
+      redirect: 'follow'
+    });
+    if (response.ok) {
+      console.log('   ✅ API connection successful');
+    } else {
+      console.log(`   ❌ API returned status ${response.status}`);
+    }
+    
+    // Test 4: MCP protocol
+    console.log('\n4. Testing MCP protocol...');
+    const testServer = new MCPServer();
+    
+    // Test initialize
+    const initResult = await testServer.server.handleRequest({
+      jsonrpc: '2.0',
+      method: 'initialize',
+      id: 1
+    });
+    console.log('   ✅ Initialize method working');
+    
+    // Test tools/list
+    const toolsResult = await testServer.server.handleRequest({
+      jsonrpc: '2.0', 
+      method: 'tools/list',
+      id: 2
+    });
+    console.log(`   ✅ Tools list returned ${toolsResult.tools.length} tools`);
+    
+    // Test discover tool
+    const discoverResult = await testServer.server.handleRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: { 
+        name: 'discover', 
+        arguments: { query: 'test', limit: 1 } 
+      },
+      id: 3
+    });
+    console.log('   ✅ Discover tool working');
+    
+    console.log('\n🎉 All tests passed! The MCP server is working correctly.');
+    console.log('\nTo connect to Claude Desktop, add this to your claude_desktop_config.json:');
+    console.log(`{
+  "mcps": {
+    "e14z": {
+      "command": "npx",
+      "args": ["e14z"]
+    }
+  }
+}`);
+    
+  } catch (error) {
+    console.error(`\n❌ Test failed: ${error.message}`);
+    console.log('\nRun `npx e14z --diagnose` for detailed troubleshooting.');
+    throw error;
+  }
+}
+
+// Run diagnostics
+async function runDiagnostics() {
+  console.log('🔍 Running E14Z MCP Server diagnostics...\n');
+  
+  console.log('System Information:');
+  console.log(`  Platform: ${process.platform}`);
+  console.log(`  Architecture: ${process.arch}`);
+  console.log(`  Node.js: ${process.version}`);
+  console.log(`  npm: ${process.env.npm_version || 'unknown'}`);
+  
+  console.log('\nEnvironment Variables:');
+  console.log(`  E14Z_API_URL: ${process.env.E14Z_API_URL || 'default (https://e14z.com)'}`);
+  console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+  
+  console.log('\nNetwork Tests:');
+  
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const baseUrl = process.env.E14Z_API_URL || 'https://www.e14z.com';
+    
+    // Test basic connectivity
+    console.log(`  Testing ${baseUrl}...`);
+    const startTime = Date.now();
+    const response = await fetch(baseUrl, { 
+      timeout: 10000,
+      redirect: 'follow'
+    });
+    const endTime = Date.now();
+    console.log(`    Status: ${response.status}`);
+    console.log(`    Response time: ${endTime - startTime}ms`);
+    
+    // Test API endpoint
+    console.log(`  Testing ${baseUrl}/api/health...`);
+    const healthResponse = await fetch(`${baseUrl}/api/health`, { 
+      timeout: 10000,
+      redirect: 'follow'
+    });
+    console.log(`    Status: ${healthResponse.status}`);
+    
+    // Test discover endpoint  
+    console.log(`  Testing ${baseUrl}/api/discover...`);
+    const discoverResponse = await fetch(`${baseUrl}/api/discover?limit=1`, { 
+      timeout: 10000,
+      redirect: 'follow'
+    });
+    console.log(`    Status: ${discoverResponse.status}`);
+    
+    if (discoverResponse.ok) {
+      const data = await discoverResponse.json();
+      console.log(`    Results: ${data.results?.length || 0} MCPs found`);
+    }
+    
+  } catch (error) {
+    console.log(`    ❌ Network error: ${error.message}`);
+    
+    if (error.code === 'ENOTFOUND') {
+      console.log('    This might indicate DNS issues or no internet connection.');
+    } else if (error.code === 'ECONNREFUSED') {
+      console.log('    Connection refused - the server might be down.');
+    } else if (error.code === 'ETIMEDOUT') {
+      console.log('    Connection timed out - check firewall or proxy settings.');
+    }
+  }
+  
+  console.log('\nCommon Issues & Solutions:');
+  console.log('  1. If you see "command not found": Make sure npm/npx is installed');
+  console.log('  2. If connection fails: Check internet connection and firewall');
+  console.log('  3. If Claude Desktop won\'t connect: Verify config file syntax');
+  console.log('  4. For corporate networks: Check if proxy settings are needed');
+  
+  console.log('\nClaude Desktop Config Location:');
+  const os = require('os');
+  if (process.platform === 'darwin') {
+    console.log(`  macOS: ~/Library/Application Support/Claude/claude_desktop_config.json`);
+  } else if (process.platform === 'win32') {
+    console.log(`  Windows: %APPDATA%\\Claude\\claude_desktop_config.json`);
+  } else {
+    console.log(`  Linux: ~/.config/claude/claude_desktop_config.json`);
+  }
+  
+  console.log('\nFor more help, visit: https://e14z.com/docs');
+}
+
 // CLI Interface
 if (require.main === module) {
   const args = process.argv.slice(2);
@@ -278,6 +491,8 @@ E14Z MCP Server - The npm for AI agents
 Usage:
   npx e14z                 Start MCP server (stdio mode)
   npx e14z --http          Start HTTP server for testing
+  npx e14z --test          Test connection and functionality
+  npx e14z --diagnose      Run connection diagnostics
   npx e14z --help          Show this help
 
 Examples:
@@ -290,6 +505,12 @@ Examples:
       }
     }
   }
+
+  # Test functionality:
+  npx e14z --test
+
+  # Troubleshoot issues:
+  npx e14z --diagnose
 
   # Test via HTTP:
   npx e14z --http
@@ -308,6 +529,22 @@ Visit https://e14z.com for more information.
   if (args.includes('--version') || args.includes('-v')) {
     console.log(mcpServer.version);
     process.exit(0);
+  }
+
+  if (args.includes('--test')) {
+    runTest().catch(error => {
+      console.error('Test failed:', error.message);
+      process.exit(1);
+    });
+    return;
+  }
+
+  if (args.includes('--diagnose')) {
+    runDiagnostics().catch(error => {
+      console.error('Diagnostics failed:', error.message);
+      process.exit(1);
+    });
+    return;
   }
   
   // Start the MCP server

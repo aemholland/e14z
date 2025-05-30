@@ -113,6 +113,73 @@ curl -X POST http://localhost:3000/mcp \
 
 - `E14Z_API_URL` - Override API endpoint (default: https://e14z.com)
 
+## 🔧 Troubleshooting
+
+### Quick Diagnostics
+
+If you're having connection issues, run these commands:
+
+```bash
+# Test functionality
+npx e14z --test
+
+# Full diagnostics
+npx e14z --diagnose
+```
+
+### Common Issues
+
+#### "Command not found" Error
+```bash
+# Make sure npm/npx is installed and in your PATH
+npm --version
+npx --version
+```
+
+#### Claude Desktop Connection Issues
+
+1. **Check config file location:**
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Linux**: `~/.config/claude/claude_desktop_config.json`
+
+2. **Verify JSON syntax:**
+   ```json
+   {
+     "mcps": {
+       "e14z": {
+         "command": "npx",
+         "args": ["e14z"]
+       }
+     }
+   }
+   ```
+
+3. **Restart Claude Desktop** after making config changes
+
+#### Network Connection Issues
+
+- **Corporate Networks**: You may need to configure proxy settings
+- **Firewalls**: Ensure access to `https://e14z.com`
+- **DNS**: Try `nslookup e14z.com` to verify DNS resolution
+
+#### Node.js Version Issues
+
+```bash
+# Check your Node.js version (requires 18+)
+node --version
+
+# Update Node.js if needed
+# Visit https://nodejs.org for latest version
+```
+
+### Getting Help
+
+- **Test first**: Run `npx e14z --test` to verify functionality
+- **Check logs**: Claude Desktop shows MCP connection logs
+- **Report issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
+- **Documentation**: [e14z.com/docs](https://e14z.com/docs)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
