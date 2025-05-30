@@ -1,8 +1,11 @@
 {
   "name": "e14z",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "1.0.1",
+  "description": "The npm for AI agents - Discover, evaluate, and connect to Model Context Protocol (MCP) servers",
+  "main": "bin/e14z.js",
+  "bin": {
+    "e14z": "./bin/e14z.js"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -32,9 +35,36 @@
     "docker:stop": "docker compose down",
     "docker:clean": "docker compose down -v --rmi all"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "agent",
+    "tools",
+    "discovery",
+    "claude",
+    "anthropic",
+    "openai",
+    "llm"
+  ],
+  "author": "E14Z Team",
   "license": "MIT",
+  "homepage": "https://e14z.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aemholland/e14z.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aemholland/e14z/issues"
+  },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "type": "commonjs",
   "dependencies": {
     "@headlessui/react": "^2.2.4",
@@ -82,6 +112,7 @@
     "framer-motion": "^12.15.0",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",
+    "node-fetch": "^3.3.2",
     "postcss": "^8.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
