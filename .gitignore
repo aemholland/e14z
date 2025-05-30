@@ -38,3 +38,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# =============================================================================
+# PRIVATE/SENSITIVE - DO NOT COMMIT TO PUBLIC REPO
+# =============================================================================
+
+# Data collection & scraping (competitive advantage)
+lib/crawler/
+lib/ai/
+scripts/
+lib/mcp/processor.ts
+lib/mcp/installationDetector.ts
+lib/mcp/multiInstallationDetector.ts
+lib/utils/deduplication.ts
+
+# Internal documentation & methodology
+*_RESCRAPING.md
+*_DISCOVERY_WORKFLOW.md
+CRAWLER.md
+PRIVATE_REPO_STRATEGY.md
+
+# Database & infrastructure
+sql/
+supabase/
+*.sql
+
+# Private configurations
+*.private.*
+.env*

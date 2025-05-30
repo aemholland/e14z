@@ -1,177 +1,161 @@
-# E14Z - Model Context Protocol Discovery Platform
+# E14Z - AI Tool Discovery Platform
 
-A comprehensive platform for discovering, evaluating, and connecting to Model Context Protocol (MCP) servers. E14Z provides intelligent search capabilities and real-time monitoring to help developers and AI systems find the right tools for any task.
+> The npm for AI agents. Discover, evaluate, and connect to Model Context Protocol (MCP) servers.
 
-## Overview
+[![Live Platform](https://img.shields.io/badge/Platform-Live-green)](https://e14z.com)
+[![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-E14Z serves as a centralized registry and discovery service for MCP servers, offering both web interface and programmatic access through REST and native MCP APIs. The platform combines intelligent search algorithms with performance monitoring to ensure reliable tool discovery.
+## What is E14Z?
 
-## Features
+E14Z is a discovery platform for Model Context Protocol (MCP) servers - the tools that power AI agents. Think of it as "npm for AI tools" where developers can:
 
-### Search & Discovery
-- **Intelligent Search**: Advanced ranking system considering relevance, performance, and health status
-- **Comprehensive Filtering**: Filter by category, verification status, health, and more
-- **Real-time Results**: Fast search with highlighting and contextual information
+- **Discover** MCP servers for any use case (payments, databases, APIs, etc.)
+- **Evaluate** server quality, reliability, and community reviews  
+- **Connect** directly from their AI agent with installation instructions
+- **Contribute** by submitting new MCP servers to the registry
 
-### Monitoring & Analytics
-- **Health Monitoring**: Live status indicators and uptime tracking
-- **Performance Metrics**: Response time and reliability analytics
-- **Usage Statistics**: Comprehensive metrics for informed decision-making
+## 🚀 For AI Agent Users
 
-### APIs & Integration
-- **REST API**: Standard HTTP endpoints for web applications
-- **Native MCP Protocol**: Direct MCP server integration
-- **Multiple Formats**: JSON responses with flexible data formats
+### Connect to E14Z MCP Server
 
-### User Interface
-- **Professional Design**: Clean, GitHub-inspired interface
-- **Responsive Layout**: Optimized for desktop and mobile devices
-- **Detailed Views**: Comprehensive MCP information and installation guides
+Get access to our entire MCP registry directly from your AI agent:
 
-## Technology Stack
+```bash
+# Via NPX (recommended)
+npx e14z-mcp
 
-- **Frontend**: Next.js 15 with TypeScript
-- **Styling**: Custom CSS with GitHub design system
-- **Database**: Supabase (PostgreSQL)
-- **Search**: Full-text search with trigram similarity
-- **Deployment**: Vercel with serverless functions
-- **Monitoring**: Real-time health checks and performance tracking
+# Via Docker
+docker run -i --rm e14z/mcp-server
+```
 
-## Quick Start
+Once connected, your AI agent can:
+- Search for MCP servers: *"Find me payment processing tools"*
+- Get installation instructions: *"How do I connect to the Stripe MCP?"*
+- Discover by category: *"Show me all database tools"*
+
+### Available Tools
+
+- `discover` - Search and filter MCP servers
+- `details` - Get detailed info about any MCP
+- `review` - Submit feedback after using an MCP
+
+## 🛠️ For MCP Developers
+
+### Submit Your MCP Server
+
+1. Visit [e14z.com/submit](https://e14z.com/submit)
+2. Provide your GitHub repository URL
+3. Our system automatically extracts:
+   - Installation methods (npm, docker, git)
+   - Available tools and capabilities
+   - Documentation and examples
+
+### Requirements
+
+- GitHub repository with clear README
+- Valid MCP server implementation
+- Installation instructions
+- Tool documentation
+
+## 🏗️ Development Setup
 
 ### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Supabase account
 
-### Installation
+- Node.js 18+
+- Docker (optional)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/aemholland/e14z.git
-   cd e14z
-   ```
+### Local Development
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/aemholland/e14z.git
+cd e14z
 
-3. **Configure environment**
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Update `.env.local` with your Supabase credentials:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-   ```
+# Install dependencies
+npm install
 
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
+# Start development server
+npm run dev
 
-5. **Access the application**
-   Open [http://localhost:3000](http://localhost:3000) in your browser
+# Visit http://localhost:3000
+```
 
-## API Documentation
+### Docker Development
+
+```bash
+# Start with Docker Compose
+npm run docker:dev
+
+# Visit http://localhost:3000
+```
+
+## 📚 API Reference
 
 ### REST API
 
-**Search MCPs**
 ```bash
-curl "https://e14z.com/api/discover?q=database&verified=true&limit=10"
+# Search MCPs
+GET /api/discover?q=payments&verified=true
+
+# Get MCP details  
+GET /api/mcp/{slug}
+
+# Submit new MCP
+POST /api/submit
 ```
 
-**Submit New MCP**
+### MCP Protocol API
+
 ```bash
-curl -X POST "https://e14z.com/api/submit" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Example MCP",
-    "description": "Example MCP server",
-    "endpoint": "npx example-mcp-server",
-    "category": "development"
-  }'
+# Connect via MCP protocol
+POST /mcp
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "method": "tools/call",
+  "params": {
+    "name": "discover",
+    "arguments": {
+      "query": "database tools",
+      "verified": true
+    }
+  },
+  "id": 1
+}
 ```
 
-### MCP Protocol
+## 🏢 Categories
 
-Connect directly via MCP protocol:
-```bash
-# Example using MCP client
-mcp connect https://e14z.com/mcp
-```
+- **Development** - GitHub, CI/CD, code tools
+- **Communication** - Slack, Discord, messaging
+- **Database** - MongoDB, SQL, data management  
+- **Payment Processing** - Stripe, Square, billing
+- **Infrastructure** - Docker, Kubernetes, DevOps
+- **Productivity** - Task management, automation
 
-Available tools:
-- `discover`: Search for MCP servers
-- `details`: Get detailed MCP information
-- `review`: Submit performance feedback
+## 🤝 Contributing
 
-## Database Schema
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-The platform uses a scalable PostgreSQL schema:
+### Ways to Contribute
 
-- **mcps**: Core MCP registry with metadata and configuration
-- **performance_logs**: Time-series performance and monitoring data  
-- **reviews**: User feedback and ratings
-- **health_checks**: Real-time availability monitoring
-- **api_calls**: Usage analytics and discovery metrics
+- **Submit MCPs** - Add your MCP server to the registry
+- **Improve UI/UX** - Enhance the developer experience
+- **Report Issues** - Help us fix bugs and improve quality
+- **Write Documentation** - Help other developers get started
 
-## Contributing
+## 📄 License
 
-We welcome contributions to improve E14Z. Please follow these guidelines:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### Submitting MCPs
+## 🌟 Community
 
-1. **Web Interface**: Use the submission form at [e14z.com/submit](https://e14z.com/submit)
-2. **API**: Submit programmatically via the `/api/submit` endpoint
-3. **GitHub**: Create an issue with the MCP submission template
-
-### Code Contributions
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow TypeScript best practices
-- Maintain test coverage for new features
-- Use the established code formatting
-- Update documentation for API changes
-
-## Performance
-
-Current platform metrics:
-
-- **Response Time**: <100ms average search latency
-- **Availability**: 99.9% uptime target
-- **Capacity**: Handles 1000+ concurrent searches
-- **Growth**: 50+ MCP servers indexed and growing
-
-## Support
-
-- **Documentation**: [e14z.com/docs](https://e14z.com/docs)
+- **Website**: [e14z.com](https://e14z.com)
 - **Issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/aemholland/e14z/discussions)
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [Model Context Protocol](https://modelcontextprotocol.io/) for the protocol specification
-- [Anthropic](https://anthropic.com/) for MCP development and Claude
-- The MCP community for building an ecosystem of useful tools
-- All contributors who have helped improve this platform
-
 ---
 
-**E14Z** - Connecting AI systems to the tools they need.
+**Built for the AI-powered future** 🤖
