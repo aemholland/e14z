@@ -197,7 +197,7 @@ export async function getCategories(): Promise<string[]> {
 
     if (error) throw error
 
-    const categories = [...new Set(data.map(row => row.category))].sort()
+    const categories = Array.from(new Set(data.map(row => row.category))).sort()
     return categories
   } catch (error) {
     console.error('Error fetching categories:', error)

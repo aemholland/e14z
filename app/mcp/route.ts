@@ -419,7 +419,7 @@ async function handleResourcesRead(params: any, id: any) {
           .select('category')
           .not('category', 'is', null)
 
-        const categories = [...new Set(categoryData?.map(row => row.category) || [])].sort()
+        const categories = Array.from(new Set(categoryData?.map(row => row.category) || [])).sort()
         
         return NextResponse.json({
           jsonrpc: '2.0',

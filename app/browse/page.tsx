@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { SearchBar } from '@/components/search/SearchBar'
 import { MCPCard } from '@/components/mcp/MCPCard'
@@ -8,7 +8,7 @@ import { SearchFilters } from '@/components/search/SearchFilters'
 import { searchMCPs, getCategories } from '@/lib/search/engine'
 import type { RankedResult, SearchOptions } from '@/types'
 
-export default function BrowsePage() {
+function BrowsePageContent() {
   const searchParams = useSearchParams()
   const [results, setResults] = useState<RankedResult[]>([])
   const [categories, setCategories] = useState<string[]>([])
@@ -244,5 +244,13 @@ export default function BrowsePage() {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BrowsePageContent />
+    </Suspense>
   )
 }

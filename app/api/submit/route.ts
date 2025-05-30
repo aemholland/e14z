@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
-import { checkForDuplicates, generateSlug } from '@/lib/utils/deduplication'
+import { checkForDuplicates, generateSlug } from '@/lib/utils/public-deduplication'
 
 export async function POST(request: NextRequest) {
   try {

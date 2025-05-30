@@ -9,7 +9,7 @@ import {
   checkVerificationStatus,
   parseGitHubURL,
   type MCPCandidate 
-} from '@/lib/utils/deduplication'
+} from '@/lib/utils/public-deduplication'
 
 interface MCPValidationOptions {
   autoVerify?: boolean

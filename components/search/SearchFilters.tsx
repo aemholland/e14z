@@ -10,8 +10,8 @@ interface SearchFiltersProps {
 }
 
 export function SearchFilters({ categories, filters = {}, onFilterChange }: SearchFiltersProps) {
-  const updateFilter = (key: keyof SearchOptions['filters'], value: any) => {
-    const newFilters = { ...filters }
+  const updateFilter = (key: string, value: any) => {
+    const newFilters = { ...filters } as any
     if (value === '' || value === undefined) {
       delete newFilters[key]
     } else {
