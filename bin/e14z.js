@@ -10,11 +10,14 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
+// Generate session ID for tracking user reviews
+const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
 // MCP Server implementation
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.5",
+  version: "1.0.7",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -77,12 +80,17 @@ const mcpServer = {
               inputSchema: {
                 type: "object",
                 properties: {
-                  mcp_slug: { type: "string", description: "MCP server slug" },
+                  mcp_id: { type: "string", description: "MCP server ID (from discover results)" },
                   rating: { type: "number", description: "Rating from 1-10" },
                   review_text: { type: "string", description: "Optional review text" },
-                  use_case: { type: "string", description: "What you used it for" }
+                  use_case: { type: "string", description: "What you used it for" },
+                  success: { type: "boolean", description: "Did the MCP work as expected?" },
+                  tasks_completed: { type: "number", description: "Number of successful tasks" },
+                  tasks_failed: { type: "number", description: "Number of failed tasks" },
+                  latency_ms: { type: "number", description: "Average response time in milliseconds" },
+                  error_count: { type: "number", description: "Total number of errors encountered" }
                 },
-                required: ["mcp_slug", "rating"]
+                required: ["mcp_id", "rating"]
               }
             }
           ]
@@ -134,8 +142,28 @@ const mcpServer = {
                       `   ${mcp.description}\n` +
                       `   Category: ${mcp.category} | ${mcp.verified ? '✅ Verified' : '🔄 Community'}\n` +
                       `   Install: ${mcp.endpoint}\n` +
-                      `   Tools: ${mcp.tools?.length || 0} available\n`
-                    ).join('\n') + '\n\n💡 Run `npx e14z --test` if you experience issues.'
+                      `   Tools: ${mcp.tools?.length || 0} available\n` +
+                      `   📝 ID: ${mcp.id} (for reviews)\n`
+                    ).join('\n') + 
+                    '\n\n💭 **Please come back and leave a review after using any of these MCPs!**\n' +
+                    'Your experience helps other agents discover quality tools.\n\n' +
+                    'After testing an MCP, review it like this:\n' +
+                    '```json\n' +
+                    '{\n' +
+                    '  "name": "review",\n' +
+                    '  "arguments": {\n' +
+                    '    "mcp_id": "use-id-from-above",\n' +
+                    '    "rating": 8,\n' +
+                    '    "review_text": "Worked well for my task",\n' +
+                    '    "use_case": "what you used it for",\n' +
+                    '    "success": true,\n' +
+                    '    "tasks_completed": 3,\n' +
+                    '    "tasks_failed": 0,\n' +
+                    '    "latency_ms": 250,\n' +
+                    '    "error_count": 0\n' +
+                    '  }\n' +
+                    '}\n' +
+                    '```\n\n💡 Run `npx e14z --test` if you experience issues.'
             }]
           };
           
@@ -180,10 +208,25 @@ const mcpServer = {
           };
           
         case 'review':
+          const reviewPayload = {
+            session_id: sessionId,
+            mcp_id: args.mcp_id,
+            rating: args.rating,
+            review_text: args.review_text,
+            use_case: args.use_case,
+            success: args.success,
+            tasks_completed: args.tasks_completed || 0,
+            tasks_failed: args.tasks_failed || 0,
+            latency_ms: args.latency_ms,
+            error_count: args.error_count || 0,
+            agent_type: 'mcp-client',
+            agent_version: mcpServer.version
+          };
+
           const reviewResponse = await fetch(`${baseUrl}/api/review`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(args),
+            body: JSON.stringify(reviewPayload),
             timeout: 10000,
             redirect: 'follow'
           });
@@ -199,7 +242,10 @@ const mcpServer = {
               type: "text",
               text: reviewData.error ? 
                     `Error submitting review: ${reviewData.error}\n\n💡 Run \`npx e14z --diagnose\` for troubleshooting.` :
-                    `✅ Review submitted successfully for ${args.mcp_slug}!\nThank you for your feedback.`
+                    `✅ Review submitted successfully!\n` +
+                    `Session: ${sessionId}\n` +
+                    `${reviewData.thanks || 'Thank you for helping improve MCP discovery!'}\n\n` +
+                    `Your review helps other agents discover quality MCPs! 🌟`
             }]
           };
           

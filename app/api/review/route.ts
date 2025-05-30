@@ -21,9 +21,12 @@ export async function POST(request: NextRequest) {
       agent_version
     } = body
 
-    if (!session_id || !mcp_id || !rating) {
+    // Generate session_id if not provided (for API compatibility)
+    const finalSessionId = session_id || `api_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    if (!mcp_id || !rating) {
       return NextResponse.json(
-        { error: 'Missing required fields: session_id, mcp_id, rating' },
+        { error: 'Missing required fields: mcp_id, rating' },
         { status: 400 }
       )
     }
@@ -65,7 +68,7 @@ export async function POST(request: NextRequest) {
         tasks_completed,
         tasks_failed,
         avg_latency_experienced: latency_ms,
-        session_id
+        session_id: finalSessionId
       })
       .select()
       .single()
@@ -90,7 +93,7 @@ export async function POST(request: NextRequest) {
           error_message: success ? null : `${error_count} errors reported`,
           agent_type: extractedAgentType,
           use_case,
-          session_id
+          session_id: finalSessionId
         })
 
       if (perfError) {
