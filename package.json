@@ -30,6 +30,7 @@
     "rescrape": "tsx scripts/rescrapeAndValidate.ts",
     "rescrape:test": "tsx scripts/rescrapeAndValidate.ts --test",
     "rescrape:comprehensive": "tsx scripts/comprehensiveRescrape.ts",
+    "migrate:categories": "tsx scripts/applyCategoryMigration.ts",
     "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
     "docker:prod": "docker compose up --build",
     "docker:stop": "docker compose down",
