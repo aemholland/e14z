@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "2.0.0",
+  version: "2.0.1",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -146,18 +146,13 @@ const mcpServer = {
                         `\n   🔧 Tools (${mcp.tools.count}): ${mcp.tools.list.slice(0,4).map(t => t.name).join(', ')}${mcp.tools.count > 4 ? '...' : ''}` : 
                         `\n   🔧 Tools: ${mcp.tools?.count || 0} available`;
                       
-                      // Prerequisites and setup
-                      const requirements = mcp.installation?.prerequisites?.length > 0 ? 
-                        `\n   ⚙️  Requires: ${mcp.installation.prerequisites.slice(0,3).join(', ')}${mcp.installation.prerequisites.length > 3 ? '...' : ''}` : '';
-                      
-                      // Auth and configuration
-                      const authInfo = mcp.installation?.configuration_required ? 
-                        `\n   🔐 Setup: ${mcp.installation.auth_method} authentication required` : '';
+                      // Auth info if needed
+                      const authInfo = mcp.installation?.auth_method && mcp.installation.auth_method !== 'none' ? 
+                        `\n   🔐 Auth: ${mcp.installation.auth_method} required` : '';
                       
                       // Quality indicators
                       const qualityStatus = mcp.verified ? '✅ Verified' : '🔄 Community';
                       const healthStatus = mcp.quality?.health_status ? ` | 🔋 ${mcp.quality.health_status}` : '';
-                      const maintenanceStatus = mcp.quality?.maintenance_status === 'stale' ? ' | ⚠️ Stale' : '';
                       
                       // Resources
                       const resources = [];
@@ -171,8 +166,8 @@ const mcpServer = {
                       
                       return `\n🔧 **${mcp.name}** (${mcp.slug})\n` +
                       `   ${mcp.description}\n` +
-                      `   Status: ${qualityStatus}${healthStatus}${maintenanceStatus} | Category: ${mcp.category}\n` +
-                      `   💻 Install: ${primaryInstall}${altMethods}${toolsList}${requirements}${authInfo}${resourceLinks}${useCases}\n` +
+                      `   Status: ${qualityStatus}${healthStatus} | Category: ${mcp.category}\n` +
+                      `   💻 Install: ${primaryInstall}${altMethods}${toolsList}${authInfo}${resourceLinks}${useCases}\n` +
                       `   📝 Review ID: ${mcp.id}\n`;
                     }).join('') + 
                     '\n\n🌟 **AGENT FEEDBACK REQUEST**\n' +

@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         tags: result.mcp.tags,
         verified: result.mcp.verified,
         
-        // Installation & Setup (Critical for agents)
+        // Installation & Setup
         installation: {
           primary_method: result.mcp.installation_methods?.[0] || {
             type: result.mcp.install_type,
@@ -85,24 +85,17 @@ export async function GET(request: NextRequest) {
             priority: 1
           },
           alternative_methods: result.mcp.installation_methods?.slice(1) || [],
-          prerequisites: result.mcp.installation_methods?.[0]?.requirements || [],
-          configuration_required: result.mcp.auth_method !== 'none',
-          auth_method: result.mcp.auth_method,
-          setup_complexity: result.mcp.installation_methods?.length > 1 ? 'moderate' : 'simple'
+          auth_method: result.mcp.auth_method
         },
         
-        // Tools & Capabilities (Essential for agents)
+        // Tools & Capabilities
         tools: {
           count: result.mcp.tools?.length || 0,
           list: result.mcp.tools?.map(tool => ({
             name: tool.name,
             description: tool.description,
-            category: tool.category,
-            input_schema: tool.parameters || {},
-            complexity: tool.parameters?.length > 3 ? 'complex' : 'simple'
-          })) || [],
-          categories: [...new Set(result.mcp.tools?.map(t => t.category).filter(Boolean) || [])],
-          primary_functions: result.mcp.tools?.slice(0, 3).map(t => t.name) || []
+            category: tool.category
+          })) || []
         },
         
         // Quality & Trust Signals
@@ -112,8 +105,7 @@ export async function GET(request: NextRequest) {
           last_health_check: result.mcp.last_health_check,
           relevance_score: Math.round(result.relevanceScore),
           quality_score: Math.round(result.qualityScore),
-          total_score: Math.round(result.totalScore),
-          maintenance_status: result.mcp.updated_at > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() ? 'active' : 'stale'
+          total_score: Math.round(result.totalScore)
         },
         
         // Performance (placeholder for future pulse data)
@@ -136,10 +128,7 @@ export async function GET(request: NextRequest) {
         resources: {
           github_url: result.mcp.github_url,
           documentation_url: result.mcp.documentation_url,
-          website_url: result.mcp.website_url,
-          has_examples: Boolean(result.mcp.use_cases?.length),
-          support_available: Boolean(result.mcp.github_url),
-          quick_start_available: Boolean(result.mcp.documentation_url)
+          website_url: result.mcp.website_url
         },
         
         // Business Information
@@ -152,9 +141,6 @@ export async function GET(request: NextRequest) {
         
         // Usage Guidance
         use_cases: result.mcp.use_cases || [],
-        recommended_for: result.mcp.tags?.filter(tag => 
-          ['beginner', 'advanced', 'enterprise', 'development', 'production'].includes(tag)
-        ) || [],
         
         // Technical Details
         technical: {
