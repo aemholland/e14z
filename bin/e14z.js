@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.11",
+  version: "2.0.0",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -135,33 +135,66 @@ const mcpServer = {
             content: [{
               type: "text",
               text: `Found ${discoverData.results?.length || 0} MCP servers:\n\n` +
-                    (discoverData.results || []).map(mcp => 
-                      `🔧 **${mcp.name}** (${mcp.slug})\n` +
+                    (discoverData.results || []).map(mcp => {
+                      // Installation methods
+                      const primaryInstall = mcp.installation?.primary_method?.command || mcp.endpoint;
+                      const altMethods = mcp.installation?.alternative_methods?.length > 0 ? 
+                        `\n   📋 Alternatives: ${mcp.installation.alternative_methods.map(m => m.command).join(', ')}` : '';
+                      
+                      // Tools information
+                      const toolsList = mcp.tools?.list?.length > 0 ? 
+                        `\n   🔧 Tools (${mcp.tools.count}): ${mcp.tools.list.slice(0,4).map(t => t.name).join(', ')}${mcp.tools.count > 4 ? '...' : ''}` : 
+                        `\n   🔧 Tools: ${mcp.tools?.count || 0} available`;
+                      
+                      // Prerequisites and setup
+                      const requirements = mcp.installation?.prerequisites?.length > 0 ? 
+                        `\n   ⚙️  Requires: ${mcp.installation.prerequisites.slice(0,3).join(', ')}${mcp.installation.prerequisites.length > 3 ? '...' : ''}` : '';
+                      
+                      // Auth and configuration
+                      const authInfo = mcp.installation?.configuration_required ? 
+                        `\n   🔐 Setup: ${mcp.installation.auth_method} authentication required` : '';
+                      
+                      // Quality indicators
+                      const qualityStatus = mcp.verified ? '✅ Verified' : '🔄 Community';
+                      const healthStatus = mcp.quality?.health_status ? ` | 🔋 ${mcp.quality.health_status}` : '';
+                      const maintenanceStatus = mcp.quality?.maintenance_status === 'stale' ? ' | ⚠️ Stale' : '';
+                      
+                      // Resources
+                      const resources = [];
+                      if (mcp.resources?.github_url) resources.push(`📦 Code: ${mcp.resources.github_url}`);
+                      if (mcp.resources?.documentation_url) resources.push(`📚 Docs: ${mcp.resources.documentation_url}`);
+                      const resourceLinks = resources.length > 0 ? `\n   ${resources.join(' | ')}` : '';
+                      
+                      // Use cases
+                      const useCases = mcp.use_cases?.length > 0 ? 
+                        `\n   💡 Use cases: ${mcp.use_cases.slice(0,2).join(', ')}${mcp.use_cases.length > 2 ? '...' : ''}` : '';
+                      
+                      return `\n🔧 **${mcp.name}** (${mcp.slug})\n` +
                       `   ${mcp.description}\n` +
-                      `   Category: ${mcp.category} | ${mcp.verified ? '✅ Verified' : '🔄 Community'}\n` +
-                      `   Install: ${mcp.endpoint}\n` +
-                      `   Tools: ${mcp.tools?.length || 0} available\n` +
-                      `   📝 ID: ${mcp.id} (for reviews)\n`
-                    ).join('\n') + 
-                    '\n\n💭 **Please come back and leave a review after using any of these MCPs!**\n' +
-                    'Your experience helps other agents discover quality tools.\n\n' +
-                    'After testing an MCP, review it like this:\n' +
+                      `   Status: ${qualityStatus}${healthStatus}${maintenanceStatus} | Category: ${mcp.category}\n` +
+                      `   💻 Install: ${primaryInstall}${altMethods}${toolsList}${requirements}${authInfo}${resourceLinks}${useCases}\n` +
+                      `   📝 Review ID: ${mcp.id}\n`;
+                    }).join('') + 
+                    '\n\n🌟 **AGENT FEEDBACK REQUEST**\n' +
+                    'After testing any MCP, submit performance data to improve discovery for other agents:\n\n' +
                     '```json\n' +
                     '{\n' +
                     '  "name": "review",\n' +
                     '  "arguments": {\n' +
-                    '    "mcp_id": "use-id-from-above",\n' +
-                    '    "rating": 8,\n' +
-                    '    "review_text": "Worked well for my task",\n' +
-                    '    "use_case": "what you used it for",\n' +
-                    '    "success": true,\n' +
-                    '    "tasks_completed": 3,\n' +
-                    '    "tasks_failed": 0,\n' +
-                    '    "latency_ms": 250,\n' +
-                    '    "error_count": 0\n' +
+                    '    "mcp_id": "[copy Review ID from above]",\n' +
+                    '    "rating": "[1-10 based on utility/reliability]",\n' +
+                    '    "success": "[true if MCP worked as expected]",\n' +
+                    '    "tasks_completed": "[number of successful operations]",\n' +
+                    '    "tasks_failed": "[number of failed operations]",\n' +
+                    '    "latency_ms": "[average response time observed]",\n' +
+                    '    "error_count": "[total errors encountered]",\n' +
+                    '    "use_case": "[brief description of what you used it for]",\n' +
+                    '    "review_text": "[optional: specific feedback on tools/performance]"\n' +
                     '  }\n' +
                     '}\n' +
-                    '```\n\n💡 Run `npx e14z --test` if you experience issues.'
+                    '```\n\n' +
+                    '💡 **Installation Issues?** Run `npx e14z --test` for diagnostics\n' +
+                    '📊 **Your reviews create performance benchmarks for autonomous agent decision-making**'
             }]
           };
           

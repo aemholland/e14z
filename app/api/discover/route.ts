@@ -68,62 +68,102 @@ export async function GET(request: NextRequest) {
     const response = {
       query,
       results: results.map(result => ({
+        // Core Identity
         id: result.mcp.id,
         slug: result.mcp.slug,
         name: result.mcp.name,
         description: result.mcp.description,
-        endpoint: result.mcp.endpoint,
         category: result.mcp.category,
         tags: result.mcp.tags,
-        
-        connection: {
-          type: result.mcp.connection_type,
-          auth_method: result.mcp.auth_method,
-          protocol_version: result.mcp.protocol_version
-        },
-        
-        tools: result.mcp.tools?.map(tool => ({
-          name: tool.name,
-          description: tool.description,
-          category: tool.category,
-          parameters: tool.parameters || []
-        })) || [],
-        tool_count: result.mcp.tools?.length || 0,
-        
-        pricing: {
-          model: result.mcp.pricing_model,
-          details: result.mcp.pricing_details
-        },
-        
-        health: {
-          status: result.mcp.health_status,
-          last_check: result.mcp.last_health_check
-        },
-        
-        stats: {
-          relevance_score: result.relevanceScore,
-          quality_score: result.qualityScore,
-          health_score: result.healthScore,
-          total_score: result.totalScore
-        },
-        
         verified: result.mcp.verified,
-        github_url: result.mcp.github_url,
-        documentation_url: result.mcp.documentation_url,
-        website_url: result.mcp.website_url,
-        use_cases: result.mcp.use_cases,
         
-        metadata: {
+        // Installation & Setup (Critical for agents)
+        installation: {
+          primary_method: result.mcp.installation_methods?.[0] || {
+            type: result.mcp.install_type,
+            command: result.mcp.endpoint,
+            priority: 1
+          },
+          alternative_methods: result.mcp.installation_methods?.slice(1) || [],
+          prerequisites: result.mcp.installation_methods?.[0]?.requirements || [],
+          configuration_required: result.mcp.auth_method !== 'none',
+          auth_method: result.mcp.auth_method,
+          setup_complexity: result.mcp.installation_methods?.length > 1 ? 'moderate' : 'simple'
+        },
+        
+        // Tools & Capabilities (Essential for agents)
+        tools: {
+          count: result.mcp.tools?.length || 0,
+          list: result.mcp.tools?.map(tool => ({
+            name: tool.name,
+            description: tool.description,
+            category: tool.category,
+            input_schema: tool.parameters || {},
+            complexity: tool.parameters?.length > 3 ? 'complex' : 'simple'
+          })) || [],
+          categories: [...new Set(result.mcp.tools?.map(t => t.category).filter(Boolean) || [])],
+          primary_functions: result.mcp.tools?.slice(0, 3).map(t => t.name) || []
+        },
+        
+        // Quality & Trust Signals
+        quality: {
+          verified: result.mcp.verified,
+          health_status: result.mcp.health_status,
+          last_health_check: result.mcp.last_health_check,
+          relevance_score: Math.round(result.relevanceScore),
+          quality_score: Math.round(result.qualityScore),
+          total_score: Math.round(result.totalScore),
+          maintenance_status: result.mcp.updated_at > new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString() ? 'active' : 'stale'
+        },
+        
+        // Performance (placeholder for future pulse data)
+        performance: {
+          avg_response_time_ms: null, // From pulse
+          success_rate: null, // From pulse
+          uptime_percentage: null, // From pulse
+          last_performance_check: null
+        },
+        
+        // Reviews & Community (placeholder for future review data)
+        community: {
+          review_count: 0, // From reviews table
+          average_rating: null, // From reviews table
+          recent_feedback: [], // Last 3 reviews
+          usage_count: null // From analytics
+        },
+        
+        // Documentation & Support
+        resources: {
+          github_url: result.mcp.github_url,
+          documentation_url: result.mcp.documentation_url,
+          website_url: result.mcp.website_url,
+          has_examples: Boolean(result.mcp.use_cases?.length),
+          support_available: Boolean(result.mcp.github_url),
+          quick_start_available: Boolean(result.mcp.documentation_url)
+        },
+        
+        // Business Information
+        provider: {
           author: result.mcp.author,
           company: result.mcp.company,
           license: result.mcp.license,
-          created_at: result.mcp.created_at,
-          updated_at: result.mcp.updated_at
+          commercial: result.mcp.pricing_model !== 'free'
         },
         
-        installation_methods: result.mcp.installation_methods,
-        install_type: result.mcp.install_type,
-        last_active: result.mcp.updated_at
+        // Usage Guidance
+        use_cases: result.mcp.use_cases || [],
+        recommended_for: result.mcp.tags?.filter(tag => 
+          ['beginner', 'advanced', 'enterprise', 'development', 'production'].includes(tag)
+        ) || [],
+        
+        // Technical Details
+        technical: {
+          protocol_version: result.mcp.protocol_version,
+          connection_type: result.mcp.connection_type,
+          pricing_model: result.mcp.pricing_model,
+          last_updated: result.mcp.updated_at,
+          created_at: result.mcp.created_at
+        }
       })),
       total_results: total,
       filters_applied: searchOptions.filters,
