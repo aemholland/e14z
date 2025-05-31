@@ -52,7 +52,11 @@ export async function searchMCPs(options: SearchOptions): Promise<{
 
     // Apply filters
     if (filters.category) {
-      dbQuery = dbQuery.eq('category', filters.category)
+      // Make category search flexible - case insensitive and handle singular/plural
+      const categoryPattern = filters.category.toLowerCase();
+      dbQuery = dbQuery.or(
+        `category.ilike.%${categoryPattern}%,category.ilike.%${categoryPattern}s%`
+      );
     }
 
     if (filters.pricing === 'free') {
