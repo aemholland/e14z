@@ -94,7 +94,8 @@ export async function GET(request: NextRequest) {
           list: result.mcp.tools?.map(tool => ({
             name: tool.name,
             description: tool.description,
-            category: tool.category
+            category: tool.category,
+            parameters: tool.parameters || []
           })) || []
         },
         

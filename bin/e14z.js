@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "2.0.1",
+  version: "2.0.2",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -141,9 +141,12 @@ const mcpServer = {
                       const altMethods = mcp.installation?.alternative_methods?.length > 0 ? 
                         `\n   📋 Alternatives: ${mcp.installation.alternative_methods.map(m => m.command).join(', ')}` : '';
                       
-                      // Tools information
+                      // Tools information with parameters
                       const toolsList = mcp.tools?.list?.length > 0 ? 
-                        `\n   🔧 Tools (${mcp.tools.count}): ${mcp.tools.list.slice(0,4).map(t => t.name).join(', ')}${mcp.tools.count > 4 ? '...' : ''}` : 
+                        `\n   🔧 Tools (${mcp.tools.count}): ${mcp.tools.list.slice(0,3).map(t => {
+                          const hasParams = t.parameters && (Array.isArray(t.parameters) ? t.parameters.length > 0 : Object.keys(t.parameters).length > 0);
+                          return `${t.name}${hasParams ? '*' : ''}`;
+                        }).join(', ')}${mcp.tools.count > 3 ? '...' : ''}${mcp.tools.list.some(t => t.parameters && (Array.isArray(t.parameters) ? t.parameters.length > 0 : Object.keys(t.parameters).length > 0)) ? ' (*=has params)' : ''}` : 
                         `\n   🔧 Tools: ${mcp.tools?.count || 0} available`;
                       
                       // Auth info if needed
@@ -225,7 +228,16 @@ const mcpServer = {
                     `**Status:** ${mcp.verified ? '✅ Verified' : '🔄 Community'}\n` +
                     `**Health:** ${mcp.health_status}\n\n` +
                     `**Available Tools (${mcp.tools?.length || 0}):**\n` +
-                    (mcp.tools || []).map(tool => `- ${tool.name}: ${tool.description}`).join('\n') + '\n\n' +
+                    (mcp.tools || []).map(tool => {
+                      let toolInfo = `- **${tool.name}**: ${tool.description || 'No description'}`;
+                      if (tool.parameters) {
+                        const paramCount = Array.isArray(tool.parameters) ? tool.parameters.length : Object.keys(tool.parameters).length;
+                        if (paramCount > 0) {
+                          toolInfo += ` (${paramCount} parameter${paramCount === 1 ? '' : 's'})`;
+                        }
+                      }
+                      return toolInfo;
+                    }).join('\n') + '\n\n' +
                     `**Use Cases:**\n` +
                     (mcp.use_cases || []).map(useCase => `- ${useCase}`).join('\n') + '\n\n' +
                     (mcp.documentation_url ? `**Documentation:** ${mcp.documentation_url}\n` : '') +
