@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'E14Z - AI Tool Discovery',
-  description: 'The npm for AI agents. Discover and connect to MCP servers.',
+  description: 'AI Tool Discovery Platform. Discover and connect to 50+ MCP servers.',
 }
 
 export default function RootLayout({
@@ -49,7 +49,7 @@ export default function RootLayout({
               <div>
                 <h3 className="text-subtitle" style={{marginBottom: '16px'}}>E14Z</h3>
                 <p className="text-secondary" style={{marginBottom: '16px'}}>
-                  The npm for AI agents. Discover, evaluate, and connect to MCP servers.
+                  AI Tool Discovery Platform. Discover, evaluate, and connect to 50+ MCP servers.
                 </p>
                 <div style={{display: 'flex', gap: '16px'}}>
                   <a href="https://github.com/e14z/e14z" className="text-accent">GitHub</a>

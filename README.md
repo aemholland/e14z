@@ -1,6 +1,6 @@
 # E14Z MCP Server
 
-> The npm for AI agents. Discover, evaluate, and connect to Model Context Protocol (MCP) servers.
+> AI Tool Discovery Platform. Discover, evaluate, and connect to 50+ Model Context Protocol (MCP) servers.
 
 [![NPM Version](https://img.shields.io/npm/v/e14z)](https://www.npmjs.com/package/e14z)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -15,7 +15,7 @@ npx e14z
 
 ## 📚 What is E14Z?
 
-E14Z is a discovery platform for Model Context Protocol (MCP) servers - the tools that power AI agents. It provides a centralized registry where developers can:
+E14Z is a discovery platform for Model Context Protocol (MCP) servers - the tools that power AI agents. With over 50 verified MCP servers, it provides a centralized registry where developers can:
 
 - **Discover** MCP servers for any use case (payments, databases, APIs, etc.)
 - **Evaluate** server quality, reliability, and community reviews  
@@ -86,14 +86,28 @@ Submit feedback after using an MCP server.
 
 ## 🌍 Categories
 
-Find MCP servers for any use case:
+Find MCP servers across 20 standardized categories:
 
-- **Development** - GitHub, CI/CD, code tools
-- **Communication** - Slack, Discord, messaging
-- **Database** - MongoDB, SQL, data management  
-- **Payment Processing** - Stripe, Square, billing
-- **Infrastructure** - Docker, Kubernetes, DevOps
-- **Productivity** - Task management, automation
+- **Databases** - MongoDB, PostgreSQL, data management
+- **Payments** - Stripe, Bitcoin, financial transactions
+- **AI Tools** - LLMs, machine learning services
+- **Development Tools** - GitHub, CI/CD, coding utilities
+- **Cloud Storage** - File storage and management
+- **Messaging** - Slack, Discord, communication
+- **Content Creation** - Text, image, media generation
+- **Monitoring** - Analytics, logging, metrics
+- **Project Management** - Task tracking, collaboration
+- **Security** - Authentication, encryption
+- **Automation** - Workflow triggers, processes
+- **Social Media** - Platform integrations
+- **Web APIs** - REST services, integrations
+- **Productivity** - Office tools, utilities
+- **Infrastructure** - DevOps, deployment
+- **Media Processing** - Audio, video manipulation
+- **Finance** - Accounting, invoicing
+- **Communication** - Video calls, meetings
+- **Research** - Academic tools, data analysis
+- **IoT** - Smart home, device control
 
 ## 🏗️ For Developers
 

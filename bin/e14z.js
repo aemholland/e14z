@@ -16,8 +16,8 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 // MCP Server implementation
 const mcpServer = {
   name: "e14z",
-  description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "2.0.2",
+  description: "AI Tool Discovery Platform - Discover 50+ MCP servers",
+  version: "2.0.3",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -145,8 +145,17 @@ const mcpServer = {
                       const toolsList = mcp.tools?.list?.length > 0 ? 
                         `\n   🔧 Tools (${mcp.tools.count}): ${mcp.tools.list.slice(0,3).map(t => {
                           const hasParams = t.parameters && (Array.isArray(t.parameters) ? t.parameters.length > 0 : Object.keys(t.parameters).length > 0);
-                          return `${t.name}${hasParams ? '*' : ''}`;
-                        }).join(', ')}${mcp.tools.count > 3 ? '...' : ''}${mcp.tools.list.some(t => t.parameters && (Array.isArray(t.parameters) ? t.parameters.length > 0 : Object.keys(t.parameters).length > 0)) ? ' (*=has params)' : ''}` : 
+                          let paramInfo = '';
+                          if (hasParams) {
+                            if (Array.isArray(t.parameters)) {
+                              paramInfo = `(${t.parameters.length}p)`;
+                            } else {
+                              const paramNames = Object.keys(t.parameters);
+                              paramInfo = `(${paramNames.slice(0,2).join(',')}${paramNames.length > 2 ? '...' : ''})`;
+                            }
+                          }
+                          return `${t.name}${paramInfo}`;
+                        }).join(', ')}${mcp.tools.count > 3 ? '...' : ''}` : 
                         `\n   🔧 Tools: ${mcp.tools?.count || 0} available`;
                       
                       // Auth info if needed
@@ -230,14 +239,30 @@ const mcpServer = {
                     `**Available Tools (${mcp.tools?.length || 0}):**\n` +
                     (mcp.tools || []).map(tool => {
                       let toolInfo = `- **${tool.name}**: ${tool.description || 'No description'}`;
+                      
                       if (tool.parameters) {
-                        const paramCount = Array.isArray(tool.parameters) ? tool.parameters.length : Object.keys(tool.parameters).length;
-                        if (paramCount > 0) {
-                          toolInfo += ` (${paramCount} parameter${paramCount === 1 ? '' : 's'})`;
+                        if (Array.isArray(tool.parameters)) {
+                          // Simple array format (e.g., Stripe)
+                          if (tool.parameters.length > 0) {
+                            toolInfo += `\n  **Parameters**: ${tool.parameters.join(', ')}`;
+                          }
+                        } else if (typeof tool.parameters === 'object') {
+                          // Rich schema format (e.g., Bitcoin, Unity)
+                          const paramNames = Object.keys(tool.parameters);
+                          if (paramNames.length > 0) {
+                            toolInfo += '\n  **Parameters**:';
+                            paramNames.forEach(paramName => {
+                              const param = tool.parameters[paramName];
+                              const required = param.required ? ' (required)' : ' (optional)';
+                              const type = param.type ? ` [${param.type}]` : '';
+                              const desc = param.description ? ` - ${param.description}` : '';
+                              toolInfo += `\n    • ${paramName}${type}${required}${desc}`;
+                            });
+                          }
                         }
                       }
                       return toolInfo;
-                    }).join('\n') + '\n\n' +
+                    }).join('\n\n') + '\n\n' +
                     `**Use Cases:**\n` +
                     (mcp.use_cases || []).map(useCase => `- ${useCase}`).join('\n') + '\n\n' +
                     (mcp.documentation_url ? `**Documentation:** ${mcp.documentation_url}\n` : '') +
@@ -586,7 +611,7 @@ if (require.main === module) {
   
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
-E14Z MCP Server - The npm for AI agents
+E14Z MCP Server - AI Tool Discovery Platform
 
 Usage:
   npx e14z                 Start MCP server (stdio mode)
