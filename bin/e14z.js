@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.10",
+  version: "1.0.11",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -52,12 +52,11 @@ const mcpServer = {
           tools: [
             {
               name: "discover",
-              description: "Search and filter MCP servers by capabilities, category, or keywords",
+              description: "Search MCP servers by capabilities, keywords, or functionality",
               inputSchema: {
                 type: "object",
                 properties: {
-                  query: { type: "string", description: "Search query for MCP servers (searches name, description, tags)" },
-                  category: { type: "string", description: "Filter by exact category name - use only if you know the specific category (e.g., 'fintech', 'Database', 'development')" },
+                  query: { type: "string", description: "Search query for MCP servers (searches name, description, tags, categories)" },
                   verified: { type: "boolean", description: "Only show verified/official MCPs" },
                   limit: { type: "number", description: "Maximum number of results (default: 10)" }
                 }
@@ -114,7 +113,6 @@ const mcpServer = {
         case 'discover':
           const discoverUrl = new URL('/api/discover', baseUrl);
           if (args.query) discoverUrl.searchParams.set('q', args.query);
-          if (args.category) discoverUrl.searchParams.set('category', args.category);
           if (args.verified) discoverUrl.searchParams.set('verified', 'true');
           if (args.limit) discoverUrl.searchParams.set('limit', args.limit.toString());
           

@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
   try {
     // Parse search parameters
     const query = searchParams.get('q') || ''
-    const category = searchParams.get('category')
     const pricing = searchParams.get('pricing') as 'free' | 'paid' | null
     const verified = searchParams.get('verified') === 'true' ? true : undefined
     const healthStatus = searchParams.get('health') as 'healthy' | 'degraded' | 'down' | null
@@ -24,7 +23,6 @@ export async function GET(request: NextRequest) {
     const searchOptions: SearchOptions = {
       query,
       filters: {
-        ...(category && { category }),
         ...(pricing && { pricing }),
         ...(verified !== undefined && { verified }),
         ...(healthStatus && { healthStatus }),

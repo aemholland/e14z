@@ -126,7 +126,6 @@ export interface HealthCheck {
 export interface SearchOptions {
   query: string
   filters?: {
-    category?: string
     pricing?: 'free' | 'paid'
     minRating?: number
     verified?: boolean
