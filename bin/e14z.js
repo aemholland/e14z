@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.8",
+  version: "1.0.9",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -118,24 +118,16 @@ const mcpServer = {
           if (args.verified) discoverUrl.searchParams.set('verified', 'true');
           if (args.limit) discoverUrl.searchParams.set('limit', args.limit.toString());
           
-          // Debug: Log the actual URL being called
-          console.error(`[DEBUG] Calling: ${discoverUrl.toString()}`);
-          
           const discoverResponse = await fetch(discoverUrl, { 
             timeout: 10000,
             redirect: 'follow'
           });
           
-          console.error(`[DEBUG] Response status: ${discoverResponse.status}`);
-          
           if (!discoverResponse.ok) {
-            const errorText = await discoverResponse.text();
-            console.error(`[DEBUG] Error response: ${errorText}`);
             throw new Error(`API request failed with status ${discoverResponse.status}`);
           }
           
           const discoverData = await discoverResponse.json();
-          console.error(`[DEBUG] Results count: ${discoverData.results?.length || 0}`);
           
           if (discoverData.error) {
             throw new Error(discoverData.error);

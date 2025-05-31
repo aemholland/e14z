@@ -15,39 +15,7 @@ export async function searchMCPs(options: SearchOptions): Promise<{
 
     // Text search using full-text search vector
     if (query.trim()) {
-      try {
-        // Format query for PostgreSQL tsquery - replace spaces with & for AND operation
-        const formattedQuery = query.trim()
-          .split(/\s+/)
-          .filter(term => term.length > 0)
-          .map(term => term.replace(/[&|!():]/g, '')) // Remove special tsquery characters
-          .filter(term => term.length > 0)
-          .join(' & ')
-        
-        if (formattedQuery) {
-          dbQuery = dbQuery.textSearch('search_vector', formattedQuery)
-        }
-      } catch (tsqueryError) {
-        // Fallback to simple ILIKE search if tsquery fails
-        console.warn('tsquery failed, falling back to ILIKE search:', tsqueryError)
-        const searchTerms = query.trim().toLowerCase().split(/\s+/)
-        
-        if (searchTerms.length > 0) {
-          // Search in name, description, and tags using ILIKE
-          let fallbackQuery = dbQuery.or(
-            `name.ilike.%${searchTerms[0]}%,description.ilike.%${searchTerms[0]}%`
-          )
-          
-          // Add additional terms with AND logic
-          for (let i = 1; i < Math.min(searchTerms.length, 3); i++) {
-            fallbackQuery = fallbackQuery.or(
-              `name.ilike.%${searchTerms[i]}%,description.ilike.%${searchTerms[i]}%`
-            )
-          }
-          
-          dbQuery = fallbackQuery
-        }
-      }
+      dbQuery = dbQuery.textSearch('search_vector', query.trim())
     }
 
     // Apply filters
