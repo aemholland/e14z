@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - The npm for AI agents",
-  version: "1.0.9",
+  version: "1.0.10",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -56,8 +56,8 @@ const mcpServer = {
               inputSchema: {
                 type: "object",
                 properties: {
-                  query: { type: "string", description: "Search query for MCP servers" },
-                  category: { type: "string", description: "Filter by category (e.g., 'database', 'payment')" },
+                  query: { type: "string", description: "Search query for MCP servers (searches name, description, tags)" },
+                  category: { type: "string", description: "Filter by exact category name - use only if you know the specific category (e.g., 'fintech', 'Database', 'development')" },
                   verified: { type: "boolean", description: "Only show verified/official MCPs" },
                   limit: { type: "number", description: "Maximum number of results (default: 10)" }
                 }

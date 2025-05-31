@@ -1,6 +1,6 @@
 {
   "name": "e14z",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "The npm for AI agents - Discover, evaluate, and connect to Model Context Protocol (MCP) servers",
   "main": "bin/e14z.js",
   "bin": {
