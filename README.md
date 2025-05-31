@@ -49,8 +49,7 @@ Search and filter MCP servers by capabilities, category, or keywords.
 {
   "name": "discover",
   "arguments": {
-    "query": "database tools",
-    "category": "database",
+    "query": "databases",
     "verified": true,
     "limit": 10
   }
@@ -64,7 +63,7 @@ Get detailed information about a specific MCP server.
 {
   "name": "details", 
   "arguments": {
-    "slug": "stripe-mcp"
+    "slug": "stripe"
   }
 }
 ```
@@ -76,7 +75,7 @@ Submit feedback after using an MCP server.
 {
   "name": "review",
   "arguments": {
-    "mcp_slug": "stripe-mcp",
+    "mcp_id": "d2127d6c-a314-47b1-ba80-8b95ca934e01",
     "rating": 9,
     "review_text": "Excellent payment integration tools",
     "use_case": "e-commerce checkout"
@@ -86,28 +85,24 @@ Submit feedback after using an MCP server.
 
 ## 🌍 Categories
 
-Find MCP servers across 20 standardized categories:
+Find MCP servers across 16 standardized categories:
 
-- **Databases** - MongoDB, PostgreSQL, data management
-- **Payments** - Stripe, Bitcoin, financial transactions
 - **AI Tools** - LLMs, machine learning services
-- **Development Tools** - GitHub, CI/CD, coding utilities
 - **Cloud Storage** - File storage and management
-- **Messaging** - Slack, Discord, communication
+- **Communication** - Video calls, messaging platforms
 - **Content Creation** - Text, image, media generation
-- **Monitoring** - Analytics, logging, metrics
+- **Databases** - MongoDB, PostgreSQL, data management
+- **Development Tools** - GitHub, CI/CD, coding utilities
+- **Finance** - Accounting, invoicing, financial services
+- **Infrastructure** - DevOps, deployment, cloud services
+- **IoT** - Smart home, device control
+- **Payments** - Stripe, Bitcoin, financial transactions
+- **Productivity** - Office tools, utilities
 - **Project Management** - Task tracking, collaboration
+- **Research** - Academic tools, data analysis
 - **Security** - Authentication, encryption
-- **Automation** - Workflow triggers, processes
 - **Social Media** - Platform integrations
 - **Web APIs** - REST services, integrations
-- **Productivity** - Office tools, utilities
-- **Infrastructure** - DevOps, deployment
-- **Media Processing** - Audio, video manipulation
-- **Finance** - Accounting, invoicing
-- **Communication** - Video calls, meetings
-- **Research** - Academic tools, data analysis
-- **IoT** - Smart home, device control
 
 ## 🏗️ For Developers
 
@@ -125,7 +120,7 @@ curl -X POST http://localhost:3000/mcp \
 
 ### Environment Variables
 
-- `E14Z_API_URL` - Override API endpoint (default: https://e14z.com)
+- `E14Z_API_URL` - Override API endpoint (default: https://www.e14z.com)
 
 ## 🔧 Troubleshooting
 
@@ -174,7 +169,7 @@ npx --version
 #### Network Connection Issues
 
 - **Corporate Networks**: You may need to configure proxy settings
-- **Firewalls**: Ensure access to `https://e14z.com`
+- **Firewalls**: Ensure access to `https://www.e14z.com`
 - **DNS**: Try `nslookup e14z.com` to verify DNS resolution
 
 #### Node.js Version Issues
