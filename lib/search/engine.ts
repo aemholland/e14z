@@ -41,6 +41,20 @@ export async function searchMCPs(options: SearchOptions): Promise<{
       dbQuery = dbQuery.eq('health_status', filters.healthStatus)
     }
 
+    // Auth-aware filters for autonomous agents
+    if (filters.noAuth) {
+      dbQuery = dbQuery.eq('auth_method', 'none')
+    }
+    
+    if (filters.authRequired) {
+      dbQuery = dbQuery.neq('auth_method', 'none')
+    }
+    
+    if (filters.executable) {
+      // Only show MCPs with stdio connection type or those that can be run directly
+      dbQuery = dbQuery.eq('connection_type', 'stdio')
+    }
+
     // Execute query with pagination
     const { data: mcps, error, count } = await dbQuery
       .range(offset, offset + limit - 1)

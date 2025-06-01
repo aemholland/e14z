@@ -131,6 +131,9 @@ export interface SearchOptions {
     verified?: boolean
     hasReviews?: boolean
     healthStatus?: 'healthy' | 'degraded' | 'down'
+    noAuth?: boolean
+    authRequired?: boolean
+    executable?: boolean
   }
   limit?: number
   offset?: number

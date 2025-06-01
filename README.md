@@ -82,9 +82,9 @@ e14z claim mcp package-name
 e14z claim status
 ```
 
-### MCP Server (Discovery Tool)
+### MCP Server (AI Agent Interface)
 
-E14Z also provides an MCP server for AI agents to discover tools:
+E14Z provides a comprehensive MCP server for autonomous agents with 4 powerful tools:
 
 ```json
 {
@@ -94,6 +94,45 @@ E14Z also provides an MCP server for AI agents to discover tools:
     }
   }
 }
+```
+
+#### 🔍 **Agent Tools Available**
+
+**Discovery with Auth Intelligence:**
+```javascript
+// Find MCPs that work immediately (no auth required)
+{"name": "discover", "arguments": {"no_auth": true, "limit": 10}}
+
+// Find MCPs by category and auth requirements  
+{"name": "discover", "arguments": {"category": "payments", "auth_required": true}}
+
+// Find executable MCPs only
+{"name": "discover", "arguments": {"executable": true, "verified": true}}
+```
+
+**Direct Execution:**
+```javascript
+// Execute compatible MCPs with smart auth handling
+{"name": "run", "arguments": {"slug": "weather-mcp"}}
+
+// Skip auth checks for testing (may fail)
+{"name": "run", "arguments": {"slug": "stripe", "skip_auth_check": true}}
+```
+
+**Detailed Information:**
+```javascript
+// Get comprehensive MCP details including tools and setup
+{"name": "details", "arguments": {"slug": "bitcoin-mcp"}}
+```
+
+**Performance Feedback:**
+```javascript
+// Submit structured reviews to improve ecosystem quality
+{"name": "review", "arguments": {
+  "mcp_id": "abc123", "rating": 8, "success": true,
+  "rating_breakdown": {"setup_difficulty": 3, "reliability": 3},
+  "use_case_category": "payments"
+}}
 ```
 
 ## 🏗️ Architecture

@@ -15,6 +15,11 @@ export async function GET(request: NextRequest) {
     const minRating = searchParams.get('minRating') ? parseInt(searchParams.get('minRating')!) : undefined
     const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100) // Max 100 results
     const offset = parseInt(searchParams.get('offset') || '0')
+    
+    // Auth-aware filters for autonomous agents
+    const noAuth = searchParams.get('no_auth') === 'true'
+    const authRequired = searchParams.get('auth_required') === 'true'
+    const executable = searchParams.get('executable') === 'true'
 
     // Generate session ID for tracking
     const sessionId = crypto.randomUUID()
@@ -26,7 +31,10 @@ export async function GET(request: NextRequest) {
         ...(pricing && { pricing }),
         ...(verified !== undefined && { verified }),
         ...(healthStatus && { healthStatus }),
-        ...(minRating && { minRating })
+        ...(minRating && { minRating }),
+        ...(noAuth && { noAuth: true }),
+        ...(authRequired && { authRequired: true }),
+        ...(executable && { executable: true })
       },
       limit,
       offset
