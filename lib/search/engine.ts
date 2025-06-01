@@ -15,7 +15,14 @@ export async function searchMCPs(options: SearchOptions): Promise<{
 
     // Text search using full-text search vector
     if (query.trim()) {
-      dbQuery = dbQuery.textSearch('search_vector', query.trim())
+      // Format multi-word queries for PostgreSQL full-text search
+      // Convert "bitcoin payments crypto" to "bitcoin & payments & crypto"
+      const formattedQuery = query.trim()
+        .split(/\s+/)
+        .filter(word => word.length > 0)
+        .join(' & ')
+      
+      dbQuery = dbQuery.textSearch('search_vector', formattedQuery)
     }
 
     // Apply filters
