@@ -1,6 +1,6 @@
 {
   "name": "e14z",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Universal MCP Runtime - NPX-like auto-installation and execution of Model Context Protocol (MCP) servers for AI agents",
   "main": "bin/cli.js",
   "bin": {

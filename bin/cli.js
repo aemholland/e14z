@@ -11,6 +11,7 @@ const ora = require('ora');
 const inquirer = require('inquirer');
 const fs = require('fs').promises;
 const path = require('path');
+const { execSync, spawn } = require('child_process');
 
 // Import our modules
 const { EnhancedExecutionEngine } = require('../lib/execution/enhanced-engine');
@@ -26,6 +27,98 @@ const claimingManager = new ClaimingManager(authManager);
 
 // Package info
 const packageJson = require('../package.json');
+
+/**
+ * Bootstrap mechanism - auto-install globally if running via npx
+ */
+async function bootstrapGlobalInstallation() {
+  // Better NPX detection
+  const execPath = process.argv[1];
+  const isNpx = (
+    // NPX environment variables
+    process.env.npm_execpath && process.env.npm_execpath.includes('npx') ||
+    process.env.npm_config_user_config && process.env.npm_config_user_config.includes('_npx') ||
+    // NPX in process path
+    execPath.includes('_npx') ||
+    execPath.includes('npx') ||
+    // Running from local node_modules (not global)
+    execPath.includes('node_modules') && !execPath.includes('/usr/') && !execPath.includes('/opt/') ||
+    // Check npm prefix to see if we're in a temp directory
+    process.env.npm_config_prefix && process.env.npm_config_prefix.includes('tmp')
+  );
+  
+  if (!isNpx) {
+    return; // Likely globally installed or direct execution
+  }
+  
+  // Check if e14z is already globally available (quick check)
+  try {
+    execSync('e14z --version', { stdio: 'pipe', timeout: 2000 });
+    return; // Already globally installed and working
+  } catch (error) {
+    // Not globally installed or not working
+  }
+  
+  // Only auto-install after successful operation (not for help/version commands)
+  const args = process.argv.slice(2);
+  const isOperationalCommand = args.length > 0 && 
+    ['run', 'discover', 'publish', 'claim', 'cache', 'auth'].includes(args[0]);
+  
+  if (!isOperationalCommand) {
+    return; // Don't auto-install for help/version commands
+  }
+  
+  // Store flag to trigger post-execution installation
+  global._shouldBootstrap = true;
+  
+  console.log(chalk.gray('💡 Running via npx - will set up direct access after successful operation'));
+}
+
+/**
+ * Perform the actual global installation after successful operation
+ */
+async function performGlobalInstallation() {
+  if (!global._shouldBootstrap) {
+    return;
+  }
+  
+  console.log(chalk.cyan('\n🚀 Setting up e14z for direct access...'));
+  
+  try {
+    // Install globally
+    const installProcess = spawn('npm', ['install', '-g', `e14z@${packageJson.version}`], {
+      stdio: 'pipe'
+    });
+    
+    let output = '';
+    installProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    installProcess.stderr.on('data', (data) => {
+      output += data.toString();
+    });
+    
+    await new Promise((resolve, reject) => {
+      installProcess.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Installation failed: ${output}`));
+        }
+      });
+    });
+    
+    console.log(chalk.green('✅ e14z installed globally!'));
+    console.log(chalk.gray('You can now use "e14z run <mcp>" directly in any terminal or automation tool.'));
+    console.log(chalk.gray('No more npx needed! 🎉\n'));
+    
+  } catch (error) {
+    console.log(chalk.yellow('\n⚠️ Could not install e14z globally (this is okay)'));
+    console.log(chalk.gray('You can still use: npx e14z@latest <command>'));
+    console.log(chalk.gray(`Or install manually: npm install -g e14z@${packageJson.version}\n`));
+  }
+}
 
 program
   .name('e14z')
@@ -1122,69 +1215,89 @@ program
     console.log(`Platform: ${process.platform} ${process.arch}`);
   });
 
-// Check if running as MCP server (stdin mode - piped input and no arguments)
-if ((process.stdin.isTTY === false || process.stdin.isTTY === undefined) && process.argv.length <= 2) {
-  // Running as MCP server - delegate to MCP server implementation
-  const { MCPServer } = require('./mcp-server.js');
-  const server = new MCPServer();
-  server.start().catch(error => {
-    console.error('Failed to start E14Z MCP Server:', error);
-    process.exit(1);
+// Main execution wrapper
+async function main() {
+  // Initialize bootstrap check early
+  await bootstrapGlobalInstallation().catch(() => {
+    // Ignore bootstrap errors, continue with normal execution
   });
-  return;
+
+  // Check if running as MCP server (stdin mode - piped input and no arguments)
+  if ((process.stdin.isTTY === false || process.stdin.isTTY === undefined) && process.argv.length <= 2) {
+    // Running as MCP server - delegate to MCP server implementation
+    const { MCPServer } = require('./mcp-server.js');
+    const server = new MCPServer();
+    server.start().catch(error => {
+      console.error('Failed to start E14Z MCP Server:', error);
+      process.exit(1);
+    });
+    return;
+  }
+
+  // Default help if no command provided
+  if (process.argv.length <= 2) {
+    console.log(chalk.bold.cyan('🚀 E14Z - Universal MCP Runtime\n'));
+    console.log('NPX-like auto-installation and execution of Model Context Protocol (MCP) servers\n');
+    
+    console.log(chalk.bold('Discovery & Execution:'));
+    console.log(`  ${chalk.cyan('e14z discover')}           Discover available MCPs`);
+    console.log(`  ${chalk.cyan('e14z info <slug>')}        Get detailed MCP information`);
+    console.log(`  ${chalk.cyan('e14z run <slug>')}         Execute MCP with auto-installation`);
+    console.log(`  ${chalk.cyan('e14z list')}               List all MCPs with status`);
+    console.log();
+    
+    console.log(chalk.bold('Auto-Installation & Cache:'));
+    console.log(`  ${chalk.cyan('e14z cache list')}         Show cached MCPs`);
+    console.log(`  ${chalk.cyan('e14z cache clear <slug>')} Clear specific MCP cache`);
+    console.log(`  ${chalk.cyan('e14z cache info')}         Show cache information`);
+    console.log();
+    
+    console.log(chalk.bold('Publishing & Management:'));
+    console.log(`  ${chalk.cyan('e14z auth login')}         Authenticate with GitHub`);
+    console.log(`  ${chalk.cyan('e14z publish new')}        Publish a new MCP`);
+    console.log(`  ${chalk.cyan('e14z publish list')}       Your published MCPs`);
+    console.log(`  ${chalk.cyan('e14z claim list')}         MCPs available for claiming`);
+    console.log();
+    
+    console.log(chalk.bold('MCP Server Mode:'));
+    console.log(`  ${chalk.cyan('e14z')}                    Auto-detects when used via stdin (for AI agents)`);
+    console.log();
+    
+    console.log(chalk.bold('Examples:'));
+    console.log(`  ${chalk.gray('e14z discover payments')}     Find payment-related MCPs`);
+    console.log(`  ${chalk.gray('e14z run stripe')}           Auto-install and run Stripe MCP`);
+    console.log(`  ${chalk.gray('e14z cache list')}           Show installed MCPs`);
+    console.log(`  ${chalk.gray('e14z publish new my-mcp')}   Publish your MCP`);
+    console.log(`  ${chalk.gray('e14z claim mcp stripe')}     Claim wrapped MCP`);
+    console.log();
+    
+    console.log(chalk.bold('🤖 Auto-Installation Features:'));
+    console.log(`  • NPX-like package installation and execution`);
+    console.log(`  • Security scanning and threat detection`);
+    console.log(`  • Automatic dependency resolution`);
+    console.log(`  • Transaction rollback on failures`);
+    console.log(`  • Multi-package manager support (npm, pip, git)`);
+    console.log();
+    
+    console.log(chalk.gray(`Use ${chalk.bold('e14z --help')} for all available commands`));
+    process.exit(0);
+  }
+
+  // Parse command line arguments
+  try {
+    await program.parseAsync(process.argv);
+    
+    // After successful command execution, perform global installation if needed
+    await performGlobalInstallation();
+    
+  } catch (error) {
+    console.error(chalk.red('CLI Error:'), error.message);
+    process.exit(1);
+  }
 }
 
-// Default help if no command provided
-if (process.argv.length <= 2) {
-  console.log(chalk.bold.cyan('🚀 E14Z - Universal MCP Runtime\n'));
-  console.log('NPX-like auto-installation and execution of Model Context Protocol (MCP) servers\n');
-  
-  console.log(chalk.bold('Discovery & Execution:'));
-  console.log(`  ${chalk.cyan('e14z discover')}           Discover available MCPs`);
-  console.log(`  ${chalk.cyan('e14z info <slug>')}        Get detailed MCP information`);
-  console.log(`  ${chalk.cyan('e14z run <slug>')}         Execute MCP with auto-installation`);
-  console.log(`  ${chalk.cyan('e14z list')}               List all MCPs with status`);
-  console.log();
-  
-  console.log(chalk.bold('Auto-Installation & Cache:'));
-  console.log(`  ${chalk.cyan('e14z cache list')}         Show cached MCPs`);
-  console.log(`  ${chalk.cyan('e14z cache clear <slug>')} Clear specific MCP cache`);
-  console.log(`  ${chalk.cyan('e14z cache info')}         Show cache information`);
-  console.log();
-  
-  console.log(chalk.bold('Publishing & Management:'));
-  console.log(`  ${chalk.cyan('e14z auth login')}         Authenticate with GitHub`);
-  console.log(`  ${chalk.cyan('e14z publish new')}        Publish a new MCP`);
-  console.log(`  ${chalk.cyan('e14z publish list')}       Your published MCPs`);
-  console.log(`  ${chalk.cyan('e14z claim list')}         MCPs available for claiming`);
-  console.log();
-  
-  console.log(chalk.bold('MCP Server Mode:'));
-  console.log(`  ${chalk.cyan('e14z')}                    Auto-detects when used via stdin (for AI agents)`);
-  console.log();
-  
-  console.log(chalk.bold('Examples:'));
-  console.log(`  ${chalk.gray('e14z discover payments')}     Find payment-related MCPs`);
-  console.log(`  ${chalk.gray('e14z run stripe')}           Auto-install and run Stripe MCP`);
-  console.log(`  ${chalk.gray('e14z cache list')}           Show installed MCPs`);
-  console.log(`  ${chalk.gray('e14z publish new my-mcp')}   Publish your MCP`);
-  console.log(`  ${chalk.gray('e14z claim mcp stripe')}     Claim wrapped MCP`);
-  console.log();
-  
-  console.log(chalk.bold('🤖 Auto-Installation Features:'));
-  console.log(`  • NPX-like package installation and execution`);
-  console.log(`  • Security scanning and threat detection`);
-  console.log(`  • Automatic dependency resolution`);
-  console.log(`  • Transaction rollback on failures`);
-  console.log(`  • Multi-package manager support (npm, pip, git)`);
-  console.log();
-  
-  console.log(chalk.gray(`Use ${chalk.bold('e14z --help')} for all available commands`));
-  process.exit(0);
-}
-
-// Parse command line arguments
-program.parseAsync(process.argv).catch(error => {
-  console.error(chalk.red('CLI Error:'), error.message);
+// Run main function
+main().catch(error => {
+  console.error(chalk.red('Unexpected error:'), error.message);
   process.exit(1);
 });
