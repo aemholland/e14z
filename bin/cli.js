@@ -937,8 +937,8 @@ program
     console.log(`Platform: ${process.platform} ${process.arch}`);
   });
 
-// Check if running as MCP server (stdin mode - no TTY and no arguments)
-if (!process.stdin.isTTY && process.argv.length <= 2) {
+// Check if running as MCP server (stdin mode - piped input and no arguments)
+if ((process.stdin.isTTY === false || process.stdin.isTTY === undefined) && process.argv.length <= 2) {
   // Running as MCP server - delegate to MCP server implementation
   const { MCPServer } = require('./mcp-server.js');
   const server = new MCPServer();
