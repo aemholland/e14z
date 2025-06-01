@@ -11,12 +11,12 @@
 
 ```bash
 # First time anywhere - works on ANY system with Node.js
-npx e14z@latest run stripe
+npx e14z@latest
 
 # Auto-installs globally after first successful use!
 # From then on, use directly:
-e14z run stripe
 e14z discover payments
+e14z run stripe
 e14z cache list
 
 # Authenticate for publishing
@@ -27,13 +27,13 @@ e14z auth login
 
 ```bash
 # Option 1: Self-Installing (Recommended)
-npx e14z@latest run <mcp-name>
-# → First run: Downloads + installs globally + runs MCP
-# → Future runs: Direct "e14z run <mcp-name>" access
+npx e14z@latest <any-command>
+# → First run: Downloads + installs globally + executes
+# → Future runs: Direct "e14z <any-command>" access
 
 # Option 2: Manual Global Install
 npm install -g e14z@latest
-e14z run <mcp-name>
+e14z <any-command>
 ```
 
 ## 🌟 What is E14Z?
@@ -197,18 +197,19 @@ E14Z v4.0 introduces a powerful auto-installation engine that works like `npx` f
 
 ```bash
 # Works on ANY fresh system:
-npx e14z@latest run stripe
+npx e14z@latest discover payments
 
 # Output:
-# 🤖 Auto-installing stripe...
-# ✅ stripe installed and cached
+# 💡 Running via npx - will set up direct access after successful operation
+# 🔍 Found 5 MCPs... (search results)
 # 🚀 Setting up e14z for direct access...
 # ✅ e14z installed globally!
-# You can now use "e14z run <mcp>" directly! 🎉
+# You can now use "e14z" directly! 🎉
 
 # Future runs work directly:
-e14z run cloudflare
+e14z run stripe
 e14z discover payments
+e14z cache list
 ```
 
 ### Supported Package Managers
@@ -232,20 +233,21 @@ e14z discover payments
 
 ```bash
 # First time - use npx pattern:
-npx e14z@latest run stripe              # → Auto-installs stripe MCP + e14z globally
-npx e14z@latest run @types/node         # → Auto-installs + global setup
-npx e14z@latest run lodash@4.17.21      # → Auto-installs specific version
+npx e14z@latest discover payments      # → Sets up e14z globally
+npx e14z@latest run stripe             # → Auto-installs stripe MCP + e14z globally
+npx e14z@latest cache list             # → Shows cache + global setup
 
 # After first use - direct access:
-e14z run stripe                         # → Fast cached execution
-e14z run cloudflare                     # → Auto-installs cloudflare MCP
-e14z run my-custom-mcp                  # → Auto-installs from git/npm/pip
+e14z discover payments                 # → Fast execution
+e14z run stripe                        # → Fast cached execution
+e14z run cloudflare                    # → Auto-installs cloudflare MCP
+e14z run my-custom-mcp                 # → Auto-installs from git/npm/pip
 
 # Python packages (isolated installation)
-e14z run pandas                         # → pip install pandas (in cache)
+e14z run pandas                        # → pip install pandas (in cache)
 
 # Git repositories
-e14z run my-git-mcp                     # → git clone + setup
+e14z run my-git-mcp                    # → git clone + setup
 ```
 
 ## 🏗️ Architecture
@@ -377,6 +379,7 @@ export E14Z_GITHUB_CLIENT_ID=your_client_id
 npx e14z@latest discover "bitcoin payments" --category finance --verified
 npx e14z@latest run stripe --skip-auth-check
 npx e14z@latest cache list
+npx e14z@latest --help
 
 # After bootstrap (direct access):
 e14z discover "bitcoin payments" --category finance --verified
