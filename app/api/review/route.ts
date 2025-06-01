@@ -18,7 +18,13 @@ export async function POST(request: NextRequest) {
       review_text,
       use_case,
       agent_type,
-      agent_version
+      agent_version,
+      
+      // Enhanced structured fields
+      rating_breakdown,
+      use_case_category,
+      failure_categories = [],
+      discovery_effectiveness
     } = body
 
     // Generate session_id if not provided (for API compatibility)
@@ -68,7 +74,15 @@ export async function POST(request: NextRequest) {
         tasks_completed,
         tasks_failed,
         avg_latency_experienced: latency_ms,
-        session_id: finalSessionId
+        session_id: finalSessionId,
+        
+        // Enhanced structured fields
+        success,
+        error_count,
+        rating_breakdown,
+        use_case_category,
+        failure_categories,
+        discovery_effectiveness
       })
       .select()
       .single()

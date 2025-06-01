@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - Discover 50+ MCP servers",
-  version: "2.0.4",
+  version: "2.0.5",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -80,16 +80,45 @@ const mcpServer = {
                 type: "object",
                 properties: {
                   mcp_id: { type: "string", description: "MCP server ID (from discover results)" },
-                  rating: { type: "number", description: "Rating from 1-10" },
+                  rating: { type: "number", description: "Overall rating from 1-10" },
                   review_text: { type: "string", description: "Optional review text" },
                   use_case: { type: "string", description: "What you used it for" },
                   success: { type: "boolean", description: "Did the MCP work as expected?" },
                   tasks_completed: { type: "number", description: "Number of successful tasks" },
                   tasks_failed: { type: "number", description: "Number of failed tasks" },
                   latency_ms: { type: "number", description: "Average response time in milliseconds" },
-                  error_count: { type: "number", description: "Total number of errors encountered" }
+                  error_count: { type: "number", description: "Total number of errors encountered" },
+                  
+                  // Enhanced structured fields
+                  rating_breakdown: {
+                    type: "object",
+                    description: "Structured rating breakdown (1-3 scale each)",
+                    properties: {
+                      setup_difficulty: { type: "number", description: "1=failed, 2=difficult, 3=easy" },
+                      documentation_quality: { type: "number", description: "1=poor, 2=adequate, 3=excellent" },
+                      reliability: { type: "number", description: "1=frequent failures, 2=occasional, 3=stable" },
+                      performance: { type: "number", description: "1=slow, 2=acceptable, 3=fast" }
+                    }
+                  },
+                  use_case_category: { 
+                    type: "string", 
+                    description: "Category: payment_processing, database_operations, content_creation, file_management, api_integration, authentication, data_analysis, communication, automation, security, other" 
+                  },
+                  failure_categories: {
+                    type: "array",
+                    description: "Types of failures encountered",
+                    items: {
+                      type: "string",
+                      enum: ["installation_failed", "authentication_error", "timeout", "invalid_response", "missing_functionality", "poor_performance", "documentation_unclear", "connection_refused"]
+                    }
+                  },
+                  discovery_effectiveness: {
+                    type: "string",
+                    description: "How well discovery matched your needs",
+                    enum: ["perfect_match", "close_match", "poor_match", "wrong_result"]
+                  }
                 },
-                required: ["mcp_id", "rating"]
+                required: ["mcp_id", "rating", "success"]
               }
             }
           ]
@@ -282,6 +311,13 @@ const mcpServer = {
             tasks_failed: args.tasks_failed || 0,
             latency_ms: args.latency_ms,
             error_count: args.error_count || 0,
+            
+            // Enhanced structured fields
+            rating_breakdown: args.rating_breakdown,
+            use_case_category: args.use_case_category,
+            failure_categories: args.failure_categories || [],
+            discovery_effectiveness: args.discovery_effectiveness,
+            
             agent_type: 'mcp-client',
             agent_version: mcpServer.version
           };
