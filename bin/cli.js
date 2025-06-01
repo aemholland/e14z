@@ -937,6 +937,18 @@ program
     console.log(`Platform: ${process.platform} ${process.arch}`);
   });
 
+// Check if running as MCP server (stdin mode - no TTY and no arguments)
+if (!process.stdin.isTTY && process.argv.length <= 2) {
+  // Running as MCP server - delegate to MCP server implementation
+  const { MCPServer } = require('./mcp-server.js');
+  const server = new MCPServer();
+  server.start().catch(error => {
+    console.error('Failed to start E14Z MCP Server:', error);
+    process.exit(1);
+  });
+  return;
+}
+
 // Default help if no command provided
 if (process.argv.length <= 2) {
   console.log(chalk.bold.cyan('🚀 E14Z - The npm for AI agents\n'));
@@ -954,6 +966,10 @@ if (process.argv.length <= 2) {
   console.log(`  ${chalk.cyan('e14z publish new')}        Publish a new MCP`);
   console.log(`  ${chalk.cyan('e14z publish list')}       Your published MCPs`);
   console.log(`  ${chalk.cyan('e14z claim list')}         MCPs available for claiming`);
+  console.log();
+  
+  console.log(chalk.bold('MCP Server Mode:'));
+  console.log(`  ${chalk.cyan('e14z')}                    Auto-detects when used via stdin (for AI agents)`);
   console.log();
   
   console.log(chalk.bold('Examples:'));

@@ -90,7 +90,7 @@ E14Z also provides an MCP server for AI agents to discover tools:
 {
   "mcps": {
     "e14z": {
-      "command": "e14z-mcp"
+      "command": "e14z"
     }
   }
 }
@@ -103,7 +103,7 @@ E14Z v3.0 is built with a modular, security-first architecture:
 ### Core Components
 
 - **🖥️ CLI Tool** (`e14z`): User-facing command interface
-- **🤖 MCP Server** (`e14z-mcp`): AI agent discovery tool
+- **🤖 MCP Server** (`e14z`): AI agent discovery tool (same binary, different mode)
 - **⚡ Execution Engine**: Secure MCP execution with auth detection
 - **🔐 Auth Manager**: GitHub OAuth with encrypted local storage
 - **📦 Publishing System**: Full MCP lifecycle management
@@ -252,7 +252,7 @@ e14z diagnose
 e14z discover --limit 1
 
 # MCP server test
-echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | e14z-mcp
+echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | e14z
 ```
 
 ### Test Results
