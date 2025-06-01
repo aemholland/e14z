@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - Discover 50+ MCP servers",
-  version: "2.0.7",
+  version: "3.0.9",
   
   // MCP Protocol handlers
   async handleRequest(request) {
