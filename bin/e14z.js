@@ -17,7 +17,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - Discover 50+ MCP servers",
-  version: "2.0.6",
+  version: "2.0.7",
   
   // MCP Protocol handlers
   async handleRequest(request) {
@@ -102,7 +102,7 @@ const mcpServer = {
                   },
                   use_case_category: { 
                     type: "string", 
-                    description: "Category: payment_processing, database_operations, content_creation, file_management, api_integration, authentication, data_analysis, communication, automation, security, other" 
+                    description: "Category: payments, databases, content-creation, ai-tools, development-tools, cloud-storage, communication, infrastructure, productivity, project-management, security, social-media, web-apis, finance, research, iot, other" 
                   },
                   failure_categories: {
                     type: "array",
@@ -229,7 +229,7 @@ const mcpServer = {
                     '      "reliability": 3,\n' +
                     '      "performance": 3\n' +
                     '    },\n' +
-                    '    "use_case_category": "payment_processing",\n' +
+                    '    "use_case_category": "payments",\n' +
                     '    "discovery_effectiveness": "perfect_match",\n' +
                     '    "failure_categories": ["timeout"],\n' +
                     '    "use_case": "Processing customer payments",\n' +
@@ -238,7 +238,7 @@ const mcpServer = {
                     '}\n' +
                     '```\n\n' +
                     '📋 **Rating Scale**: setup/docs/reliability/performance: 1=poor, 2=adequate, 3=excellent\n' +
-                    '📂 **Categories**: payment_processing, database_operations, content_creation, etc.\n' +
+                    '📂 **Categories**: payments, databases, content-creation, ai-tools, development-tools, etc.\n' +
                     '🎯 **Discovery**: perfect_match, close_match, poor_match, wrong_result\n' +
                     '💡 **Installation Issues?** Run `npx e14z --test` for diagnostics\n' +
                     '📊 **Structured reviews create precise benchmarks for autonomous agent decision-making**'
