@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
       company,
       license,
       protocol_version = '2024-11-05',
-      capabilities = { tools: true, resources: false, prompts: false }
+      capabilities
     } = body
 
     // Validate required fields
@@ -79,7 +79,6 @@ export async function POST(request: NextRequest) {
         connection_type,
         auth_method,
         protocol_version,
-        capabilities,
         category,
         tags,
         verified: false, // All submissions start unverified

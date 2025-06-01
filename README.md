@@ -88,7 +88,7 @@ E14Z also provides an MCP server for AI agents to discover tools:
 
 ```json
 {
-  "mcps": {
+  "mcpServers": {
     "e14z": {
       "command": "e14z"
     }

@@ -58,7 +58,10 @@ const mcpServer = {
                 properties: {
                   query: { type: "string", description: "Search query for MCP servers (searches name, description, tags, categories)" },
                   verified: { type: "boolean", description: "Only show verified/official MCPs" },
-                  limit: { type: "number", description: "Maximum number of results (default: 10)" }
+                  limit: { type: "number", description: "Maximum number of results (default: 10)" },
+                  no_auth: { type: "boolean", description: "Only show MCPs that require no authentication (work immediately)" },
+                  auth_required: { type: "boolean", description: "Only show MCPs that require authentication setup" },
+                  executable: { type: "boolean", description: "Only show MCPs that can be executed directly" }
                 }
               }
             },
@@ -120,6 +123,19 @@ const mcpServer = {
                 },
                 required: ["mcp_id", "rating", "success"]
               }
+            },
+            {
+              name: "run",
+              description: "Execute an MCP server directly with auth handling",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  slug: { type: "string", description: "MCP server slug/identifier to execute" },
+                  skip_auth_check: { type: "boolean", description: "Skip authentication requirement check and run anyway" },
+                  stdio_mode: { type: "boolean", description: "Use stdio mode for MCP protocol communication" }
+                },
+                required: ["slug"]
+              }
             }
           ]
         };
@@ -144,6 +160,9 @@ const mcpServer = {
           if (args.query) discoverUrl.searchParams.set('q', args.query);
           if (args.verified) discoverUrl.searchParams.set('verified', 'true');
           if (args.limit) discoverUrl.searchParams.set('limit', args.limit.toString());
+          if (args.no_auth) discoverUrl.searchParams.set('no_auth', 'true');
+          if (args.auth_required) discoverUrl.searchParams.set('auth_required', 'true');
+          if (args.executable) discoverUrl.searchParams.set('executable', 'true');
           
           const discoverResponse = await fetch(discoverUrl, { 
             timeout: 10000,
@@ -359,6 +378,53 @@ const mcpServer = {
             }]
           };
           
+        case 'run':
+          // Import ExecutionEngine for running MCPs
+          const { ExecutionEngine } = require('../lib/execution/engine');
+          const executionEngine = new ExecutionEngine();
+          
+          const runResult = await executionEngine.executeMCP(args.slug, {
+            skipAuthCheck: args.skip_auth_check || false,
+            stdio: args.stdio_mode ? 'inherit' : 'pipe'
+          });
+          
+          if (!runResult.success) {
+            if (runResult.authRequired) {
+              return {
+                content: [{
+                  type: "text",
+                  text: `🔐 **Authentication Required**\n\n` +
+                        `MCP "${args.slug}" requires ${runResult.authType} authentication:\n\n` +
+                        runResult.instructions.map(instruction => `• ${instruction}`).join('\n') + '\n\n' +
+                        `**Options:**\n` +
+                        `• Set up the required authentication and try again\n` +
+                        `• Use \`skip_auth_check: true\` to run anyway (may fail)\n` +
+                        `• Use the \`discover\` tool with \`no_auth: true\` to find MCPs that work immediately\n\n` +
+                        `💡 **Need auth-free tools?** Try: \`{"name": "discover", "arguments": {"no_auth": true}}\``
+                }]
+              };
+            } else {
+              return {
+                content: [{
+                  type: "text",
+                  text: `❌ **Execution Failed**\n\n${runResult.error}\n\n💡 Run diagnostics: \`npx e14z --diagnose\``
+                }]
+              };
+            }
+          }
+          
+          return {
+            content: [{
+              type: "text",
+              text: `✅ **MCP Executed Successfully**\n\n` +
+                    `**Command:** \`${runResult.command}\`\n\n` +
+                    `**Output:**\n\`\`\`\n${runResult.output || 'No output'}\n\`\`\`\n\n` +
+                    (runResult.error ? `**Errors:**\n\`\`\`\n${runResult.error}\n\`\`\`\n\n` : '') +
+                    `**Exit Code:** ${runResult.exitCode}\n\n` +
+                    `💡 **Tip:** Use the \`review\` tool to rate this MCP after using it!`
+            }]
+          };
+          
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -554,10 +620,9 @@ async function runTest() {
     console.log('\n🎉 All tests passed! The MCP server is working correctly.');
     console.log('\nTo connect to Claude Desktop, add this to your claude_desktop_config.json:');
     console.log(`{
-  "mcps": {
+  "mcpServers": {
     "e14z": {
-      "command": "npx",
-      "args": ["e14z"]
+      "command": "e14z"
     }
   }
 }`);
@@ -670,10 +735,9 @@ Usage:
 Examples:
   # Connect to Claude Desktop (add to claude_desktop_config.json):
   {
-    "mcps": {
+    "mcpServers": {
       "e14z": {
-        "command": "npx",
-        "args": ["e14z"]
+        "command": "e14z"
       }
     }
   }
