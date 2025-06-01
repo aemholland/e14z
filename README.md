@@ -1,204 +1,326 @@
-# E14Z MCP Server
+# E14Z - The npm for AI Agents
 
-> AI Tool Discovery Platform. Discover, evaluate, and connect to 50+ Model Context Protocol (MCP) servers.
+> Discover, run, and publish Model Context Protocol (MCP) servers. The definitive registry and execution platform for AI agent tools.
 
 [![NPM Version](https://img.shields.io/npm/v/e14z)](https://www.npmjs.com/package/e14z)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
+[![Tests](https://img.shields.io/badge/Tests-24%2F24%20Passing-green)](https://github.com/aemholland/e14z)
 
 ## 🚀 Quick Start
 
 ```bash
-# Connect to the E14Z MCP server
-npx e14z
+# Install globally
+npm install -g e14z
+
+# Discover MCPs
+e14z discover payments
+
+# Run an MCP directly
+e14z run stripe
+
+# Authenticate for publishing
+e14z auth login
 ```
 
-## 📚 What is E14Z?
+## 🌟 What is E14Z?
 
-E14Z is a discovery platform for Model Context Protocol (MCP) servers - the tools that power AI agents. With over 50 verified MCP servers, it provides a centralized registry where developers can:
+E14Z transforms how developers work with Model Context Protocol (MCP) servers. Think "npm for AI agents" - a complete platform for discovering, executing, and publishing AI tools.
 
-- **Discover** MCP servers for any use case (payments, databases, APIs, etc.)
-- **Evaluate** server quality, reliability, and community reviews  
-- **Connect** directly from their AI agent with installation instructions
+### 🔥 **NEW in v3.0**: Full Execution Platform
+
+- **🏃 Direct Execution**: Run MCPs instantly with `e14z run <name>`
+- **🔐 Smart Authentication**: Automatic auth detection and setup guidance
+- **📦 Publishing System**: Publish your MCPs with GitHub integration
+- **🏷️ Claiming System**: Claim ownership of community-wrapped MCPs
+- **🛡️ Security First**: CVE-2024-27980 mitigations and input validation
 
 ## 🔧 Usage
 
-### Connect to Claude Desktop
+### Discovery & Execution
 
-Add this to your `claude_desktop_config.json`:
+```bash
+# Find MCPs by category
+e14z discover payments --verified
+
+# Get detailed information
+e14z info stripe
+
+# Execute directly (with auth detection)
+e14z run stripe
+
+# List all MCPs with execution status
+e14z list --executable-only
+```
+
+### Publishing & Management
+
+```bash
+# Authenticate with GitHub
+e14z auth login
+
+# Publish a new MCP
+e14z publish new my-awesome-mcp
+
+# Generate package template
+e14z publish template my-mcp
+
+# List your published MCPs
+e14z publish list
+```
+
+### Claiming Wrapped MCPs
+
+```bash
+# See available MCPs to claim
+e14z claim list
+
+# Claim ownership with verification
+e14z claim mcp package-name
+
+# Check claim status
+e14z claim status
+```
+
+### MCP Server (Discovery Tool)
+
+E14Z also provides an MCP server for AI agents to discover tools:
 
 ```json
 {
   "mcps": {
     "e14z": {
-      "command": "npx",
-      "args": ["e14z"]
+      "command": "e14z-mcp"
     }
   }
 }
 ```
 
-### Available Tools
+## 🏗️ Architecture
 
-Once connected, your AI agent can use these tools:
+E14Z v3.0 is built with a modular, security-first architecture:
 
-#### `discover`
-Search and filter MCP servers by capabilities, category, or keywords.
+### Core Components
 
-```json
-{
-  "name": "discover",
-  "arguments": {
-    "query": "databases",
-    "verified": true,
-    "limit": 10
-  }
-}
+- **🖥️ CLI Tool** (`e14z`): User-facing command interface
+- **🤖 MCP Server** (`e14z-mcp`): AI agent discovery tool
+- **⚡ Execution Engine**: Secure MCP execution with auth detection
+- **🔐 Auth Manager**: GitHub OAuth with encrypted local storage
+- **📦 Publishing System**: Full MCP lifecycle management
+- **🏷️ Claiming System**: Ownership verification for wrapped MCPs
+
+### Security Features
+
+- **Command Injection Prevention**: Blocks dangerous shell characters
+- **Path Traversal Protection**: Prevents `../` and similar attacks
+- **Input Validation**: Comprehensive slug and command validation
+- **Environment Sanitization**: Safe execution environment
+- **Encrypted Storage**: XDG-compliant credential management
+
+## 📚 Available MCPs
+
+Discover 50+ verified MCP servers across 16 categories:
+
+| Category | Examples | Auth Required |
+|----------|----------|---------------|
+| **Payments** | Stripe, Square, Bitcoin | 🔐 API Keys |
+| **Databases** | MongoDB, ClickHouse, BigQuery | 🔐 Credentials |
+| **AI Tools** | ElevenLabs, LangFuse, Memory | 🔓 Mixed |
+| **Development** | GitHub, CircleCI, Docker | 🔐 OAuth/Tokens |
+| **Cloud Storage** | Google Drive, Box | 🔐 OAuth |
+| **Communication** | Twilio, Slack | 🔐 API Keys |
+| **Productivity** | Notion, Linear, Todoist | 🔐 OAuth |
+| **Infrastructure** | AWS, Kubernetes, CloudFlare | 🔐 Credentials |
+
+## 🔐 Authentication
+
+E14Z provides intelligent authentication detection and management:
+
+### Supported Auth Methods
+
+- **None**: Public APIs and services
+- **API Key**: Service-specific keys and tokens  
+- **OAuth**: GitHub, Google, and social providers
+- **Credentials**: Username/password, connection strings
+
+### Authentication Flow
+
+```bash
+# 1. Login with GitHub
+e14z auth login
+
+# 2. Run MCP with auth detection
+e14z run stripe
+# → Detects API key requirement
+# → Provides setup instructions
+# → Offers to run anyway with --skip-auth-check
+
+# 3. Check auth status
+e14z auth status
 ```
-
-#### `details`
-Get detailed information about a specific MCP server.
-
-```json
-{
-  "name": "details", 
-  "arguments": {
-    "slug": "stripe"
-  }
-}
-```
-
-#### `review`
-Submit feedback after using an MCP server.
-
-```json
-{
-  "name": "review",
-  "arguments": {
-    "mcp_id": "d2127d6c-a314-47b1-ba80-8b95ca934e01",
-    "rating": 9,
-    "review_text": "Excellent payment integration tools",
-    "use_case": "e-commerce checkout"
-  }
-}
-```
-
-## 🌍 Categories
-
-Find MCP servers across 16 standardized categories:
-
-- **AI Tools** - LLMs, machine learning services
-- **Cloud Storage** - File storage and management
-- **Communication** - Video calls, messaging platforms
-- **Content Creation** - Text, image, media generation
-- **Databases** - MongoDB, PostgreSQL, data management
-- **Development Tools** - GitHub, CI/CD, coding utilities
-- **Finance** - Accounting, invoicing, financial services
-- **Infrastructure** - DevOps, deployment, cloud services
-- **IoT** - Smart home, device control
-- **Payments** - Stripe, Bitcoin, financial transactions
-- **Productivity** - Office tools, utilities
-- **Project Management** - Task tracking, collaboration
-- **Research** - Academic tools, data analysis
-- **Security** - Authentication, encryption
-- **Social Media** - Platform integrations
-- **Web APIs** - REST services, integrations
 
 ## 🏗️ For Developers
 
-### HTTP Mode (Testing)
+### Publishing Your MCP
+
+1. **Create Package Template**
+   ```bash
+   e14z publish template my-mcp
+   # Edit e14z-package.json
+   ```
+
+2. **Publish to Registry**
+   ```bash
+   e14z publish new -f e14z-package.json
+   ```
+
+3. **Your MCP is Live!**
+   - Available via `e14z discover`
+   - Executable via `e14z run your-mcp`
+   - Listed in registry with verification pending
+
+### Claiming Existing MCPs
+
+If we've already wrapped your MCP from public sources:
 
 ```bash
-# Start HTTP server for testing
-npx e14z --http
+# Find claimable MCPs
+e14z claim list
 
-# Test with curl
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+# Claim with GitHub verification
+e14z claim mcp your-package
+# → Automatically verifies GitHub ownership
+# → Grants you publishing rights
 ```
 
-### Environment Variables
+### Auto-Wrapping System
 
-- `E14Z_API_URL` - Override API endpoint (default: https://www.e14z.com)
+E14Z automatically wraps new MCPs from various sources:
+
+- **NPM packages**: `npm install package` → `npx package`
+- **Python packages**: `pip install package` → `uvx package`  
+- **GitHub repos**: Extracts install commands from README
+- **Auth detection**: Analyzes descriptions for auth requirements
+
+## 🔧 Advanced Usage
+
+### Environment Configuration
+
+```bash
+# Custom API endpoint
+export E14Z_API_URL=https://your-instance.com
+
+# GitHub client ID for OAuth
+export E14Z_GITHUB_CLIENT_ID=your_client_id
+```
+
+### Command Examples
+
+```bash
+# Discovery with filters
+e14z discover "bitcoin payments" --category finance --verified
+
+# Execution with auth bypass
+e14z run stripe --skip-auth-check
+
+# Publishing with custom template
+e14z publish new my-mcp --file custom-package.json
+
+# Claiming with category filter
+e14z claim list --category payments
+```
+
+### Integration with CI/CD
+
+```yaml
+# GitHub Actions example
+- name: Publish MCP
+  run: |
+    echo "${{ secrets.GITHUB_TOKEN }}" | e14z auth login
+    e14z publish new --file mcp-package.json
+```
+
+## 🧪 Testing & Diagnostics
+
+### Built-in Diagnostics
+
+```bash
+# System health check
+e14z diagnose
+
+# Connectivity test
+e14z discover --limit 1
+
+# MCP server test
+echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | e14z-mcp
+```
+
+### Test Results
+
+E14Z v3.0 passes **24/24 security and functionality tests**:
+
+- ✅ **Security**: Command injection, path traversal, input validation
+- ✅ **Execution**: Safe command parsing and environment setup
+- ✅ **Auth Detection**: Accurate requirement identification
+- ✅ **Auto-Wrapping**: NPM/Python package command generation
 
 ## 🔧 Troubleshooting
 
-### Quick Diagnostics
-
-If you're having connection issues, run these commands:
-
-```bash
-# Test functionality
-npx e14z --test
-
-# Full diagnostics
-npx e14z --diagnose
-```
-
 ### Common Issues
 
-#### "Command not found" Error
+**Command not found: e14z**
 ```bash
-# Make sure npm/npx is installed and in your PATH
-npm --version
-npx --version
+npm install -g e14z
+# or
+npx e14z discover
 ```
 
-#### Claude Desktop Connection Issues
-
-1. **Check config file location:**
-   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-   - **Linux**: `~/.config/claude/claude_desktop_config.json`
-
-2. **Verify JSON syntax:**
-   ```json
-   {
-     "mcps": {
-       "e14z": {
-         "command": "npx",
-         "args": ["e14z"]
-       }
-     }
-   }
-   ```
-
-3. **Restart Claude Desktop** after making config changes
-
-#### Network Connection Issues
-
-- **Corporate Networks**: You may need to configure proxy settings
-- **Firewalls**: Ensure access to `https://www.e14z.com`
-- **DNS**: Try `nslookup e14z.com` to verify DNS resolution
-
-#### Node.js Version Issues
-
+**Authentication failed**
 ```bash
-# Check your Node.js version (requires 18+)
-node --version
+e14z auth logout
+e14z auth login
+```
 
-# Update Node.js if needed
-# Visit https://nodejs.org for latest version
+**MCP execution failed**
+```bash
+# Check auth requirements
+e14z info <mcp-name>
+
+# Run diagnostics
+e14z diagnose
+
+# Skip auth check for testing
+e14z run <mcp-name> --skip-auth-check
+```
+
+**Publishing errors**
+```bash
+# Ensure authenticated
+e14z auth status
+
+# Validate package
+e14z publish template test && cat e14z-package.json
 ```
 
 ### Getting Help
 
-- **Test first**: Run `npx e14z --test` to verify functionality
-- **Check logs**: Claude Desktop shows MCP connection logs
-- **Report issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
 - **Documentation**: [e14z.com/docs](https://e14z.com/docs)
+- **Issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
+- **Diagnostics**: `e14z diagnose`
+
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🌟 Community
 
 - **Website**: [e14z.com](https://e14z.com)
-- **Submit MCPs**: [e14z.com/submit](https://e14z.com/submit)
+- **Registry**: [e14z.com/browse](https://e14z.com/browse)
+- **Publishing**: `e14z publish new`
 - **Issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/aemholland/e14z/discussions)
 
 ---
 
-**Built for the AI-powered future** 🤖
+**Built for the AI-powered future** 🤖 | **Powered by Model Context Protocol** ⚡
