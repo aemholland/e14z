@@ -88,7 +88,7 @@ program
         const verified = mcp.verified ? chalk.blue('✓ Verified') : chalk.gray('○ Community');
         const authStatus = mcp.auth_method === 'none' ? 
           chalk.green('No auth') : 
-          chalk.yellow(`Auth: ${mcp.auth_method}`);
+          chalk.yellow(`Auth: ${mcp.auth_method || 'unknown'}`);
         
         console.log(`${chalk.bold(index + 1)}. ${chalk.cyan(mcp.name)} ${chalk.gray(`(${mcp.slug})`)}`);
         console.log(`   ${mcp.description}`);
@@ -766,7 +766,7 @@ claimCommand
       filteredMCPs.forEach((mcp, index) => {
         const authStatus = mcp.auth_method === 'none' ? 
           chalk.green('No auth') : 
-          chalk.yellow(`Auth: ${mcp.auth_method}`);
+          chalk.yellow(`Auth: ${mcp.auth_method || 'unknown'}`);
         
         const claimStatus = mcp.claims?.pending > 0 ? 
           chalk.yellow(`${mcp.claims.pending} pending`) : 
