@@ -13,14 +13,14 @@ const fs = require('fs').promises;
 const path = require('path');
 
 // Import our modules
-const { ExecutionEngine } = require('../lib/execution/engine');
+const { EnhancedExecutionEngine } = require('../lib/execution/enhanced-engine');
 const { AuthManager } = require('../lib/auth/manager');
 const { MCPPublisher } = require('../lib/publishing/publisher');
 const { ClaimingManager } = require('../lib/claiming/manager');
 
 const program = new Command();
 const authManager = new AuthManager();
-const executionEngine = new ExecutionEngine();
+const executionEngine = new EnhancedExecutionEngine();
 const mcpPublisher = new MCPPublisher(authManager);
 const claimingManager = new ClaimingManager(authManager);
 
@@ -211,15 +211,21 @@ program
   });
 
 /**
- * Run Command - Execute MCP directly
+ * Run Command - Execute MCP directly with auto-installation
  */
 program
   .command('run <slug>')
-  .description('Execute an MCP server directly')
+  .description('Execute an MCP server directly (with auto-installation)')
   .option('--skip-auth-check', 'Skip authentication requirement check')
   .option('--stdio', 'Use stdio mode (default for MCP protocol)')
+  .option('--no-auto-install', 'Disable auto-installation')
   .action(async (slug, options) => {
     try {
+      // Configure auto-installation
+      if (options.noAutoInstall) {
+        executionEngine.enableAutoInstall = false;
+      }
+      
       const result = await executionEngine.executeMCP(slug, {
         skipAuthCheck: options.skipAuthCheck,
         stdio: options.stdio ? 'inherit' : 'pipe'
@@ -251,8 +257,19 @@ program
           process.exit(1);
         } else {
           console.error(chalk.red('Execution failed:'), result.error);
+          
+          // Show auto-installation hint if not already attempted
+          if (!result.error.includes('auto-install') && !options.noAutoInstall) {
+            console.log(chalk.gray('💡 Tip: E14Z can auto-install MCPs that aren\'t locally available'));
+          }
+          
           process.exit(1);
         }
+      }
+      
+      if (result.autoInstalled) {
+        console.log(chalk.green(`\n🤖 Auto-installed and executed ${slug}`));
+        console.log(chalk.gray(`Cache location: ${result.cachePath || 'N/A'}`));
       }
       
       if (options.stdio) {
@@ -276,6 +293,174 @@ program
       
     } catch (error) {
       console.error(chalk.red('Execution failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+/**
+ * Cache Management Commands
+ */
+const cacheCommand = program
+  .command('cache')
+  .description('Auto-installation cache management');
+
+cacheCommand
+  .command('list')
+  .alias('ls')
+  .description('List cached MCPs')
+  .action(async () => {
+    try {
+      const spinner = ora('Loading cached MCPs...').start();
+      const result = await executionEngine.listCached();
+      spinner.stop();
+      
+      if (!result.success) {
+        console.error(chalk.red('Failed to list cache:'), result.error);
+        process.exit(1);
+      }
+      
+      if (result.cached.length === 0) {
+        console.log(chalk.yellow('No cached MCPs found.'));
+        console.log(chalk.gray('Use `e14z run <slug>` to auto-install and cache MCPs.'));
+        return;
+      }
+      
+      console.log(chalk.bold(`\n🗄️ Cached MCPs (${result.cached.length}):\n`));
+      
+      result.cached.forEach((item, index) => {
+        const installedAt = item.installed_at !== 'unknown' ? 
+          new Date(item.installed_at).toLocaleString() : 
+          'Unknown';
+        
+        console.log(`${chalk.bold(index + 1)}. ${chalk.cyan(item.slug)}`);
+        console.log(`   Path: ${chalk.gray(item.path)}`);
+        console.log(`   Installed: ${installedAt}`);
+        console.log(`   ${chalk.green('▶')} Run: ${chalk.bold(`e14z run ${item.slug}`)}`);
+        console.log(`   ${chalk.red('🗑️')} Clear: ${chalk.bold(`e14z cache clear ${item.slug}`)}`);
+        console.log();
+      });
+      
+      console.log(chalk.gray(`💡 Use ${chalk.bold('e14z cache clear <slug>')} to remove specific MCPs`));
+      console.log(chalk.gray(`💡 Use ${chalk.bold('e14z cache clear --all')} to clear all cached MCPs`));
+      
+    } catch (error) {
+      console.error(chalk.red('Cache list failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+cacheCommand
+  .command('clear [slug]')
+  .description('Clear cached MCP installations')
+  .option('--all', 'Clear all cached MCPs')
+  .action(async (slug, options) => {
+    try {
+      if (options.all) {
+        const answer = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'confirm',
+          message: 'Clear all cached MCPs?',
+          default: false
+        }]);
+        
+        if (!answer.confirm) {
+          console.log(chalk.yellow('Cache clear cancelled.'));
+          return;
+        }
+        
+        const spinner = ora('Clearing all cached MCPs...').start();
+        
+        // Get all cached items and clear them individually
+        const listResult = await executionEngine.listCached();
+        if (listResult.success) {
+          for (const item of listResult.cached) {
+            await executionEngine.clearCache(item.slug);
+          }
+        }
+        
+        spinner.stop();
+        console.log(chalk.green('✅ All cached MCPs cleared.'));
+        
+      } else if (slug) {
+        const spinner = ora(`Clearing cache for ${slug}...`).start();
+        const result = await executionEngine.clearCache(slug);
+        spinner.stop();
+        
+        if (result.success) {
+          console.log(chalk.green(`✅ Cache cleared for ${slug}`));
+        } else {
+          console.error(chalk.red('Cache clear failed:'), result.error);
+          process.exit(1);
+        }
+        
+      } else {
+        console.log(chalk.yellow('Please specify a slug or use --all'));
+        console.log(chalk.gray('Usage: e14z cache clear <slug> | e14z cache clear --all'));
+      }
+      
+    } catch (error) {
+      console.error(chalk.red('Cache clear failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+cacheCommand
+  .command('info [slug]')
+  .description('Show cache information and auto-install capabilities')
+  .action(async (slug) => {
+    try {
+      if (slug) {
+        // Check auto-install capability for specific slug
+        const spinner = ora('Checking auto-install capability...').start();
+        const capability = await executionEngine.canAutoInstall(slug);
+        spinner.stop();
+        
+        console.log(chalk.bold(`\n🤖 Auto-install capability for ${slug}:\n`));
+        
+        if (capability.available) {
+          console.log(chalk.green('✅ Auto-installation available'));
+          console.log(`Method: ${capability.method}`);
+          console.log(`Command: ${capability.command}`);
+        } else {
+          console.log(chalk.red('❌ Auto-installation not available'));
+          console.log(`Reason: ${capability.error}`);
+        }
+        
+      } else {
+        // Show general cache info
+        const spinner = ora('Loading cache information...').start();
+        const listResult = await executionEngine.listCached();
+        spinner.stop();
+        
+        if (!listResult.success) {
+          console.error(chalk.red('Failed to load cache info:'), listResult.error);
+          process.exit(1);
+        }
+        
+        console.log(chalk.bold('\n🗄️ Cache Information:\n'));
+        console.log(`Cached MCPs: ${listResult.cached.length}`);
+        
+        if (listResult.cached.length > 0) {
+          const totalSize = listResult.cached.reduce((size, item) => {
+            // Estimate size (this would be more accurate with actual directory size calculation)
+            return size + 10; // 10MB estimate per package
+          }, 0);
+          
+          console.log(`Estimated size: ${totalSize}MB`);
+          console.log(`Cache location: ~/.e14z/cache/`);
+        }
+        
+        console.log('\nAuto-installation features:');
+        console.log('  ✓ NPM packages (npx commands)');
+        console.log('  ✓ Python packages (pip install)');
+        console.log('  ✓ Git repositories (git clone)');
+        console.log('  ✓ Security scanning and verification');
+        console.log('  ✓ Automatic dependency resolution');
+        console.log('  ✓ Transaction rollback on failures');
+      }
+      
+    } catch (error) {
+      console.error(chalk.red('Cache info failed:'), error.message);
       process.exit(1);
     }
   });
@@ -951,14 +1136,20 @@ if ((process.stdin.isTTY === false || process.stdin.isTTY === undefined) && proc
 
 // Default help if no command provided
 if (process.argv.length <= 2) {
-  console.log(chalk.bold.cyan('🚀 E14Z - The npm for AI agents\n'));
-  console.log('Discover, install, and run Model Context Protocol (MCP) servers\n');
+  console.log(chalk.bold.cyan('🚀 E14Z - Universal MCP Runtime\n'));
+  console.log('NPX-like auto-installation and execution of Model Context Protocol (MCP) servers\n');
   
   console.log(chalk.bold('Discovery & Execution:'));
   console.log(`  ${chalk.cyan('e14z discover')}           Discover available MCPs`);
   console.log(`  ${chalk.cyan('e14z info <slug>')}        Get detailed MCP information`);
-  console.log(`  ${chalk.cyan('e14z run <slug>')}         Execute an MCP directly`);
+  console.log(`  ${chalk.cyan('e14z run <slug>')}         Execute MCP with auto-installation`);
   console.log(`  ${chalk.cyan('e14z list')}               List all MCPs with status`);
+  console.log();
+  
+  console.log(chalk.bold('Auto-Installation & Cache:'));
+  console.log(`  ${chalk.cyan('e14z cache list')}         Show cached MCPs`);
+  console.log(`  ${chalk.cyan('e14z cache clear <slug>')} Clear specific MCP cache`);
+  console.log(`  ${chalk.cyan('e14z cache info')}         Show cache information`);
   console.log();
   
   console.log(chalk.bold('Publishing & Management:'));
@@ -974,9 +1165,18 @@ if (process.argv.length <= 2) {
   
   console.log(chalk.bold('Examples:'));
   console.log(`  ${chalk.gray('e14z discover payments')}     Find payment-related MCPs`);
-  console.log(`  ${chalk.gray('e14z run stripe')}           Run Stripe MCP directly`);
+  console.log(`  ${chalk.gray('e14z run stripe')}           Auto-install and run Stripe MCP`);
+  console.log(`  ${chalk.gray('e14z cache list')}           Show installed MCPs`);
   console.log(`  ${chalk.gray('e14z publish new my-mcp')}   Publish your MCP`);
   console.log(`  ${chalk.gray('e14z claim mcp stripe')}     Claim wrapped MCP`);
+  console.log();
+  
+  console.log(chalk.bold('🤖 Auto-Installation Features:'));
+  console.log(`  • NPX-like package installation and execution`);
+  console.log(`  • Security scanning and threat detection`);
+  console.log(`  • Automatic dependency resolution`);
+  console.log(`  • Transaction rollback on failures`);
+  console.log(`  • Multi-package manager support (npm, pip, git)`);
   console.log();
   
   console.log(chalk.gray(`Use ${chalk.bold('e14z --help')} for all available commands`));

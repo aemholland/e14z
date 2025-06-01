@@ -1,7 +1,7 @@
 {
   "name": "e14z",
-  "version": "3.1.2",
-  "description": "The npm for AI agents - Discover, evaluate, and connect to Model Context Protocol (MCP) servers",
+  "version": "4.0.0",
+  "description": "Universal MCP Runtime - NPX-like auto-installation and execution of Model Context Protocol (MCP) servers for AI agents",
   "main": "bin/cli.js",
   "bin": {
     "e14z": "bin/cli.js"
@@ -43,10 +43,15 @@
     "agent",
     "tools",
     "discovery",
+    "auto-install",
+    "runtime",
+    "npx",
     "claude",
     "anthropic",
     "openai",
-    "llm"
+    "llm",
+    "package-manager",
+    "security"
   ],
   "author": "E14Z Team",
   "license": "MIT",
@@ -71,7 +76,6 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^12.0.0",
-    "e14z": "^3.0.0",
     "inquirer": "^8.2.6",
     "node-fetch": "^3.3.2",
     "node-machine-id": "^1.1.12",

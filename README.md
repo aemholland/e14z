@@ -1,11 +1,11 @@
-# E14Z - The npm for AI Agents
+# E14Z - Universal MCP Runtime
 
-> Discover, run, and publish Model Context Protocol (MCP) servers. The definitive registry and execution platform for AI agent tools.
+> NPX-like auto-installation and execution of Model Context Protocol (MCP) servers for AI agents. The definitive registry and execution platform for AI agent tools.
 
 [![NPM Version](https://img.shields.io/npm/v/e14z)](https://www.npmjs.com/package/e14z)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
-[![Tests](https://img.shields.io/badge/Tests-24%2F24%20Passing-green)](https://github.com/aemholland/e14z)
+[![Tests](https://img.shields.io/badge/Tests-21%2F21%20Passing-green)](https://github.com/aemholland/e14z)
 
 ## 🚀 Quick Start
 
@@ -16,8 +16,11 @@ npm install -g e14z
 # Discover MCPs
 e14z discover payments
 
-# Run an MCP directly
+# Auto-install and run any MCP (like npx!)
 e14z run stripe
+
+# Check what's cached
+e14z cache list
 
 # Authenticate for publishing
 e14z auth login
@@ -25,9 +28,18 @@ e14z auth login
 
 ## 🌟 What is E14Z?
 
-E14Z transforms how developers work with Model Context Protocol (MCP) servers. Think "npm for AI agents" - a complete platform for discovering, executing, and publishing AI tools.
+E14Z is the **Universal MCP Runtime** - think "npx for AI agents". It automatically installs and executes Model Context Protocol (MCP) servers on-demand, just like npx does for npm packages.
 
-### 🔥 **NEW in v3.0**: Full Execution Platform
+### 🔥 **NEW in v4.0**: Auto-Installation Engine
+
+- **🤖 NPX-like Auto-Installation**: Install any MCP on first run
+- **🔒 Enterprise-Grade Security**: Multi-layer threat detection and sandboxing  
+- **📦 Multi-Package Manager Support**: npm, pip, git repositories
+- **⚡ Intelligent Caching**: Fast execution with integrity verification
+- **🔄 Transaction Rollback**: Automatic cleanup on installation failures
+- **🛡️ Security Scanning**: Typosquatting detection and malicious package protection
+
+### Previous Features (v3.0+)
 
 - **🏃 Direct Execution**: Run MCPs instantly with `e14z run <name>`
 - **🔐 Smart Authentication**: Automatic auth detection and setup guidance
@@ -37,7 +49,7 @@ E14Z transforms how developers work with Model Context Protocol (MCP) servers. T
 
 ## 🔧 Usage
 
-### Discovery & Execution
+### Discovery & Auto-Installation
 
 ```bash
 # Find MCPs by category
@@ -46,11 +58,33 @@ e14z discover payments --verified
 # Get detailed information
 e14z info stripe
 
-# Execute directly (with auth detection)
+# Auto-install and execute (like npx!)
 e14z run stripe
+
+# Run without auto-installation (old behavior)
+e14z run stripe --no-auto-install
 
 # List all MCPs with execution status
 e14z list --executable-only
+```
+
+### Cache Management
+
+```bash
+# List cached (auto-installed) MCPs
+e14z cache list
+
+# Clear specific MCP cache
+e14z cache clear stripe
+
+# Clear all cached MCPs
+e14z cache clear --all
+
+# Check auto-install capability
+e14z cache info stripe
+
+# Show cache statistics
+e14z cache info
 ```
 
 ### Publishing & Management
@@ -135,26 +169,76 @@ E14Z provides a comprehensive MCP server for autonomous agents with 4 powerful t
 }}
 ```
 
+## 🤖 Auto-Installation Engine
+
+E14Z v4.0 introduces a powerful auto-installation engine that works like `npx` for MCP servers:
+
+### How It Works
+
+1. **Discovery**: Run `e14z run package-name`
+2. **Detection**: E14Z detects the package isn't locally available
+3. **Analysis**: Security scanning and installation method detection
+4. **Installation**: Automatic package installation with sandbox protection
+5. **Caching**: Future runs use cached installation for speed
+6. **Execution**: Seamless MCP execution
+
+### Supported Package Managers
+
+| Manager | Command Format | Example | Cache Location |
+|---------|----------------|---------|----------------|
+| **NPM** | `npx package[@version]` | `npx @types/node` | `~/.e14z/cache/` |
+| **Python** | `pip install package[==version]` | `pip install requests` | `~/.e14z/cache/` |
+| **Git** | `git clone url [branch]` | `git clone https://...` | `~/.e14z/cache/` |
+
+### Security Features
+
+- **🔒 Multi-Layer Security**: Command injection prevention, path traversal protection
+- **🛡️ Threat Detection**: Typosquatting detection, malicious package database
+- **🔍 Script Analysis**: Suspicious post-install script detection
+- **📦 Package Verification**: Integrity checking and reputation scoring
+- **🚫 Quarantine System**: Automatic isolation of suspicious packages
+- **🔄 Transaction Rollback**: Automatic cleanup on installation failures
+
+### Auto-Installation Examples
+
+```bash
+# NPM packages (with scoped support)
+e14z run lodash              # → npx lodash
+e14z run @types/node         # → npx @types/node
+e14z run lodash@4.17.21      # → npx lodash@4.17.21
+
+# Python packages  
+e14z run requests            # → pip install requests (in isolation)
+e14z run pandas==1.5.0       # → pip install pandas==1.5.0
+
+# Git repositories
+e14z run my-git-mcp          # → git clone https://github.com/...
+```
+
 ## 🏗️ Architecture
 
-E14Z v3.0 is built with a modular, security-first architecture:
+E14Z v4.0 is built with a modular, security-first architecture:
 
 ### Core Components
 
 - **🖥️ CLI Tool** (`e14z`): User-facing command interface
 - **🤖 MCP Server** (`e14z`): AI agent discovery tool (same binary, different mode)
-- **⚡ Execution Engine**: Secure MCP execution with auth detection
+- **⚡ Enhanced Execution Engine**: Secure MCP execution with auto-installation
+- **🤖 Auto-Installer**: NPX-like package installation with security scanning
+- **🗄️ Secure Cache Manager**: Intelligent caching with integrity verification
 - **🔐 Auth Manager**: GitHub OAuth with encrypted local storage
 - **📦 Publishing System**: Full MCP lifecycle management
 - **🏷️ Claiming System**: Ownership verification for wrapped MCPs
 
-### Security Features
+### Security Architecture
 
-- **Command Injection Prevention**: Blocks dangerous shell characters
-- **Path Traversal Protection**: Prevents `../` and similar attacks
-- **Input Validation**: Comprehensive slug and command validation
-- **Environment Sanitization**: Safe execution environment
-- **Encrypted Storage**: XDG-compliant credential management
+- **🛡️ Command Sanitization**: Blocks dangerous shell characters and patterns
+- **🔒 Process Sandboxing**: Isolated execution environments with resource limits
+- **📍 Path Traversal Protection**: Prevents `../` and similar attacks
+- **🔍 Input Validation**: Comprehensive slug and command validation
+- **🌍 Environment Sanitization**: Safe execution environment setup
+- **🔐 Encrypted Storage**: XDG-compliant credential management
+- **⚡ Transaction System**: Atomic operations with automatic rollback
 
 ## 📚 Available MCPs
 
@@ -269,6 +353,22 @@ e14z publish new my-mcp --file custom-package.json
 e14z claim list --category payments
 ```
 
+### Keeping E14Z Updated
+
+```bash
+# Always use latest (recommended for occasional users)
+npx e14z@latest discover payments
+
+# Update global installation
+npm update -g e14z
+
+# Force update to specific version
+npm install -g e14z@latest
+
+# Check current version
+e14z --version
+```
+
 ### Integration with CI/CD
 
 ```yaml
@@ -296,12 +396,14 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | e14z
 
 ### Test Results
 
-E14Z v3.0 passes **24/24 security and functionality tests**:
+E14Z v4.0 passes **21/21 comprehensive auto-installation tests**:
 
-- ✅ **Security**: Command injection, path traversal, input validation
-- ✅ **Execution**: Safe command parsing and environment setup
-- ✅ **Auth Detection**: Accurate requirement identification
-- ✅ **Auto-Wrapping**: NPM/Python package command generation
+- ✅ **Core Functionality**: Cache management, package manager selection, command parsing
+- ✅ **Security**: Command injection prevention, typosquatting detection, malicious package blocking
+- ✅ **Error Handling**: Categorization, transaction rollback, retry logic
+- ✅ **Cache System**: Integrity verification, cleanup policies, concurrent access
+- ✅ **Performance**: Installation speed, cache hit optimization
+- ✅ **Edge Cases**: Large packages, network timeouts, permission errors
 
 ## 🔧 Troubleshooting
 
@@ -330,6 +432,32 @@ e14z diagnose
 
 # Skip auth check for testing
 e14z run <mcp-name> --skip-auth-check
+
+# Disable auto-installation
+e14z run <mcp-name> --no-auto-install
+```
+
+**Auto-installation issues**
+```bash
+# Clear corrupted cache
+e14z cache clear <mcp-name>
+
+# Check auto-install capability
+e14z cache info <mcp-name>
+
+# View cache contents
+e14z cache list
+
+# Clear all cache (nuclear option)
+e14z cache clear --all
+```
+
+**Security warnings**
+```bash
+# Package flagged as suspicious
+# Review the security warning details
+# Consider using alternative packages
+# Use --security-level minimal for testing (not recommended)
 ```
 
 **Publishing errors**
