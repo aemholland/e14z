@@ -10,20 +10,30 @@
 ## 🚀 Quick Start
 
 ```bash
-# Install globally
-npm install -g e14z
+# First time anywhere - works on ANY system with Node.js
+npx e14z@latest run stripe
 
-# Discover MCPs
-e14z discover payments
-
-# Auto-install and run any MCP (like npx!)
+# Auto-installs globally after first successful use!
+# From then on, use directly:
 e14z run stripe
-
-# Check what's cached
+e14z discover payments
 e14z cache list
 
 # Authenticate for publishing
 e14z auth login
+```
+
+### 🎯 **Universal Installation Pattern:**
+
+```bash
+# Option 1: Self-Installing (Recommended)
+npx e14z@latest run <mcp-name>
+# → First run: Downloads + installs globally + runs MCP
+# → Future runs: Direct "e14z run <mcp-name>" access
+
+# Option 2: Manual Global Install
+npm install -g e14z@latest
+e14z run <mcp-name>
 ```
 
 ## 🌟 What is E14Z?
@@ -175,12 +185,31 @@ E14Z v4.0 introduces a powerful auto-installation engine that works like `npx` f
 
 ### How It Works
 
-1. **Discovery**: Run `e14z run package-name`
-2. **Detection**: E14Z detects the package isn't locally available
+1. **Bootstrap**: First run via `npx e14z@latest run <mcp>`
+2. **Detection**: E14Z detects the MCP isn't locally available
 3. **Analysis**: Security scanning and installation method detection
-4. **Installation**: Automatic package installation with sandbox protection
-5. **Caching**: Future runs use cached installation for speed
-6. **Execution**: Seamless MCP execution
+4. **Installation**: Automatic MCP installation with sandbox protection
+5. **Global Setup**: Auto-installs e14z globally for direct access
+6. **Caching**: Future runs use cached installation for speed
+7. **Execution**: Seamless MCP execution
+
+### Universal Bootstrap Mechanism
+
+```bash
+# Works on ANY fresh system:
+npx e14z@latest run stripe
+
+# Output:
+# 🤖 Auto-installing stripe...
+# ✅ stripe installed and cached
+# 🚀 Setting up e14z for direct access...
+# ✅ e14z installed globally!
+# You can now use "e14z run <mcp>" directly! 🎉
+
+# Future runs work directly:
+e14z run cloudflare
+e14z discover payments
+```
 
 ### Supported Package Managers
 
@@ -202,17 +231,21 @@ E14Z v4.0 introduces a powerful auto-installation engine that works like `npx` f
 ### Auto-Installation Examples
 
 ```bash
-# NPM packages (with scoped support)
-e14z run lodash              # → npx lodash
-e14z run @types/node         # → npx @types/node
-e14z run lodash@4.17.21      # → npx lodash@4.17.21
+# First time - use npx pattern:
+npx e14z@latest run stripe              # → Auto-installs stripe MCP + e14z globally
+npx e14z@latest run @types/node         # → Auto-installs + global setup
+npx e14z@latest run lodash@4.17.21      # → Auto-installs specific version
 
-# Python packages  
-e14z run requests            # → pip install requests (in isolation)
-e14z run pandas==1.5.0       # → pip install pandas==1.5.0
+# After first use - direct access:
+e14z run stripe                         # → Fast cached execution
+e14z run cloudflare                     # → Auto-installs cloudflare MCP
+e14z run my-custom-mcp                  # → Auto-installs from git/npm/pip
+
+# Python packages (isolated installation)
+e14z run pandas                         # → pip install pandas (in cache)
 
 # Git repositories
-e14z run my-git-mcp          # → git clone https://github.com/...
+e14z run my-git-mcp                     # → git clone + setup
 ```
 
 ## 🏗️ Architecture
@@ -340,33 +373,36 @@ export E14Z_GITHUB_CLIENT_ID=your_client_id
 ### Command Examples
 
 ```bash
-# Discovery with filters
+# First time anywhere (bootstrap pattern):
+npx e14z@latest discover "bitcoin payments" --category finance --verified
+npx e14z@latest run stripe --skip-auth-check
+npx e14z@latest cache list
+
+# After bootstrap (direct access):
 e14z discover "bitcoin payments" --category finance --verified
-
-# Execution with auth bypass
 e14z run stripe --skip-auth-check
-
-# Publishing with custom template
 e14z publish new my-mcp --file custom-package.json
-
-# Claiming with category filter
 e14z claim list --category payments
 ```
 
 ### Keeping E14Z Updated
 
 ```bash
-# Always use latest (recommended for occasional users)
+# Always use latest (recommended) - auto-updates global install
 npx e14z@latest discover payments
 
-# Update global installation
-npm update -g e14z
+# Check global version vs latest
+e14z --version
+npm view e14z version
 
-# Force update to specific version
+# Manual update if needed
+npm update -g e14z
+# or
 npm install -g e14z@latest
 
-# Check current version
-e14z --version
+# Fresh bootstrap (clean install)
+npm uninstall -g e14z
+npx e14z@latest run stripe  # Reinstalls latest globally
 ```
 
 ### Integration with CI/CD

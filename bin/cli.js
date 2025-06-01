@@ -33,7 +33,9 @@ const packageJson = require('../package.json');
  */
 async function bootstrapGlobalInstallation() {
   // Better NPX detection
-  const execPath = process.argv[1];
+  const execPath = process.argv[1] || '';
+  
+  
   const isNpx = (
     // NPX environment variables
     process.env.npm_execpath && process.env.npm_execpath.includes('npx') ||
