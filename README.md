@@ -214,10 +214,10 @@ Once connected, agents can use these tools:
 }
 ```
 
-**🔧 Use MCP Tools (after running):**
+**🔧 Execute MCP Tools (after running):**
 ```json
 {
-  "name": "mcp_call",
+  "name": "call",
   "arguments": {
     "session_id": "mcp_session_123",
     "tool_name": "query_database",
@@ -231,7 +231,7 @@ Once connected, agents can use these tools:
 **📋 List Active Sessions:**
 ```json
 {
-  "name": "mcp_sessions",
+  "name": "sessions",
   "arguments": {}
 }
 ```
@@ -300,10 +300,10 @@ Once connected, agents can use these tools:
 ```
 *→ Returns session ID and available tools*
 
-**4. Use MCP Tools:**
+**4. Execute MCP Tools:**
 ```json
 {
-  "name": "mcp_call",
+  "name": "call",
   "arguments": {
     "session_id": "mcp_session_123",
     "tool_name": "query_database",
@@ -314,7 +314,7 @@ Once connected, agents can use these tools:
 
 **5. Manage Sessions:**
 ```json
-{"name": "mcp_sessions", "arguments": {}}
+{"name": "sessions", "arguments": {}}
 ```
 *→ View active sessions and their tools*
 
@@ -330,11 +330,12 @@ Once connected, agents can use these tools:
 }
 ```
 
-### Session Management
-- **Sessions last 30 minutes** of inactivity
-- **Multiple sessions** can run simultaneously
-- **Session isolation** - each MCP runs independently
-- **Resource cleanup** - automatic session expiration
+### Session Management (2025 Standards)
+- **Automatic initialization** - Complete MCP lifecycle (initialize → tools/list → tools/call)
+- **Session security** - Enhanced validation and timeout enforcement
+- **Resource protection** - Memory limits, nesting controls, and content filtering
+- **Session isolation** - Each MCP runs independently with proper cleanup
+- **Smart timeouts** - 30 minutes inactivity, 2 hours maximum session age
 
 ## 📊 API Documentation
 

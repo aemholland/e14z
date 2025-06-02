@@ -51,6 +51,136 @@ const { mcpAPM } = require('../lib/observability/mcp-apm');
 // Generate session ID for tracking user reviews
 const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+// MCP 2025 Session Initialization Function
+async function initializeMCPSession(process, sessionId) {
+  return new Promise((resolve, reject) => {
+    let responseBuffer = '';
+    let pendingRequests = new Map();
+    let initComplete = false;
+    let toolsComplete = false;
+    let sessionData = {
+      protocolVersion: null,
+      serverInfo: {},
+      tools: []
+    };
+    
+    // Timeout for initialization (10 seconds)
+    const initTimeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('MCP initialization timeout (10s)'));
+    }, 10000);
+    
+    // Response handler
+    const responseHandler = (data) => {
+      responseBuffer += data.toString();
+      const lines = responseBuffer.split('\n');
+      responseBuffer = lines.pop(); // Keep incomplete line
+      
+      for (const line of lines) {
+        if (line.trim()) {
+          try {
+            const response = JSON.parse(line);
+            
+            if (response.id && pendingRequests.has(response.id)) {
+              const requestType = pendingRequests.get(response.id);
+              pendingRequests.delete(response.id);
+              
+              if (response.error) {
+                cleanup();
+                reject(new Error(`MCP ${requestType} error: ${response.error.message}`));
+                return;
+              }
+              
+              // Handle initialize response
+              if (requestType === 'initialize') {
+                sessionData.protocolVersion = response.result.protocolVersion;
+                sessionData.serverInfo = response.result.serverInfo || {};
+                initComplete = true;
+                
+                // Send tools/list request
+                const toolsRequestId = `tools_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const toolsRequest = {
+                  jsonrpc: "2.0",
+                  id: toolsRequestId,
+                  method: "tools/list"
+                };
+                
+                pendingRequests.set(toolsRequestId, 'tools/list');
+                process.stdin.write(JSON.stringify(toolsRequest) + '\n');
+              }
+              
+              // Handle tools/list response
+              else if (requestType === 'tools/list') {
+                sessionData.tools = response.result.tools || [];
+                toolsComplete = true;
+                
+                // If both initialization and tools are complete, resolve
+                if (initComplete && toolsComplete) {
+                  cleanup();
+                  resolve(sessionData);
+                }
+              }
+            }
+          } catch (parseError) {
+            // Ignore malformed JSON lines
+          }
+        }
+      }
+    };
+    
+    // Error handler
+    const errorHandler = (error) => {
+      cleanup();
+      reject(new Error(`MCP process error: ${error.message}`));
+    };
+    
+    // Cleanup function
+    const cleanup = () => {
+      clearTimeout(initTimeout);
+      if (process && process.stdout) {
+        process.stdout.removeListener('data', responseHandler);
+        process.removeListener('error', errorHandler);
+      }
+    };
+    
+    // Attach listeners
+    if (process.stdout) {
+      process.stdout.on('data', responseHandler);
+    }
+    process.on('error', errorHandler);
+    
+    // Send initialize request
+    try {
+      const initRequestId = `init_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const initRequest = {
+        jsonrpc: "2.0",
+        id: initRequestId,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {
+            roots: {
+              listChanged: false
+            },
+            sampling: {}
+          },
+          clientInfo: {
+            name: "e14z-mcp-proxy",
+            version: "3.0.9"
+          }
+        }
+      };
+      
+      pendingRequests.set(initRequestId, 'initialize');
+      process.stdin.write(JSON.stringify(initRequest) + '\n');
+      
+    } catch (writeError) {
+      cleanup();
+      reject(new Error(`Failed to send initialize request: ${writeError.message}`));
+    }
+  });
+}
+
 // MCP Server implementation
 const mcpServer = {
   name: "e14z",
@@ -176,21 +306,21 @@ const mcpServer = {
               }
             },
             {
-              name: "mcp_call",
-              description: "Call a tool from a running MCP server session",
+              name: "call",
+              description: "Execute a tool from a running MCP server session",
               inputSchema: {
                 type: "object",
                 properties: {
                   session_id: { type: "string", description: "Session ID from the run command" },
-                  tool_name: { type: "string", description: "Name of the tool to call" },
+                  tool_name: { type: "string", description: "Name of the tool to execute" },
                   tool_arguments: { type: "object", description: "Arguments to pass to the tool" }
                 },
                 required: ["session_id", "tool_name"]
               }
             },
             {
-              name: "mcp_sessions",
-              description: "List active MCP server sessions",
+              name: "sessions",
+              description: "List and manage active MCP server sessions",
               inputSchema: {
                 type: "object",
                 properties: {}
@@ -228,7 +358,7 @@ const mcpServer = {
     }
     
     // Strict allowlist - only specific tools allowed (prevents tool poisoning)
-    const allowedTools = ['discover', 'details', 'review', 'run', 'mcp_call', 'mcp_sessions'];
+    const allowedTools = ['discover', 'details', 'review', 'run', 'call', 'sessions'];
     if (!allowedTools.includes(name)) {
       throw new Error(`Tool not allowed: ${name}. Allowed tools: ${allowedTools.join(', ')}`);
     }
@@ -499,9 +629,12 @@ const mcpServer = {
           break;
           
         case 'run':
-          // Import ExecutionEngine for running MCPs
-          const { ExecutionEngine } = require('../lib/execution/engine');
-          const executionEngine = new ExecutionEngine();
+          // Import EnhancedExecutionEngine for running MCPs with auto-installation
+          const { EnhancedExecutionEngine } = require('../lib/execution/enhanced-engine');
+          const executionEngine = new EnhancedExecutionEngine({
+            enableAutoInstall: true,
+            enableSecurity: true
+          });
           
           const runResult = await executionEngine.executeMCP(args.slug, {
             skipAuthCheck: args.skip_auth_check || false,
@@ -509,7 +642,7 @@ const mcpServer = {
             returnConnectionInfo: true // Request connection details
           });
           
-          if (!runResult.success) {
+          if (!runResult.success && !runResult.mcpServerRunning) {
             if (runResult.authRequired) {
               result = {
                 content: [{
@@ -533,57 +666,114 @@ const mcpServer = {
               };
             }
           } else {
-            // Success: Create session and provide connection details
+            // Success: Initialize MCP session with proper 2025 lifecycle
             const sessionId = `mcp_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             
-            // Store session for future tool calls
-            if (!global.mcpSessions) global.mcpSessions = new Map();
-            global.mcpSessions.set(sessionId, {
-              slug: args.slug,
-              process: runResult.process,
-              connection: runResult.connection,
-              tools: runResult.availableTools || [],
-              startTime: Date.now(),
-              lastActivity: Date.now()
-            });
-            
-            // Get available tools from the MCP server
-            const toolsList = runResult.availableTools && runResult.availableTools.length > 0 ?
-              runResult.availableTools.map(tool => {
-                const params = tool.inputSchema?.properties ? 
-                  Object.keys(tool.inputSchema.properties).join(', ') : 'none';
-                return `• **${tool.name}**: ${tool.description || 'No description'} (params: ${params})`;
-              }).join('\n') :
-              '• Tools information not available (you can still try using them)';
-            
-            result = {
-              content: [{
-                type: "text",
-                text: `🚀 **MCP Server Connected Successfully!**\n\n` +
-                      `**MCP Server:** ${args.slug}\n` +
-                      `**Session ID:** ${sessionId}\n` +
-                      `**Status:** Running and ready for tool calls\n\n` +
-                      `## 🔧 **Available Tools:**\n${toolsList}\n\n` +
-                      `## 💡 **How to Use:**\n` +
-                      `You can now call any of the above tools directly through E14Z:\n\n` +
-                      `\`\`\`json\n` +
-                      `{\n` +
-                      `  "name": "mcp_call",\n` +
-                      `  "arguments": {\n` +
-                      `    "session_id": "${sessionId}",\n` +
-                      `    "tool_name": "tool_name_here",\n` +
-                      `    "tool_arguments": { /* tool parameters */ }\n` +
-                      `  }\n` +
-                      `}\n` +
-                      `\`\`\`\n\n` +
-                      `**Session will remain active for 30 minutes of inactivity.**\n\n` +
-                      `💡 **Tip:** Use the \`review\` tool to rate this MCP after using it!`
-              }]
-            };
+            try {
+              let mcpSession;
+              let mcpProcess;
+              
+              // Handle MCP servers that are running (from auto-installer)
+              if (runResult.mcpServerRunning && runResult.command) {
+                // Respawn the MCP server for stdio communication
+                const { spawn } = require('child_process');
+                const [command, ...commandArgs] = runResult.command.split(' ');
+                
+                mcpProcess = spawn(command, commandArgs, {
+                  stdio: 'pipe',
+                  cwd: runResult.cacheDir || process.cwd(),
+                  env: process.env
+                });
+                
+                // Initialize MCP session with the new process
+                mcpSession = await initializeMCPSession(mcpProcess, sessionId);
+              } else if (runResult.process) {
+                // Use the existing process (direct execution)
+                mcpProcess = runResult.process;
+                mcpSession = await initializeMCPSession(runResult.process, sessionId);
+              } else {
+                throw new Error('No process available for MCP session initialization');
+              }
+              
+              // Store properly initialized session
+              if (!global.mcpSessions) global.mcpSessions = new Map();
+              global.mcpSessions.set(sessionId, {
+                slug: args.slug,
+                process: mcpProcess,
+                connection: runResult.connection,
+                tools: mcpSession.tools || [],
+                serverInfo: mcpSession.serverInfo || {},
+                protocolVersion: mcpSession.protocolVersion || '2024-11-05',
+                startTime: Date.now(),
+                lastActivity: Date.now(),
+                initialized: true,
+                autoInstalled: runResult.autoInstalled || false,
+                cacheDir: runResult.cacheDir,
+                version: runResult.version
+              });
+              
+              // Format available tools for display
+              const toolsList = mcpSession.tools && mcpSession.tools.length > 0 ?
+                mcpSession.tools.map(tool => {
+                  const params = tool.inputSchema?.properties ? 
+                    Object.keys(tool.inputSchema.properties).join(', ') : 'none';
+                  return `• **${tool.name}**: ${tool.description || 'No description'} (params: ${params})`;
+                }).join('\n') :
+                '• No tools available or tools list could not be retrieved';
+              
+              result = {
+                content: [{
+                  type: "text",
+                  text: `🚀 **MCP Server Initialized Successfully!**\n\n` +
+                        `**MCP Server:** ${args.slug}\n` +
+                        `**Session ID:** ${sessionId}\n` +
+                        `**Protocol Version:** ${mcpSession.protocolVersion}\n` +
+                        `**Server:** ${mcpSession.serverInfo.name || 'Unknown'} v${mcpSession.serverInfo.version || '1.0.0'}\n` +
+                        `**Installation:** ${runResult.autoInstalled ? '🤖 Auto-installed' : '📦 Pre-installed'}\n` +
+                        `**Status:** ✅ Initialized and ready for tool execution\n\n` +
+                        `## 🔧 **Available Tools (${mcpSession.tools?.length || 0}):**\n${toolsList}\n\n` +
+                        `## 💡 **How to Execute Tools:**\n` +
+                        `Use the \`call\` tool to execute any of the above MCP tools:\n\n` +
+                        `\`\`\`json\n` +
+                        `{\n` +
+                        `  "name": "call",\n` +
+                        `  "arguments": {\n` +
+                        `    "session_id": "${sessionId}",\n` +
+                        `    "tool_name": "tool_name_here",\n` +
+                        `    "tool_arguments": { /* tool parameters */ }\n` +
+                        `  }\n` +
+                        `}\n` +
+                        `\`\`\`\n\n` +
+                        `**Session timeout:** 30 minutes of inactivity\n\n` +
+                        `💡 **Tip:** Use the \`review\` tool to rate this MCP after testing it!`
+                }]
+              };
+              
+            } catch (initError) {
+              // Clean up process if initialization failed
+              if (mcpProcess && !mcpProcess.killed) {
+                mcpProcess.kill();
+              }
+              
+              result = {
+                content: [{
+                  type: "text",
+                  text: `❌ **MCP Initialization Failed**\n\n` +
+                        `**MCP Server:** ${args.slug}\n` +
+                        `**Error:** ${initError.message}\n\n` +
+                        `The MCP server process started but failed to respond to initialization requests. ` +
+                        `This may indicate the server is not MCP-compatible or has configuration issues.\n\n` +
+                        `💡 **Troubleshooting:**\n` +
+                        `• Check if the MCP server supports the JSON-RPC 2.0 protocol\n` +
+                        `• Verify the server's initialization requirements\n` +
+                        `• Try the \`discover\` tool with \`no_auth: true\` for simpler alternatives`
+                }]
+              };
+            }
           }
           break;
           
-        case 'mcp_call':
+        case 'call':
           // Call a tool from a running MCP session
           if (!global.mcpSessions) {
             result = {
@@ -600,44 +790,263 @@ const mcpServer = {
             result = {
               content: [{
                 type: "text",
-                text: `❌ **Session Not Found**\n\nSession ID "${args.session_id}" not found or expired. Use \`mcp_sessions\` to see active sessions.`
+                text: `❌ **Session Not Found**\n\nSession ID "${args.session_id}" not found or expired. Use \`sessions\` to see active sessions.`
               }]
             };
             break;
           }
           
-          // Update session activity
-          session.lastActivity = Date.now();
-          
-          try {
-            // Call the tool on the MCP server (this would need actual implementation)
-            // For now, simulate the call
+          // 2025 MCP Security: Enhanced session validation
+          if (!session.initialized) {
             result = {
               content: [{
                 type: "text",
-                text: `🔧 **MCP Tool Call: ${args.tool_name}**\n\n` +
+                text: `❌ **Session Not Initialized**\n\nSession "${args.session_id}" was not properly initialized. Please restart the MCP server.`
+              }]
+            };
+            break;
+          }
+          
+          // 2025 MCP Security: Session timeout enforcement
+          const now = Date.now();
+          const sessionAge = now - session.startTime;
+          const inactivity = now - session.lastActivity;
+          
+          if (sessionAge > 2 * 60 * 60 * 1000) { // 2 hours max session age
+            global.mcpSessions.delete(args.session_id);
+            if (session.process && !session.process.killed) {
+              session.process.kill();
+            }
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **Session Expired**\n\nSession "${args.session_id}" exceeded maximum age (2 hours). Please start a new session.`
+              }]
+            };
+            break;
+          }
+          
+          if (inactivity > 30 * 60 * 1000) { // 30 minutes inactivity
+            global.mcpSessions.delete(args.session_id);
+            if (session.process && !session.process.killed) {
+              session.process.kill();
+            }
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **Session Timeout**\n\nSession "${args.session_id}" expired due to inactivity (30 minutes). Please start a new session.`
+              }]
+            };
+            break;
+          }
+          
+          // 2025 MCP Security: Enhanced tool argument validation
+          if (args.tool_arguments) {
+            try {
+              // Validate argument structure
+              if (typeof args.tool_arguments !== 'object' || Array.isArray(args.tool_arguments)) {
+                throw new Error('Tool arguments must be an object');
+              }
+              
+              // Check argument count limit
+              if (Object.keys(args.tool_arguments).length > 50) {
+                throw new Error('Too many tool arguments (max 50)');
+              }
+              
+              // Validate argument values
+              const validateArgument = (value, depth = 0) => {
+                if (depth > 10) throw new Error('Tool arguments nested too deeply (max 10 levels)');
+                
+                if (typeof value === 'string') {
+                  if (value.length > 50000) throw new Error('Tool argument string too long (max 50KB)');
+                  // Check for dangerous patterns
+                  if (/<script|javascript:|data:|vbscript:|file:|eval\(|Function\(/.test(value)) {
+                    throw new Error('Tool arguments contain dangerous content');
+                  }
+                } else if (typeof value === 'object' && value !== null) {
+                  if (Array.isArray(value)) {
+                    if (value.length > 1000) throw new Error('Tool argument array too large (max 1000 items)');
+                    value.forEach(item => validateArgument(item, depth + 1));
+                  } else {
+                    if (Object.keys(value).length > 100) throw new Error('Tool argument object too large (max 100 keys)');
+                    for (const [k, v] of Object.entries(value)) {
+                      if (typeof k !== 'string' || k.length > 100) throw new Error('Tool argument key invalid');
+                      validateArgument(v, depth + 1);
+                    }
+                  }
+                }
+              };
+              
+              for (const [key, value] of Object.entries(args.tool_arguments)) {
+                validateArgument(value);
+              }
+              
+            } catch (validationError) {
+              result = {
+                content: [{
+                  type: "text",
+                  text: `❌ **Invalid Tool Arguments**\n\n${validationError.message}\n\nTool arguments must be properly formatted and within security limits.`
+                }]
+              };
+              break;
+            }
+          }
+          
+          // 2025 MCP Security: Tool name validation
+          if (!args.tool_name || typeof args.tool_name !== 'string') {
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **Invalid Tool Name**\n\nTool name must be a non-empty string.`
+              }]
+            };
+            break;
+          }
+          
+          if (args.tool_name.length > 100 || !/^[a-zA-Z0-9_-]+$/.test(args.tool_name)) {
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **Invalid Tool Name**\n\nTool name "${args.tool_name}" contains invalid characters or is too long (max 100 chars, alphanumeric + underscore/dash only).`
+              }]
+            };
+            break;
+          }
+          
+          // Update session activity (after all validation)
+          session.lastActivity = Date.now();
+          
+          try {
+            // Check if MCP server process is still running
+            if (!session.process || session.process.killed || session.process.exitCode !== null) {
+              throw new Error('MCP server process is no longer running');
+            }
+
+            // Generate unique request ID for JSON-RPC 2.0
+            const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // 2025 MCP Security: Log tool execution for monitoring
+            console.error(`MCP Security: Tool execution - Session: ${args.session_id}, Tool: ${args.tool_name}, Server: ${session.slug}`);
+            
+            // Create JSON-RPC 2.0 tools/call request
+            const jsonRpcRequest = {
+              jsonrpc: "2.0",
+              id: requestId,
+              method: "tools/call",
+              params: {
+                name: args.tool_name,
+                arguments: args.tool_arguments || {}
+              }
+            };
+
+            // Send request to MCP server via stdin
+            const requestString = JSON.stringify(jsonRpcRequest) + '\n';
+            
+            // Create promise to handle async JSON-RPC communication
+            const toolCallPromise = new Promise((resolve, reject) => {
+              let responseBuffer = '';
+              let responseTimer;
+              
+              // Set timeout (30 seconds for tool execution)
+              const timeout = setTimeout(() => {
+                cleanup();
+                reject(new Error('Tool execution timeout (30s)'));
+              }, 30000);
+              
+              // Response handler
+              const responseHandler = (data) => {
+                responseBuffer += data.toString();
+                const lines = responseBuffer.split('\n');
+                responseBuffer = lines.pop(); // Keep incomplete line
+                
+                for (const line of lines) {
+                  if (line.trim()) {
+                    try {
+                      const response = JSON.parse(line);
+                      
+                      // Check if this is our response
+                      if (response.id === requestId) {
+                        cleanup();
+                        
+                        if (response.error) {
+                          reject(new Error(`MCP Error: ${response.error.message}`));
+                        } else {
+                          resolve(response.result);
+                        }
+                        return;
+                      }
+                    } catch (parseError) {
+                      // Ignore malformed JSON lines
+                    }
+                  }
+                }
+              };
+              
+              // Error handler
+              const errorHandler = (error) => {
+                cleanup();
+                reject(new Error(`MCP communication error: ${error.message}`));
+              };
+              
+              // Cleanup function
+              const cleanup = () => {
+                clearTimeout(timeout);
+                if (session.process && session.process.stdout) {
+                  session.process.stdout.removeListener('data', responseHandler);
+                  session.process.removeListener('error', errorHandler);
+                }
+              };
+              
+              // Attach listeners
+              if (session.process.stdout) {
+                session.process.stdout.on('data', responseHandler);
+              }
+              session.process.on('error', errorHandler);
+              
+              // Send the request
+              try {
+                session.process.stdin.write(requestString);
+              } catch (writeError) {
+                cleanup();
+                reject(new Error(`Failed to send request: ${writeError.message}`));
+              }
+            });
+
+            // Await the tool call result
+            const toolResult = await toolCallPromise;
+            
+            // Format response according to MCP specification
+            let responseText = '';
+            if (toolResult.content && Array.isArray(toolResult.content)) {
+              responseText = toolResult.content
+                .filter(item => item.type === 'text')
+                .map(item => item.text)
+                .join('\n\n');
+            } else {
+              responseText = JSON.stringify(toolResult, null, 2);
+            }
+            
+            result = {
+              content: [{
+                type: "text",
+                text: `🔧 **Tool Execution: ${args.tool_name}**\n\n` +
                       `**Session:** ${args.session_id}\n` +
                       `**MCP Server:** ${session.slug}\n` +
-                      `**Tool:** ${args.tool_name}\n` +
-                      `**Arguments:** ${JSON.stringify(args.tool_arguments || {}, null, 2)}\n\n` +
-                      `⚠️ **Note:** This is a placeholder implementation. The actual tool call functionality needs to be implemented with the MCP server connection.\n\n` +
-                      `**Next Steps:**\n` +
-                      `• Implement JSON-RPC communication with the running MCP server process\n` +
-                      `• Parse and validate tool responses\n` +
-                      `• Handle errors and timeouts properly`
+                      `**Status:** ✅ Success\n\n` +
+                      `**Result:**\n${responseText}`
               }]
             };
           } catch (error) {
             result = {
               content: [{
                 type: "text",
-                text: `❌ **Tool Call Failed**\n\n${error.message}`
+                text: `❌ **Tool Execution Failed**\n\n${error.message}`
               }]
             };
           }
           break;
           
-        case 'mcp_sessions':
+        case 'sessions':
           // List active MCP sessions
           if (!global.mcpSessions || global.mcpSessions.size === 0) {
             result = {
@@ -650,18 +1059,18 @@ const mcpServer = {
           }
           
           // Clean up expired sessions (30 minutes of inactivity)
-          const now = Date.now();
+          const currentTime = Date.now();
           const expiredSessions = [];
           for (const [sessionId, session] of global.mcpSessions.entries()) {
-            if (now - session.lastActivity > 30 * 60 * 1000) {
+            if (currentTime - session.lastActivity > 30 * 60 * 1000) {
               expiredSessions.push(sessionId);
             }
           }
           expiredSessions.forEach(sessionId => global.mcpSessions.delete(sessionId));
           
           const activeSessions = Array.from(global.mcpSessions.entries()).map(([sessionId, session]) => {
-            const uptimeMinutes = Math.floor((now - session.startTime) / 60000);
-            const inactiveMinutes = Math.floor((now - session.lastActivity) / 60000);
+            const uptimeMinutes = Math.floor((currentTime - session.startTime) / 60000);
+            const inactiveMinutes = Math.floor((currentTime - session.lastActivity) / 60000);
             const toolCount = session.tools?.length || 0;
             
             return `## 🔧 **${session.slug}**\n` +
@@ -672,7 +1081,7 @@ const mcpServer = {
                    `**Available Tools:** ${toolCount} tools\n\n` +
                    `**Usage:**\n` +
                    `\`\`\`json\n` +
-                   `{"name": "mcp_call", "arguments": {"session_id": "${sessionId}", "tool_name": "tool_name"}}\n` +
+                   `{"name": "call", "arguments": {"session_id": "${sessionId}", "tool_name": "tool_name"}}\n` +
                    `\`\`\``;
           });
           
@@ -683,7 +1092,7 @@ const mcpServer = {
                     activeSessions.join('\n\n---\n\n') +
                     `\n\n💡 **Tips:**\n` +
                     `• Sessions expire after 30 minutes of inactivity\n` +
-                    `• Use \`mcp_call\` to interact with session tools\n` +
+                    `• Use \`call\` to execute session tools\n` +
                     `• Use \`run\` to start additional MCP servers`
             }]
           };
@@ -898,19 +1307,19 @@ class MCPServer {
             }
             
             // 2025 MCP Security: Enhanced rate limiting with burst protection
-            const now = Date.now();
+            const requestTime = Date.now();
             const sessionId = request.id?.toString() || 'anonymous';
             
             if (!this.requestCounts.has(sessionId)) {
-              this.requestCounts.set(sessionId, { count: 0, window: now });
+              this.requestCounts.set(sessionId, { count: 0, window: requestTime });
             }
             
             const session = this.requestCounts.get(sessionId);
             
             // Reset window every 60 seconds
-            if (now - session.window > 60000) {
+            if (requestTime - session.window > 60000) {
               session.count = 0;
-              session.window = now;
+              session.window = requestTime;
             }
             
             // Rate limiting: max 100 requests per minute per session
@@ -920,13 +1329,13 @@ class MCPServer {
             }
             
             // Additional global rate limiting
-            if (now - this.lastRequestTime < 50) { // Reduced to 50ms minimum
+            if (requestTime - this.lastRequestTime < 50) { // Reduced to 50ms minimum
               mcpAPM.recordSecurityEvent('rate_limit_global', 'Global rate limit exceeded', 'medium');
               throw new Error('Global rate limit exceeded');
             }
             
             session.count++;
-            this.lastRequestTime = now;
+            this.lastRequestTime = requestTime;
             
             // 2025 MCP Security: Method allowlisting at protocol level
             const allowedMethods = [
