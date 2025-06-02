@@ -2,58 +2,79 @@ import { NextRequest, NextResponse } from 'next/server'
 import { searchMCPs } from '@/lib/search/engine'
 import { supabase } from '@/lib/supabase/client'
 import type { SearchOptions } from '@/types'
+import { withLogging, withPerformanceLogging, logMCPOperation } from '@/lib/logging/middleware'
+import { apiLogger, logPatterns } from '@/lib/logging/config'
 
-export async function GET(request: NextRequest) {
+async function discoverHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   
+  // Parse search parameters (move outside try block for error handling scope)
+  const query = searchParams.get('q') || ''
+  const pricing = searchParams.get('pricing') as 'free' | 'paid' | null
+  const verified = searchParams.get('verified') === 'true' ? true : undefined
+  const healthStatus = searchParams.get('health') as 'healthy' | 'degraded' | 'down' | null
+  const minRating = searchParams.get('minRating') ? parseInt(searchParams.get('minRating')!) : undefined
+  const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100) // Max 100 results
+  const offset = parseInt(searchParams.get('offset') || '0')
+  
+  // Auth-aware filters for autonomous agents
+  const noAuth = searchParams.get('no_auth') === 'true'
+  const authRequired = searchParams.get('auth_required') === 'true'
+  const executable = searchParams.get('executable') === 'true'
+
+  // Generate session ID for tracking
+  const sessionId = crypto.randomUUID()
+
+  // Build search options
+  const searchOptions: SearchOptions = {
+    query,
+    filters: {
+      ...(pricing && { pricing }),
+      ...(verified !== undefined && { verified }),
+      ...(healthStatus && { healthStatus }),
+      ...(minRating && { minRating }),
+      ...(noAuth && { noAuth: true }),
+      ...(authRequired && { authRequired: true }),
+      ...(executable && { executable: true })
+    },
+    limit,
+    offset
+  }
+  
   try {
-    // Parse search parameters
-    const query = searchParams.get('q') || ''
-    const pricing = searchParams.get('pricing') as 'free' | 'paid' | null
-    const verified = searchParams.get('verified') === 'true' ? true : undefined
-    const healthStatus = searchParams.get('health') as 'healthy' | 'degraded' | 'down' | null
-    const minRating = searchParams.get('minRating') ? parseInt(searchParams.get('minRating')!) : undefined
-    const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100) // Max 100 results
-    const offset = parseInt(searchParams.get('offset') || '0')
-    
-    // Auth-aware filters for autonomous agents
-    const noAuth = searchParams.get('no_auth') === 'true'
-    const authRequired = searchParams.get('auth_required') === 'true'
-    const executable = searchParams.get('executable') === 'true'
 
-    // Generate session ID for tracking
-    const sessionId = crypto.randomUUID()
-
-    // Build search options
-    const searchOptions: SearchOptions = {
-      query,
-      filters: {
-        ...(pricing && { pricing }),
-        ...(verified !== undefined && { verified }),
-        ...(healthStatus && { healthStatus }),
-        ...(minRating && { minRating }),
-        ...(noAuth && { noAuth: true }),
-        ...(authRequired && { authRequired: true }),
-        ...(executable && { executable: true })
-      },
-      limit,
-      offset
-    }
-
-    // Perform search
-    const { results, total, error } = await searchMCPs(searchOptions)
+    // Perform search with performance logging
+    const { results, total, error } = await withPerformanceLogging(
+      'mcp_search',
+      () => searchMCPs(searchOptions)
+    );
 
     if (error) {
+      apiLogger.error({
+        ...logPatterns.error(new Error(error), {
+          search_options: searchOptions,
+          session_id: sessionId,
+        }),
+      }, 'MCP search failed');
+
       return NextResponse.json(
         { error: 'Search failed', details: error },
         { status: 500 }
       )
     }
 
-    // Log API call for analytics
+    // Log MCP discovery operation
     const userAgent = request.headers.get('user-agent') || ''
     const agentType = extractAgentType(userAgent)
     
+    apiLogger.info({
+      ...logPatterns.mcpDiscovery(query, results.length, searchOptions.filters),
+      session_id: sessionId,
+      agent_type: agentType,
+      user_agent: userAgent,
+    }, `MCP discovery completed: ${results.length} results for "${query}"`);
+    
+    // Store analytics in database (with error handling)
     try {
       await supabase.from('api_calls').insert({
         endpoint: '/api/discover',
@@ -65,11 +86,16 @@ export async function GET(request: NextRequest) {
         user_agent: userAgent,
         agent_type: agentType,
         session_id: sessionId,
-        response_time_ms: null // Will be calculated on the client side if needed
+        response_time_ms: null // Will be calculated by middleware
       })
     } catch (logError) {
-      console.error('Failed to log API call:', logError)
-      // Don't fail the request if logging fails
+      apiLogger.warn({
+        ...logPatterns.error(logError instanceof Error ? logError : new Error(String(logError)), {
+          session_id: sessionId,
+          operation: 'analytics_logging',
+        }),
+      }, 'Failed to log analytics data to database');
+      // Don't fail the request if analytics logging fails
     }
 
     // Format response
@@ -185,13 +211,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response)
 
   } catch (err) {
-    console.error('API error:', err)
+    const error = err instanceof Error ? err : new Error(String(err));
+    
+    apiLogger.error({
+      ...logPatterns.error(error, {
+        endpoint: '/api/discover',
+        search_options: searchOptions,
+      }),
+    }, 'Discover API internal error');
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
     )
   }
 }
+
+// Export the handler wrapped with logging middleware
+export const GET = withLogging(discoverHandler);
 
 function extractAgentType(userAgent: string): string {
   const ua = userAgent.toLowerCase()
