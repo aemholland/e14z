@@ -130,6 +130,30 @@ e14z claim status
 
 E14Z provides a comprehensive MCP server for autonomous agents with 4 powerful tools:
 
+#### **🚀 Zero-Installation Setup (Recommended)**
+
+```json
+{
+  "mcpServers": {
+    "e14z": {
+      "command": "npx",
+      "args": ["e14z"]
+    }
+  }
+}
+```
+
+> **No installation required!** NPX automatically downloads and runs E14Z when needed. Perfect for Claude Desktop and other AI agents.
+
+#### **⚡ Performance Setup (Optional)**
+
+For faster startup times, install globally first:
+
+```bash
+npm install -g e14z
+```
+
+Then use direct command:
 ```json
 {
   "mcpServers": {
