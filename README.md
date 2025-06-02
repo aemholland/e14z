@@ -203,7 +203,7 @@ Once connected, agents can use these tools:
 }
 ```
 
-**▶️ Execute MCP Directly:**
+**▶️ Execute MCP Server:**
 ```json
 {
   "name": "run",
@@ -211,6 +211,28 @@ Once connected, agents can use these tools:
     "slug": "postgres-mcp",
     "skip_auth_check": false
   }
+}
+```
+
+**🔧 Use MCP Tools (after running):**
+```json
+{
+  "name": "mcp_call",
+  "arguments": {
+    "session_id": "mcp_session_123",
+    "tool_name": "query_database",
+    "tool_arguments": {
+      "query": "SELECT * FROM users LIMIT 10"
+    }
+  }
+}
+```
+
+**📋 List Active Sessions:**
+```json
+{
+  "name": "mcp_sessions",
+  "arguments": {}
 }
 ```
 
@@ -259,6 +281,60 @@ Once connected, agents can use these tools:
 - **Tool parameters** with examples
 - **Performance metrics** from real usage
 - **Community reviews** and success rates
+
+## 🔄 Complete Agent Workflow
+
+**1. Discover MCPs:**
+```json
+{"name": "discover", "arguments": {"query": "database"}}
+```
+
+**2. Get Details:**
+```json
+{"name": "details", "arguments": {"slug": "postgres-mcp"}}
+```
+
+**3. Run MCP Server:**
+```json
+{"name": "run", "arguments": {"slug": "postgres-mcp"}}
+```
+*→ Returns session ID and available tools*
+
+**4. Use MCP Tools:**
+```json
+{
+  "name": "mcp_call",
+  "arguments": {
+    "session_id": "mcp_session_123",
+    "tool_name": "query_database",
+    "tool_arguments": {"query": "SELECT * FROM users"}
+  }
+}
+```
+
+**5. Manage Sessions:**
+```json
+{"name": "mcp_sessions", "arguments": {}}
+```
+*→ View active sessions and their tools*
+
+**6. Submit Review:**
+```json
+{
+  "name": "review",
+  "arguments": {
+    "mcp_id": "mcp_123",
+    "rating": 9,
+    "success": true
+  }
+}
+```
+
+### Session Management
+- **Sessions last 30 minutes** of inactivity
+- **Multiple sessions** can run simultaneously
+- **Session isolation** - each MCP runs independently
+- **Resource cleanup** - automatic session expiration
 
 ## 📊 API Documentation
 

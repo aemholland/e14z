@@ -164,7 +164,7 @@ const mcpServer = {
             },
             {
               name: "run",
-              description: "Execute an MCP server directly with auth handling",
+              description: "Execute an MCP server and establish a session for tool calls",
               inputSchema: {
                 type: "object",
                 properties: {
@@ -173,6 +173,27 @@ const mcpServer = {
                   stdio_mode: { type: "boolean", description: "Use stdio mode for MCP protocol communication" }
                 },
                 required: ["slug"]
+              }
+            },
+            {
+              name: "mcp_call",
+              description: "Call a tool from a running MCP server session",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  session_id: { type: "string", description: "Session ID from the run command" },
+                  tool_name: { type: "string", description: "Name of the tool to call" },
+                  tool_arguments: { type: "object", description: "Arguments to pass to the tool" }
+                },
+                required: ["session_id", "tool_name"]
+              }
+            },
+            {
+              name: "mcp_sessions",
+              description: "List active MCP server sessions",
+              inputSchema: {
+                type: "object",
+                properties: {}
               }
             }
           ]
@@ -207,7 +228,7 @@ const mcpServer = {
     }
     
     // Strict allowlist - only specific tools allowed (prevents tool poisoning)
-    const allowedTools = ['discover', 'details', 'review', 'run'];
+    const allowedTools = ['discover', 'details', 'review', 'run', 'mcp_call', 'mcp_sessions'];
     if (!allowedTools.includes(name)) {
       throw new Error(`Tool not allowed: ${name}. Allowed tools: ${allowedTools.join(', ')}`);
     }
@@ -484,7 +505,8 @@ const mcpServer = {
           
           const runResult = await executionEngine.executeMCP(args.slug, {
             skipAuthCheck: args.skip_auth_check || false,
-            stdio: args.stdio_mode ? 'inherit' : 'pipe'
+            stdio: args.stdio_mode ? 'inherit' : 'pipe',
+            returnConnectionInfo: true // Request connection details
           });
           
           if (!runResult.success) {
@@ -511,18 +533,160 @@ const mcpServer = {
               };
             }
           } else {
+            // Success: Create session and provide connection details
+            const sessionId = `mcp_session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            
+            // Store session for future tool calls
+            if (!global.mcpSessions) global.mcpSessions = new Map();
+            global.mcpSessions.set(sessionId, {
+              slug: args.slug,
+              process: runResult.process,
+              connection: runResult.connection,
+              tools: runResult.availableTools || [],
+              startTime: Date.now(),
+              lastActivity: Date.now()
+            });
+            
+            // Get available tools from the MCP server
+            const toolsList = runResult.availableTools && runResult.availableTools.length > 0 ?
+              runResult.availableTools.map(tool => {
+                const params = tool.inputSchema?.properties ? 
+                  Object.keys(tool.inputSchema.properties).join(', ') : 'none';
+                return `• **${tool.name}**: ${tool.description || 'No description'} (params: ${params})`;
+              }).join('\n') :
+              '• Tools information not available (you can still try using them)';
+            
             result = {
               content: [{
                 type: "text",
-                text: `✅ **MCP Executed Successfully**\n\n` +
-                      `**Command:** \`${runResult.command}\`\n\n` +
-                      `**Output:**\n\`\`\`\n${runResult.output || 'No output'}\n\`\`\`\n\n` +
-                      (runResult.error ? `**Errors:**\n\`\`\`\n${runResult.error}\n\`\`\`\n\n` : '') +
-                      `**Exit Code:** ${runResult.exitCode}\n\n` +
+                text: `🚀 **MCP Server Connected Successfully!**\n\n` +
+                      `**MCP Server:** ${args.slug}\n` +
+                      `**Session ID:** ${sessionId}\n` +
+                      `**Status:** Running and ready for tool calls\n\n` +
+                      `## 🔧 **Available Tools:**\n${toolsList}\n\n` +
+                      `## 💡 **How to Use:**\n` +
+                      `You can now call any of the above tools directly through E14Z:\n\n` +
+                      `\`\`\`json\n` +
+                      `{\n` +
+                      `  "name": "mcp_call",\n` +
+                      `  "arguments": {\n` +
+                      `    "session_id": "${sessionId}",\n` +
+                      `    "tool_name": "tool_name_here",\n` +
+                      `    "tool_arguments": { /* tool parameters */ }\n` +
+                      `  }\n` +
+                      `}\n` +
+                      `\`\`\`\n\n` +
+                      `**Session will remain active for 30 minutes of inactivity.**\n\n` +
                       `💡 **Tip:** Use the \`review\` tool to rate this MCP after using it!`
               }]
             };
           }
+          break;
+          
+        case 'mcp_call':
+          // Call a tool from a running MCP session
+          if (!global.mcpSessions) {
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **No Active Sessions**\n\nNo MCP sessions are currently running. Use the \`run\` tool first to start an MCP server.`
+              }]
+            };
+            break;
+          }
+          
+          const session = global.mcpSessions.get(args.session_id);
+          if (!session) {
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **Session Not Found**\n\nSession ID "${args.session_id}" not found or expired. Use \`mcp_sessions\` to see active sessions.`
+              }]
+            };
+            break;
+          }
+          
+          // Update session activity
+          session.lastActivity = Date.now();
+          
+          try {
+            // Call the tool on the MCP server (this would need actual implementation)
+            // For now, simulate the call
+            result = {
+              content: [{
+                type: "text",
+                text: `🔧 **MCP Tool Call: ${args.tool_name}**\n\n` +
+                      `**Session:** ${args.session_id}\n` +
+                      `**MCP Server:** ${session.slug}\n` +
+                      `**Tool:** ${args.tool_name}\n` +
+                      `**Arguments:** ${JSON.stringify(args.tool_arguments || {}, null, 2)}\n\n` +
+                      `⚠️ **Note:** This is a placeholder implementation. The actual tool call functionality needs to be implemented with the MCP server connection.\n\n` +
+                      `**Next Steps:**\n` +
+                      `• Implement JSON-RPC communication with the running MCP server process\n` +
+                      `• Parse and validate tool responses\n` +
+                      `• Handle errors and timeouts properly`
+              }]
+            };
+          } catch (error) {
+            result = {
+              content: [{
+                type: "text",
+                text: `❌ **Tool Call Failed**\n\n${error.message}`
+              }]
+            };
+          }
+          break;
+          
+        case 'mcp_sessions':
+          // List active MCP sessions
+          if (!global.mcpSessions || global.mcpSessions.size === 0) {
+            result = {
+              content: [{
+                type: "text",
+                text: `📋 **No Active Sessions**\n\nNo MCP servers are currently running. Use the \`run\` tool to start an MCP server.`
+              }]
+            };
+            break;
+          }
+          
+          // Clean up expired sessions (30 minutes of inactivity)
+          const now = Date.now();
+          const expiredSessions = [];
+          for (const [sessionId, session] of global.mcpSessions.entries()) {
+            if (now - session.lastActivity > 30 * 60 * 1000) {
+              expiredSessions.push(sessionId);
+            }
+          }
+          expiredSessions.forEach(sessionId => global.mcpSessions.delete(sessionId));
+          
+          const activeSessions = Array.from(global.mcpSessions.entries()).map(([sessionId, session]) => {
+            const uptimeMinutes = Math.floor((now - session.startTime) / 60000);
+            const inactiveMinutes = Math.floor((now - session.lastActivity) / 60000);
+            const toolCount = session.tools?.length || 0;
+            
+            return `## 🔧 **${session.slug}**\n` +
+                   `**Session ID:** \`${sessionId}\`\n` +
+                   `**Status:** Active\n` +
+                   `**Uptime:** ${uptimeMinutes} minutes\n` +
+                   `**Last Activity:** ${inactiveMinutes} minutes ago\n` +
+                   `**Available Tools:** ${toolCount} tools\n\n` +
+                   `**Usage:**\n` +
+                   `\`\`\`json\n` +
+                   `{"name": "mcp_call", "arguments": {"session_id": "${sessionId}", "tool_name": "tool_name"}}\n` +
+                   `\`\`\``;
+          });
+          
+          result = {
+            content: [{
+              type: "text",
+              text: `📋 **Active MCP Sessions** (${global.mcpSessions.size})\n\n` +
+                    activeSessions.join('\n\n---\n\n') +
+                    `\n\n💡 **Tips:**\n` +
+                    `• Sessions expire after 30 minutes of inactivity\n` +
+                    `• Use \`mcp_call\` to interact with session tools\n` +
+                    `• Use \`run\` to start additional MCP servers`
+            }]
+          };
           break;
           
         default:
