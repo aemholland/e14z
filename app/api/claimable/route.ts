@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Get claim counts for each MCP
     const mcpIds = mcps?.map(mcp => mcp.id) || [];
-    let claimCounts = {};
+    let claimCounts: Record<string, { total: number; pending: number }> = {};
 
     if (mcpIds.length > 0) {
       const { data: claims } = await supabase
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         .in('mcp_id', mcpIds);
 
       if (claims) {
-        claimCounts = claims.reduce((acc, claim) => {
+        claimCounts = claims.reduce((acc: Record<string, { total: number; pending: number }>, claim: any) => {
           if (!acc[claim.mcp_id]) {
             acc[claim.mcp_id] = { total: 0, pending: 0 };
           }

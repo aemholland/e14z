@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     // Get review stats for each MCP
     const mcpIds = mcps?.map(mcp => mcp.id) || [];
-    let reviewStats = {};
+    let reviewStats: Record<string, { total: number; average_rating: number; success_rate: number; successful: number }> = {};
 
     if (mcpIds.length > 0) {
       const { data: reviews } = await supabase
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         .in('mcp_id', mcpIds);
 
       if (reviews) {
-        reviewStats = reviews.reduce((acc, review) => {
+        reviewStats = reviews.reduce((acc: Record<string, { total: number; average_rating: number; success_rate: number; successful: number }>, review: any) => {
           if (!acc[review.mcp_id]) {
             acc[review.mcp_id] = {
               total: 0,
