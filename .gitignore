@@ -7,6 +7,7 @@
 
 # testing
 /coverage
+/test-install
 
 # next.js
 /.next/
@@ -39,46 +40,31 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# =============================================================================
-# PRIVATE/SENSITIVE - DO NOT COMMIT TO PUBLIC REPO
-# =============================================================================
-
-# Documentation & Process Files (Internal IP)
-*.md
-!README.md
-docs/
-VALIDATION_SYSTEM.md
-START_MCP_RESCRAPING.md
-CLAUDE_MCP_RESCRAPING.md
-MCP_DISCOVERY_WORKFLOW.md
-CONTRIBUTING.md
-DOCKER.md
-CRAWLER.md
-
-# Infrastructure & Deployment
-Dockerfile*
-docker-compose*.yml
-docker-compose*.yaml
-
-# Data collection & scraping (competitive advantage)
-lib/crawler/
-lib/ai/
-scripts/
-lib/mcp/processor.ts
-lib/mcp/installationDetector.ts
-lib/mcp/multiInstallationDetector.ts
-lib/utils/deduplication.ts
-
-# Database & infrastructure
-sql/
-supabase/
-*.sql
-
-# Private configurations
-*.private.*
-.env*
-claude_desktop_config.json
+# Cache directories
+.cache/
+.e14z/
+~/.e14z/
 
 # Backup files
 *.bak
-package.json.bak
+*.old
+*.backup
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/

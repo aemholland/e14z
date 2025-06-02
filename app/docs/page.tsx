@@ -6,9 +6,42 @@ export default function DocsPage() {
         {/* Header */}
         <div style={{marginBottom: '32px'}}>
           <h1 className="text-title" style={{marginBottom: '16px'}}>E14Z API Documentation</h1>
-          <p className="text-body text-secondary">
+          <p className="text-body text-secondary" style={{marginBottom: '16px'}}>
             Complete guide to discovering and connecting to MCP servers via E14Z APIs
           </p>
+          <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+            <a 
+              href="/api-docs" 
+              className="btn btn-primary"
+              style={{
+                textDecoration: 'none',
+                padding: '8px 16px',
+                backgroundColor: 'var(--color-btn-primary-bg)',
+                color: 'var(--color-btn-primary-text)',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              📚 Interactive API Docs (Swagger)
+            </a>
+            <a 
+              href="/api/docs?format=json" 
+              className="btn btn-outline"
+              style={{
+                textDecoration: 'none',
+                padding: '8px 16px',
+                border: '1px solid var(--color-border-default)',
+                color: 'var(--color-fg-default)',
+                borderRadius: '6px',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+              target="_blank"
+            >
+              📄 OpenAPI JSON
+            </a>
+          </div>
         </div>
 
         <div style={{display: 'flex', flexDirection: 'column', gap: '48px'}}>

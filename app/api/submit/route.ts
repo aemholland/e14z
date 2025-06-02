@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
 import { checkForDuplicates, generateSlug } from '@/lib/utils/public-deduplication'
+import { withAPM } from '@/lib/observability/apm-middleware'
 
-export async function POST(request: NextRequest) {
+async function submitHandler(request: NextRequest) {
   try {
     const body = await request.json()
     
@@ -162,3 +163,10 @@ function extractAgentType(userAgent: string): string {
   
   return 'unknown'
 }
+
+// Export the handler wrapped with APM middleware
+export const POST = withAPM(submitHandler, {
+  trackQueries: true,
+  trackCache: false,
+  sampleRate: 1.0
+});

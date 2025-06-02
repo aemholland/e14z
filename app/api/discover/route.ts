@@ -1,9 +1,86 @@
+/**
+ * @swagger
+ * /api/discover:
+ *   get:
+ *     tags: [Discovery]
+ *     summary: Discover MCP servers
+ *     description: |
+ *       Search and discover Model Context Protocol servers with advanced filtering, ranking, and analytics.
+ *       Returns comprehensive results with installation instructions, health status, and usage metrics.
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *           maxLength: 100
+ *         description: Search query for MCP names, descriptions, and tags
+ *         example: "database postgresql"
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [payments, databases, content-creation, ai-tools, development-tools, cloud-storage, communication, infrastructure, productivity, project-management, security, social-media, web-apis, finance, research, iot, other]
+ *         description: Filter by MCP category
+ *         example: "databases"
+ *       - in: query
+ *         name: pricing
+ *         schema:
+ *           type: string
+ *           enum: [free, paid]
+ *         description: Filter by pricing model
+ *         example: "free"
+ *       - in: query
+ *         name: verified
+ *         schema:
+ *           type: boolean
+ *         description: Only return verified MCPs
+ *         example: true
+ *       - in: query
+ *         name: health
+ *         schema:
+ *           type: string
+ *           enum: [healthy, degraded, down, unknown]
+ *         description: Filter by health status
+ *         example: "healthy"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Maximum number of results to return
+ *         example: 10
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           default: 0
+ *         description: Number of results to skip for pagination
+ *         example: 0
+ *     responses:
+ *       200:
+ *         description: Successful discovery response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/DiscoveryResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       429:
+ *         $ref: '#/components/responses/RateLimitExceeded'
+ *       500:
+ *         description: Internal server error
+ */
+
 import { NextRequest, NextResponse } from 'next/server'
 import { searchMCPs } from '@/lib/search/engine'
 import { supabase } from '@/lib/supabase/client'
 import type { SearchOptions } from '@/types'
 import { withLogging, withPerformanceLogging, logMCPOperation } from '@/lib/logging/middleware'
 import { apiLogger, logPatterns } from '@/lib/logging/config'
+import { withAPM } from '@/lib/observability/apm-middleware'
 
 async function discoverHandler(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -227,8 +304,12 @@ async function discoverHandler(request: NextRequest) {
   }
 }
 
-// Export the handler wrapped with logging middleware
-export const GET = withLogging(discoverHandler);
+// Export the handler wrapped with APM and logging middleware
+export const GET = withAPM(withLogging(discoverHandler), {
+  trackQueries: true,
+  trackCache: true,
+  sampleRate: 1.0
+});
 
 function extractAgentType(userAgent: string): string {
   const ua = userAgent.toLowerCase()

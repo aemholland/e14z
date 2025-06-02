@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMCPBySlug } from '@/lib/search/engine'
+import { withAPM } from '@/lib/observability/apm-middleware'
 
-export async function GET(
+async function getMCPHandler(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
@@ -36,3 +37,10 @@ export async function GET(
     )
   }
 }
+
+// Export the handler wrapped with APM middleware
+export const GET = withAPM(getMCPHandler, {
+  trackQueries: true,
+  trackCache: true,
+  sampleRate: 1.0
+});

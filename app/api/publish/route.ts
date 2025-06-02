@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withAPM } from '@/lib/observability/apm-middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -122,7 +123,7 @@ async function generateSlug(name: string, existingSlug?: string) {
 /**
  * POST /api/publish - Publish new MCP
  */
-export async function POST(request: NextRequest) {
+async function publishHandler(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('token ')) {
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
 /**
  * PUT /api/publish/[slug] - Update existing MCP
  */
-export async function PUT(request: NextRequest) {
+async function updatePublishHandler(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('token ')) {
@@ -319,3 +320,16 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+// Export the handlers wrapped with APM middleware
+export const POST = withAPM(publishHandler, {
+  trackQueries: true,
+  trackCache: false,
+  sampleRate: 1.0
+});
+
+export const PUT = withAPM(updatePublishHandler, {
+  trackQueries: true,
+  trackCache: false,
+  sampleRate: 1.0
+});

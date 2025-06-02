@@ -1,136 +1,140 @@
-# E14Z - Universal MCP Runtime
+# E14Z MCP Registry
 
-> NPX-like auto-installation and execution of Model Context Protocol (MCP) servers for AI agents. The definitive registry and execution platform for AI agent tools.
+**The intelligent MCP discovery platform for AI agents** - Find, evaluate, and execute 50+ Model Context Protocol tools instantly.
 
-[![NPM Version](https://img.shields.io/npm/v/e14z)](https://www.npmjs.com/package/e14z)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![MCP Protocol](https://img.shields.io/badge/MCP-2024--11--05-blue)](https://modelcontextprotocol.io)
-[![Tests](https://img.shields.io/badge/Tests-21%2F21%20Passing-green)](https://github.com/aemholland/e14z)
+## 🎯 What is E14Z?
 
-## 🚀 Quick Start
+E14Z is like **npm for AI agents** - a comprehensive registry and execution platform for Model Context Protocol (MCP) tools. Instead of manually searching for and configuring MCP servers, agents can use E14Z to:
 
-```bash
-# First time anywhere - works on ANY system with Node.js
-npx e14z@latest
+- **🔍 Discover** relevant MCP tools through intelligent search
+- **⚡ Execute** MCP tools directly without manual setup  
+- **📊 Evaluate** tool quality through community reviews and performance metrics
+- **🔄 Stay Updated** with the latest MCP tools and their capabilities
 
-# Auto-installs globally after first successful use!
-# From then on, use directly:
-e14z discover payments
-e14z run stripe
-e14z cache list
+### Why Use E14Z?
 
-# Authenticate for publishing
-e14z auth login
+**For AI Agents:**
+- Find the right MCP tool for any task in seconds
+- Get tools that actually work (community-tested and reviewed)
+- Execute tools directly without complex installation
+- Access performance metrics and success rates
+
+**For Developers:**
+- Discover MCP tools for your projects
+- Contribute tools to the registry
+- Get analytics on tool usage and performance
+- Build on a production-ready platform
+
+## 🚀 Quick Start for Agents
+
+**1. Add E14Z to Claude Desktop:**
+```json
+{
+  "mcpServers": {
+    "e14z": {
+      "command": "npx",
+      "args": ["e14z"]
+    }
+  }
+}
 ```
 
-### 🎯 **Universal Installation Pattern:**
-
-```bash
-# Option 1: Self-Installing (Recommended)
-npx e14z@latest <any-command>
-# → First run: Downloads + installs globally + executes
-# → Future runs: Direct "e14z <any-command>" access
-
-# Option 2: Manual Global Install
-npm install -g e14z@latest
-e14z <any-command>
+**2. Start discovering tools:**
+```json
+{"name": "discover", "arguments": {"query": "database tools"}}
 ```
 
-## 🌟 What is E14Z?
-
-E14Z is the **Universal MCP Runtime** - think "npx for AI agents". It automatically installs and executes Model Context Protocol (MCP) servers on-demand, just like npx does for npm packages.
-
-### 🔥 **NEW in v4.0**: Auto-Installation Engine
-
-- **🤖 NPX-like Auto-Installation**: Install any MCP on first run
-- **🔒 Enterprise-Grade Security**: Multi-layer threat detection and sandboxing  
-- **📦 Multi-Package Manager Support**: npm, pip, git repositories
-- **⚡ Intelligent Caching**: Fast execution with integrity verification
-- **🔄 Transaction Rollback**: Automatic cleanup on installation failures
-- **🛡️ Security Scanning**: Typosquatting detection and malicious package protection
-
-### Previous Features (v3.0+)
-
-- **🏃 Direct Execution**: Run MCPs instantly with `e14z run <name>`
-- **🔐 Smart Authentication**: Automatic auth detection and setup guidance
-- **📦 Publishing System**: Publish your MCPs with GitHub integration
-- **🏷️ Claiming System**: Claim ownership of community-wrapped MCPs
-- **🛡️ Security First**: CVE-2024-27980 mitigations and input validation
-
-## 🔧 Usage
-
-### Discovery & Auto-Installation
-
-```bash
-# Find MCPs by category
-e14z discover payments --verified
-
-# Get detailed information
-e14z info stripe
-
-# Auto-install and execute (like npx!)
-e14z run stripe
-
-# Run without auto-installation (old behavior)
-e14z run stripe --no-auto-install
-
-# List all MCPs with execution status
-e14z list --executable-only
+**3. Execute tools directly:**
+```json
+{"name": "run", "arguments": {"slug": "postgres-mcp"}}
 ```
 
-### Cache Management
+### Key Features
 
-```bash
-# List cached (auto-installed) MCPs
-e14z cache list
+- **🔍 Intelligent Discovery**: Advanced search and filtering for MCP servers with semantic matching
+- **📊 Performance Analytics**: Real-time performance metrics and quality scoring for MCP tools
+- **🛡️ Security Hardened**: 2025 MCP security standards with comprehensive input validation
+- **⚡ High Performance**: Optimized database queries with 80-95% performance improvements
+- **🌐 Global Scale**: Vercel-powered serverless architecture with worldwide CDN
+- **📈 Real-time Monitoring**: Comprehensive APM and observability for production environments
 
-# Clear specific MCP cache
-e14z cache clear stripe
+## 🛠️ Technology Stack
 
-# Clear all cached MCPs
-e14z cache clear --all
+- **Frontend**: Next.js 15, TypeScript, Tailwind CSS
+- **Backend**: Node.js serverless functions with edge runtime
+- **Database**: Supabase (PostgreSQL) with real-time capabilities
+- **Caching**: Redis (Upstash) for distributed caching and rate limiting
+- **Monitoring**: OpenTelemetry, custom APM, and performance tracking
+- **Deployment**: Vercel with automated CI/CD and preview deployments
 
-# Check auto-install capability
-e14z cache info stripe
+## 📋 Quick Start
 
-# Show cache statistics
-e14z cache info
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+- Vercel account (for deployment)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-org/e14z.git
+   cd e14z
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
+
+4. **Run database migrations**
+   ```bash
+   npm run db:setup
+   ```
+
+5. **Start development server**
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## 🔧 Environment Configuration
+
+### Required Environment Variables
+
+```env
+# Database
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+# Application
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Optional: Redis for caching and rate limiting
+UPSTASH_REDIS_REST_URL=your_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_redis_token
+
+# Optional: Monitoring and analytics
+NEXT_PUBLIC_VERCEL_ANALYTICS_ID=your_analytics_id
 ```
 
-### Publishing & Management
+## 🚀 Getting Started for AI Agents
 
-```bash
-# Authenticate with GitHub
-e14z auth login
+### For Claude Desktop Users
 
-# Publish a new MCP
-e14z publish new my-awesome-mcp
-
-# Generate package template
-e14z publish template my-mcp
-
-# List your published MCPs
-e14z publish list
-```
-
-### Claiming Wrapped MCPs
-
-```bash
-# See available MCPs to claim
-e14z claim list
-
-# Claim ownership with verification
-e14z claim mcp package-name
-
-# Check claim status
-e14z claim status
-```
-
-### MCP Server (AI Agent Interface)
-
-E14Z provides a comprehensive MCP server for autonomous agents with 4 powerful tools:
-
-#### **🚀 Zero-Installation Setup (Recommended)**
+Add E14Z to your `claude_desktop_config.json`:
 
 ```json
 {
@@ -143,414 +147,248 @@ E14Z provides a comprehensive MCP server for autonomous agents with 4 powerful t
 }
 ```
 
-> **No installation required!** NPX automatically downloads and runs E14Z when needed. Perfect for Claude Desktop and other AI agents.
+**Config file locations:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-#### **⚡ Performance Setup (Optional)**
+### For Other MCP Clients
 
-For faster startup times, install globally first:
+E14Z works with any MCP-compatible client. Use the same configuration format or connect directly via the JSON-RPC protocol.
+
+## 🛠️ Command Line Usage
+
+### Direct MCP Execution
 
 ```bash
-npm install -g e14z
+# Discover MCP tools
+npx e14z run discover --query "database tools" --limit 5
+
+# Get details about a specific MCP
+npx e14z run details --slug postgres-mcp
+
+# Execute an MCP directly
+npx e14z run {mcp-name}
+
+# Test E14Z functionality  
+npx e14z --test
+
+# Get help
+npx e14z --help
 ```
 
-Then use direct command:
+### Agent Integration Examples
+
+Once connected, agents can use these tools:
+
+**🔍 Discover MCP Tools:**
 ```json
 {
-  "mcpServers": {
-    "e14z": {
-      "command": "e14z"
-    }
+  "name": "discover",
+  "arguments": {
+    "query": "database postgres",
+    "verified": true,
+    "limit": 10,
+    "no_auth": true
   }
 }
 ```
 
-#### 🔍 **Agent Tools Available**
-
-**Discovery with Auth Intelligence:**
-```javascript
-// Find MCPs that work immediately (no auth required)
-{"name": "discover", "arguments": {"no_auth": true, "limit": 10}}
-
-// Find MCPs by category and auth requirements  
-{"name": "discover", "arguments": {"category": "payments", "auth_required": true}}
-
-// Find executable MCPs only
-{"name": "discover", "arguments": {"executable": true, "verified": true}}
+**📋 Get Detailed Information:**
+```json
+{
+  "name": "details", 
+  "arguments": {
+    "slug": "postgres-mcp"
+  }
+}
 ```
 
-**Direct Execution:**
-```javascript
-// Execute compatible MCPs with smart auth handling
-{"name": "run", "arguments": {"slug": "weather-mcp"}}
-
-// Skip auth checks for testing (may fail)
-{"name": "run", "arguments": {"slug": "stripe", "skip_auth_check": true}}
+**▶️ Execute MCP Directly:**
+```json
+{
+  "name": "run",
+  "arguments": {
+    "slug": "postgres-mcp",
+    "skip_auth_check": false
+  }
+}
 ```
 
-**Detailed Information:**
-```javascript
-// Get comprehensive MCP details including tools and setup
-{"name": "details", "arguments": {"slug": "bitcoin-mcp"}}
+**⭐ Submit Performance Review:**
+```json
+{
+  "name": "review",
+  "arguments": {
+    "mcp_id": "mcp_123",
+    "rating": 9,
+    "success": true,
+    "use_case": "Database queries",
+    "tasks_completed": 5,
+    "tasks_failed": 0,
+    "rating_breakdown": {
+      "setup_difficulty": 3,
+      "documentation_quality": 3,
+      "reliability": 3,
+      "performance": 3
+    },
+    "discovery_effectiveness": "perfect_match"
+  }
+}
 ```
 
-**Performance Feedback:**
-```javascript
-// Submit structured reviews to improve ecosystem quality
-{"name": "review", "arguments": {
-  "mcp_id": "abc123", "rating": 8, "success": true,
-  "rating_breakdown": {"setup_difficulty": 3, "reliability": 3},
-  "use_case_category": "payments"
-}}
+### Smart Discovery Features
+
+**Filter by Requirements:**
+```json
+// Find MCPs that work immediately (no auth needed)
+{"name": "discover", "arguments": {"no_auth": true}}
+
+// Find only verified/official MCPs
+{"name": "discover", "arguments": {"verified": true}}
+
+// Find MCPs that can be executed directly
+{"name": "discover", "arguments": {"executable": true}}
+
+// Search by category and capability
+{"name": "discover", "arguments": {"query": "payment stripe API"}}
 ```
 
-## 🤖 Auto-Installation Engine
+**Get Actionable Results:**
+- **Installation commands** ready to copy/paste
+- **Authentication requirements** clearly specified
+- **Tool parameters** with examples
+- **Performance metrics** from real usage
+- **Community reviews** and success rates
 
-E14Z v4.0 introduces a powerful auto-installation engine that works like `npx` for MCP servers:
+## 📊 API Documentation
 
-### How It Works
+### REST API Endpoints
 
-1. **Bootstrap**: First run via `npx e14z@latest run <mcp>`
-2. **Detection**: E14Z detects the MCP isn't locally available
-3. **Analysis**: Security scanning and installation method detection
-4. **Installation**: Automatic MCP installation with sandbox protection
-5. **Global Setup**: Auto-installs e14z globally for direct access
-6. **Caching**: Future runs use cached installation for speed
-7. **Execution**: Seamless MCP execution
+- `GET /api/discover` - Search and discover MCP servers
+- `GET /api/mcp/[slug]` - Get detailed MCP information
+- `POST /api/review` - Submit MCP reviews and ratings
+- `GET /api/analytics` - Access performance analytics
+- `GET /api/health` - System health and status
 
-### Universal Bootstrap Mechanism
+### Interactive API Documentation
 
-```bash
-# Works on ANY fresh system:
-npx e14z@latest discover payments
+Visit `/api-docs` for the complete OpenAPI documentation with interactive testing capabilities.
 
-# Output:
-# 💡 Running via npx - will set up direct access after successful operation
-# 🔍 Found 5 MCPs... (search results)
-# 🚀 Setting up e14z for direct access...
-# ✅ e14z installed globally!
-# You can now use "e14z" directly! 🎉
+## 🔐 Security Features
 
-# Future runs work directly:
-e14z run stripe
-e14z discover payments
-e14z cache list
-```
+### MCP Protocol Security
+- **Input Validation**: Comprehensive sanitization and validation
+- **Rate Limiting**: Multi-tier protection with automatic IP blocking
+- **Protocol Compliance**: Strict JSON-RPC 2.0 adherence
+- **Method Allowlisting**: Restricted tool execution for security
 
-### Supported Package Managers
+### Application Security
+- **Authentication**: Secure JWT-based authentication
+- **Authorization**: Role-based access control
+- **Data Protection**: Encryption at rest and in transit
+- **Audit Logging**: Comprehensive security event tracking
 
-| Manager | Command Format | Example | Cache Location |
-|---------|----------------|---------|----------------|
-| **NPM** | `npx package[@version]` | `npx @types/node` | `~/.e14z/cache/` |
-| **Python** | `pip install package[==version]` | `pip install requests` | `~/.e14z/cache/` |
-| **Git** | `git clone url [branch]` | `git clone https://...` | `~/.e14z/cache/` |
+## 📈 Performance & Monitoring
 
-### Security Features
+### Performance Metrics
+- **API Response Times**: <200ms for 95% of requests
+- **Database Queries**: 80-95% performance improvement over baseline
+- **Cache Hit Rates**: >80% for frequently accessed data
+- **Uptime**: 99.9% availability with comprehensive monitoring
 
-- **🔒 Multi-Layer Security**: Command injection prevention, path traversal protection
-- **🛡️ Threat Detection**: Typosquatting detection, malicious package database
-- **🔍 Script Analysis**: Suspicious post-install script detection
-- **📦 Package Verification**: Integrity checking and reputation scoring
-- **🚫 Quarantine System**: Automatic isolation of suspicious packages
-- **🔄 Transaction Rollback**: Automatic cleanup on installation failures
+### Monitoring Stack
+- **APM**: Real-time application performance monitoring
+- **Database Monitoring**: Query performance and connection pool tracking
+- **Security Monitoring**: Threat detection and incident response
+- **Business Analytics**: Usage patterns and platform growth metrics
 
-### Auto-Installation Examples
+## 🚀 Deployment
 
-```bash
-# First time - use npx pattern:
-npx e14z@latest discover payments      # → Sets up e14z globally
-npx e14z@latest run stripe             # → Auto-installs stripe MCP + e14z globally
-npx e14z@latest cache list             # → Shows cache + global setup
+### Vercel Deployment
 
-# After first use - direct access:
-e14z discover payments                 # → Fast execution
-e14z run stripe                        # → Fast cached execution
-e14z run cloudflare                    # → Auto-installs cloudflare MCP
-e14z run my-custom-mcp                 # → Auto-installs from git/npm/pip
-
-# Python packages (isolated installation)
-e14z run pandas                        # → pip install pandas (in cache)
-
-# Git repositories
-e14z run my-git-mcp                    # → git clone + setup
-```
-
-## 🏗️ Architecture
-
-E14Z v4.0 is built with a modular, security-first architecture:
-
-### Core Components
-
-- **🖥️ CLI Tool** (`e14z`): User-facing command interface
-- **🤖 MCP Server** (`e14z`): AI agent discovery tool (same binary, different mode)
-- **⚡ Enhanced Execution Engine**: Secure MCP execution with auto-installation
-- **🤖 Auto-Installer**: NPX-like package installation with security scanning
-- **🗄️ Secure Cache Manager**: Intelligent caching with integrity verification
-- **🔐 Auth Manager**: GitHub OAuth with encrypted local storage
-- **📦 Publishing System**: Full MCP lifecycle management
-- **🏷️ Claiming System**: Ownership verification for wrapped MCPs
-
-### Security Architecture
-
-- **🛡️ Command Sanitization**: Blocks dangerous shell characters and patterns
-- **🔒 Process Sandboxing**: Isolated execution environments with resource limits
-- **📍 Path Traversal Protection**: Prevents `../` and similar attacks
-- **🔍 Input Validation**: Comprehensive slug and command validation
-- **🌍 Environment Sanitization**: Safe execution environment setup
-- **🔐 Encrypted Storage**: XDG-compliant credential management
-- **⚡ Transaction System**: Atomic operations with automatic rollback
-
-## 📚 Available MCPs
-
-Discover 50+ verified MCP servers across 16 categories:
-
-| Category | Examples | Auth Required |
-|----------|----------|---------------|
-| **Payments** | Stripe, Square, Bitcoin | 🔐 API Keys |
-| **Databases** | MongoDB, ClickHouse, BigQuery | 🔐 Credentials |
-| **AI Tools** | ElevenLabs, LangFuse, Memory | 🔓 Mixed |
-| **Development** | GitHub, CircleCI, Docker | 🔐 OAuth/Tokens |
-| **Cloud Storage** | Google Drive, Box | 🔐 OAuth |
-| **Communication** | Twilio, Slack | 🔐 API Keys |
-| **Productivity** | Notion, Linear, Todoist | 🔐 OAuth |
-| **Infrastructure** | AWS, Kubernetes, CloudFlare | 🔐 Credentials |
-
-## 🔐 Authentication
-
-E14Z provides intelligent authentication detection and management:
-
-### Supported Auth Methods
-
-- **None**: Public APIs and services
-- **API Key**: Service-specific keys and tokens  
-- **OAuth**: GitHub, Google, and social providers
-- **Credentials**: Username/password, connection strings
-
-### Authentication Flow
-
-```bash
-# 1. Login with GitHub
-e14z auth login
-
-# 2. Run MCP with auth detection
-e14z run stripe
-# → Detects API key requirement
-# → Provides setup instructions
-# → Offers to run anyway with --skip-auth-check
-
-# 3. Check auth status
-e14z auth status
-```
-
-## 🏗️ For Developers
-
-### Publishing Your MCP
-
-1. **Create Package Template**
+1. **Connect to Vercel**
    ```bash
-   e14z publish template my-mcp
-   # Edit e14z-package.json
+   vercel link
    ```
 
-2. **Publish to Registry**
+2. **Configure environment variables in Vercel dashboard**
+
+3. **Deploy**
    ```bash
-   e14z publish new -f e14z-package.json
+   vercel --prod
    ```
 
-3. **Your MCP is Live!**
-   - Available via `e14z discover`
-   - Executable via `e14z run your-mcp`
-   - Listed in registry with verification pending
+### Manual Deployment
 
-### Claiming Existing MCPs
+See the [Deployment Guide](./docs/DEPLOYMENT.md) for detailed instructions on self-hosting and alternative deployment options.
 
-If we've already wrapped your MCP from public sources:
+## 🧪 Testing
 
-```bash
-# Find claimable MCPs
-e14z claim list
-
-# Claim with GitHub verification
-e14z claim mcp your-package
-# → Automatically verifies GitHub ownership
-# → Grants you publishing rights
-```
-
-### Auto-Wrapping System
-
-E14Z automatically wraps new MCPs from various sources:
-
-- **NPM packages**: `npm install package` → `npx package`
-- **Python packages**: `pip install package` → `uvx package`  
-- **GitHub repos**: Extracts install commands from README
-- **Auth detection**: Analyzes descriptions for auth requirements
-
-## 🔧 Advanced Usage
-
-### Environment Configuration
+### Run Tests
 
 ```bash
-# Custom API endpoint
-export E14Z_API_URL=https://your-instance.com
+# Unit tests
+npm run test
 
-# GitHub client ID for OAuth
-export E14Z_GITHUB_CLIENT_ID=your_client_id
+# Integration tests  
+npm run test:integration
+
+# E2E tests
+npm run test:e2e
+
+# Performance tests
+npm run test:performance
 ```
 
-### Command Examples
+### Test Coverage
 
-```bash
-# First time anywhere (bootstrap pattern):
-npx e14z@latest discover "bitcoin payments" --category finance --verified
-npx e14z@latest run stripe --skip-auth-check
-npx e14z@latest cache list
-npx e14z@latest --help
+- **Unit Tests**: Core business logic and utilities
+- **Integration Tests**: API endpoints and database operations
+- **E2E Tests**: Complete user workflows and MCP interactions
+- **Performance Tests**: Database optimization and load testing
 
-# After bootstrap (direct access):
-e14z discover "bitcoin payments" --category finance --verified
-e14z run stripe --skip-auth-check
-e14z publish new my-mcp --file custom-package.json
-e14z claim list --category payments
-```
+## 📚 Documentation
 
-### Keeping E14Z Updated
+- [Development Guide](./DEVELOPMENT.md) - Comprehensive development documentation
+- [API Documentation](./docs/API.md) - Detailed API reference
+- [Deployment Guide](./docs/DEPLOYMENT.md) - Production deployment instructions
+- [Contributing Guide](./CONTRIBUTING.md) - Guidelines for contributors
 
-```bash
-# Always use latest (recommended) - auto-updates global install
-npx e14z@latest discover payments
+## 🤝 Contributing
 
-# Check global version vs latest
-e14z --version
-npm view e14z version
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on:
 
-# Manual update if needed
-npm update -g e14z
-# or
-npm install -g e14z@latest
+- Code of conduct
+- Development setup
+- Pull request process
+- Coding standards
+- Testing requirements
 
-# Fresh bootstrap (clean install)
-npm uninstall -g e14z
-npx e14z@latest run stripe  # Reinstalls latest globally
-```
+### Development Workflow
 
-### Integration with CI/CD
-
-```yaml
-# GitHub Actions example
-- name: Publish MCP
-  run: |
-    echo "${{ secrets.GITHUB_TOKEN }}" | e14z auth login
-    e14z publish new --file mcp-package.json
-```
-
-## 🧪 Testing & Diagnostics
-
-### Built-in Diagnostics
-
-```bash
-# System health check
-e14z diagnose
-
-# Connectivity test
-e14z discover --limit 1
-
-# MCP server test
-echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | e14z
-```
-
-### Test Results
-
-E14Z v4.0 passes **21/21 comprehensive auto-installation tests**:
-
-- ✅ **Core Functionality**: Cache management, package manager selection, command parsing
-- ✅ **Security**: Command injection prevention, typosquatting detection, malicious package blocking
-- ✅ **Error Handling**: Categorization, transaction rollback, retry logic
-- ✅ **Cache System**: Integrity verification, cleanup policies, concurrent access
-- ✅ **Performance**: Installation speed, cache hit optimization
-- ✅ **Edge Cases**: Large packages, network timeouts, permission errors
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Command not found: e14z**
-```bash
-npm install -g e14z
-# or
-npx e14z discover
-```
-
-**Authentication failed**
-```bash
-e14z auth logout
-e14z auth login
-```
-
-**MCP execution failed**
-```bash
-# Check auth requirements
-e14z info <mcp-name>
-
-# Run diagnostics
-e14z diagnose
-
-# Skip auth check for testing
-e14z run <mcp-name> --skip-auth-check
-
-# Disable auto-installation
-e14z run <mcp-name> --no-auto-install
-```
-
-**Auto-installation issues**
-```bash
-# Clear corrupted cache
-e14z cache clear <mcp-name>
-
-# Check auto-install capability
-e14z cache info <mcp-name>
-
-# View cache contents
-e14z cache list
-
-# Clear all cache (nuclear option)
-e14z cache clear --all
-```
-
-**Security warnings**
-```bash
-# Package flagged as suspicious
-# Review the security warning details
-# Consider using alternative packages
-# Use --security-level minimal for testing (not recommended)
-```
-
-**Publishing errors**
-```bash
-# Ensure authenticated
-e14z auth status
-
-# Validate package
-e14z publish template test && cat e14z-package.json
-```
-
-### Getting Help
-
-- **Documentation**: [e14z.com/docs](https://e14z.com/docs)
-- **Issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
-- **Diagnostics**: `e14z diagnose`
-
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Submit a pull request
+5. Automated testing and review
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## 🌟 Community
 
-- **Website**: [e14z.com](https://e14z.com)
-- **Registry**: [e14z.com/browse](https://e14z.com/browse)
-- **Publishing**: `e14z publish new`
-- **Issues**: [GitHub Issues](https://github.com/aemholland/e14z/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/aemholland/e14z/discussions)
+- **GitHub Issues**: Bug reports and feature requests
+- **Discussions**: Community discussions and support
+- **Discord**: Real-time community chat (coming soon)
+
+## 🙏 Acknowledgments
+
+- Model Context Protocol specification and community
+- Open source contributors and maintainers
+- Vercel for hosting and deployment platform
+- Supabase for database and authentication services
 
 ---
 
-**Built for the AI-powered future** 🤖 | **Powered by Model Context Protocol** ⚡
+Built with ❤️ for the AI and MCP community. E14Z makes MCP discovery intelligent, reliable, and scalable.

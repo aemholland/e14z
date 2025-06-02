@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
+import { withAPM } from '@/lib/observability/apm-middleware'
 
-export async function GET() {
+async function healthHandler(request: NextRequest) {
   try {
     // Test database connection
     const { data, error } = await supabase
@@ -32,3 +33,10 @@ export async function GET() {
     )
   }
 }
+
+// Export the handler wrapped with APM middleware
+export const GET = withAPM(healthHandler, {
+  trackQueries: true,
+  trackCache: false,
+  sampleRate: 0.1 // Lower sample rate for health checks
+});

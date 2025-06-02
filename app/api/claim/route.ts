@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { withAPM } from '@/lib/observability/apm-middleware';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -74,7 +75,7 @@ async function getOrCreateUser(githubUser: any) {
 /**
  * POST /api/claim - Submit claim for MCP
  */
-export async function POST(request: NextRequest) {
+async function claimHandler(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');
     if (!authHeader?.startsWith('token ')) {
@@ -210,3 +211,10 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Export the handler wrapped with APM middleware
+export const POST = withAPM(claimHandler, {
+  trackQueries: true,
+  trackCache: false,
+  sampleRate: 1.0
+});

@@ -340,7 +340,7 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
                 <div className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
                   <div className="Box-body" style={{padding: '12px'}}>
                     <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px'}}>
-                      <span className="text-small text-primary font-semibold">Claude Desktop</span>
+                      <span className="text-small text-primary font-semibold">AI Agents</span>
                       <button 
                         className="btn btn-sm" 
                         style={{fontSize: '11px', padding: '2px 6px'}} 

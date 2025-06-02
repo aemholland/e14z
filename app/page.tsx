@@ -124,7 +124,7 @@ export default function Home() {
                 <div className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
                   <div className="Box-body" style={{padding: '16px'}}>
                     <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px'}}>
-                      <span className="text-small text-primary font-semibold">Claude Desktop</span>
+                      <span className="text-small text-primary font-semibold">AI Agents</span>
                       <button className="btn btn-sm" style={{fontSize: '12px'}} onClick={() => navigator.clipboard.writeText('npx e14z-mcp')}>
                         Copy
                       </button>

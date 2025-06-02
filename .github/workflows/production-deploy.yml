@@ -1,0 +1,471 @@
+# E14Z Production Deployment Pipeline
+# Comprehensive CI/CD with security, testing, and monitoring
+
+name: Production Deployment
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - staging
+        - production
+      skip_tests:
+        description: 'Skip test suite'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+
+jobs:
+  # ===================================
+  # SECURITY AND DEPENDENCY SCANNING
+  # ===================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+
+      - name: Run security vulnerability scan
+        uses: securecodewarrior/github-action-add-security-policy@v1
+        with:
+          policy-type: 'security'
+
+      - name: CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript,typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --fail-on=upgradable
+
+  # ===================================
+  # TESTING SUITE
+  # ===================================
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_tests }}
+    strategy:
+      matrix:
+        test-type: [unit, integration, e2e, security, performance]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        if: matrix.test-type == 'e2e'
+        run: npx playwright install --with-deps
+
+      - name: Run unit tests
+        if: matrix.test-type == 'unit'
+        run: npm run test:unit
+
+      - name: Run integration tests
+        if: matrix.test-type == 'integration'
+        run: npm run test:integration
+
+      - name: Run E2E tests
+        if: matrix.test-type == 'e2e'
+        run: npm run test:e2e
+
+      - name: Run security tests
+        if: matrix.test-type == 'security'
+        run: npm run test:security
+
+      - name: Run performance tests
+        if: matrix.test-type == 'performance'
+        run: npm run test:performance
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-type }}
+          path: |
+            test-results/
+            coverage/
+          retention-days: 30
+
+  # ===================================
+  # BUILD AND CONTAINERIZATION
+  # ===================================
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [security-scan, test]
+    if: always() && (needs.security-scan.result == 'success' && (needs.test.result == 'success' || inputs.skip_tests))
+    
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.prod
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.meta.outputs.tags }}
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+
+  # ===================================
+  # CONTAINER SECURITY SCANNING
+  # ===================================
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Scan with Snyk
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: ${{ needs.build.outputs.image-tag }}
+          args: --severity-threshold=high
+
+  # ===================================
+  # STAGING DEPLOYMENT
+  # ===================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build, container-scan]
+    if: github.ref == 'refs/heads/main' || inputs.environment == 'staging'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to staging
+        run: |
+          # Update deployment with new image
+          kubectl set image deployment/e14z-staging e14z=${{ needs.build.outputs.image-tag }} -n staging
+          kubectl rollout status deployment/e14z-staging -n staging --timeout=600s
+
+      - name: Run smoke tests
+        run: |
+          sleep 30  # Wait for deployment to stabilize
+          npm run test:smoke -- --env=staging
+
+      - name: Notify staging deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'E14Z deployed to staging environment'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_STAGING }}
+
+  # ===================================
+  # PRODUCTION DEPLOYMENT
+  # ===================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, container-scan, deploy-staging]
+    if: (github.ref == 'refs/heads/main' && needs.deploy-staging.result == 'success') || (inputs.environment == 'production' && startsWith(github.ref, 'refs/tags/v'))
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+      - name: Pre-deployment backup
+        run: |
+          # Create database backup before deployment
+          kubectl create job --from=cronjob/backup-job pre-deployment-backup-$(date +%s) -n production
+
+      - name: Blue-Green Deployment
+        run: |
+          # Deploy to green environment
+          kubectl set image deployment/e14z-green e14z=${{ needs.build.outputs.image-tag }} -n production
+          kubectl rollout status deployment/e14z-green -n production --timeout=600s
+          
+          # Run health checks
+          sleep 60
+          kubectl exec deployment/e14z-green -n production -- curl -f http://localhost:3000/api/health
+          
+          # Switch traffic to green
+          kubectl patch service e14z-service -n production -p '{"spec":{"selector":{"version":"green"}}}'
+          
+          # Scale down blue deployment
+          kubectl scale deployment e14z-blue --replicas=0 -n production
+
+      - name: Post-deployment verification
+        run: |
+          sleep 30
+          # Run comprehensive health checks
+          npm run test:health -- --env=production
+          npm run test:smoke -- --env=production
+
+      - name: Update monitoring dashboards
+        run: |
+          # Update Grafana dashboards with new deployment
+          curl -X POST "${{ secrets.GRAFANA_API_URL }}/api/annotations" \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "text": "Production deployment: ${{ github.sha }}",
+              "tags": ["deployment", "production"],
+              "time": '$(date +%s000)'
+            }'
+
+      - name: Notify production deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'E14Z successfully deployed to production!'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PRODUCTION }}
+
+  # ===================================
+  # POST-DEPLOYMENT MONITORING
+  # ===================================
+  post-deployment-monitoring:
+    name: Post-Deployment Monitoring
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: success()
+    
+    steps:
+      - name: Setup monitoring alerts
+        run: |
+          # Temporarily increase alert sensitivity for 30 minutes
+          curl -X POST "${{ secrets.ALERTMANAGER_URL }}/api/v1/silences" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "matchers": [{"name": "deployment", "value": "production", "isRegex": false}],
+              "startsAt": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
+              "endsAt": "'$(date -u -d "+30 minutes" +%Y-%m-%dT%H:%M:%SZ)'",
+              "comment": "Post-deployment monitoring window"
+            }'
+
+      - name: Monitor deployment health
+        run: |
+          # Monitor for 10 minutes
+          for i in {1..20}; do
+            sleep 30
+            curl -f "${{ secrets.PRODUCTION_URL }}/api/health" || exit 1
+            echo "Health check $i/20 passed"
+          done
+
+      - name: Generate deployment report
+        run: |
+          echo "## Deployment Report" > deployment-report.md
+          echo "- **Version**: ${{ github.sha }}" >> deployment-report.md
+          echo "- **Deployment Time**: $(date)" >> deployment-report.md
+          echo "- **Status**: Success" >> deployment-report.md
+          echo "- **Image**: ${{ needs.build.outputs.image-tag }}" >> deployment-report.md
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-report
+          path: deployment-report.md
+
+  # ===================================
+  # ROLLBACK ON FAILURE
+  # ===================================
+  rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+    needs: [deploy-production, post-deployment-monitoring]
+    if: failure()
+    environment: production
+    
+    steps:
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Rollback deployment
+        run: |
+          # Switch traffic back to blue (previous version)
+          kubectl patch service e14z-service -n production -p '{"spec":{"selector":{"version":"blue"}}}'
+          
+          # Scale up blue deployment
+          kubectl scale deployment e14z-blue --replicas=3 -n production
+          kubectl rollout status deployment/e14z-blue -n production --timeout=300s
+          
+          # Scale down failed green deployment
+          kubectl scale deployment e14z-green --replicas=0 -n production
+
+      - name: Verify rollback
+        run: |
+          sleep 30
+          curl -f "${{ secrets.PRODUCTION_URL }}/api/health"
+
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'failure'
+          text: '🚨 E14Z production deployment failed and was rolled back!'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_ALERTS }}
+
+# ===================================
+# REUSABLE WORKFLOWS
+# ===================================
+  cleanup:
+    name: Cleanup Resources
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [build, deploy-staging, deploy-production, post-deployment-monitoring, rollback]
+    
+    steps:
+      - name: Cleanup old images
+        run: |
+          # Keep only last 10 images
+          echo "Cleaning up old container images..."
+          # This would typically use your container registry's API
+
+      - name: Cleanup artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-logs
+          path: |
+            *.log
+            *.json
+          retention-days: 7

@@ -618,7 +618,7 @@ async function runTest() {
     console.log('   ✅ Discover tool working');
     
     console.log('\n🎉 All tests passed! The MCP server is working correctly.');
-    console.log('\nTo connect to Claude Desktop, add this to your claude_desktop_config.json:');
+    console.log('\nTo connect to AI agents, add this to your MCP configuration:');
     console.log(`{
   "mcpServers": {
     "e14z": {
@@ -701,18 +701,19 @@ async function runDiagnostics() {
   console.log('\nCommon Issues & Solutions:');
   console.log('  1. If you see "command not found": Make sure npm/npx is installed');
   console.log('  2. If connection fails: Check internet connection and firewall');
-  console.log('  3. If Claude Desktop won\'t connect: Verify config file syntax');
+  console.log('  3. If AI agent won\'t connect: Verify config file syntax');
   console.log('  4. For corporate networks: Check if proxy settings are needed');
   
-  console.log('\nClaude Desktop Config Location:');
+  console.log('\nCommon MCP Config Locations:');
   const os = require('os');
   if (process.platform === 'darwin') {
-    console.log(`  macOS: ~/Library/Application Support/Claude/claude_desktop_config.json`);
+    console.log(`  macOS: ~/Library/Application Support/Claude/claude_desktop_config.json (Claude Desktop)`);
   } else if (process.platform === 'win32') {
-    console.log(`  Windows: %APPDATA%\\Claude\\claude_desktop_config.json`);
+    console.log(`  Windows: %APPDATA%\\Claude\\claude_desktop_config.json (Claude Desktop)`);
   } else {
-    console.log(`  Linux: ~/.config/claude/claude_desktop_config.json`);
+    console.log(`  Linux: ~/.config/claude/claude_desktop_config.json (Claude Desktop)`);
   }
+  console.log(`  Other agents: Check your MCP client documentation`);
   
   console.log('\nFor more help, visit: https://e14z.com/docs');
 }
@@ -733,7 +734,7 @@ Usage:
   npx e14z --help          Show this help
 
 Examples:
-  # Connect to Claude Desktop (add to claude_desktop_config.json):
+  # Connect to AI agents (add to MCP configuration):
   {
     "mcpServers": {
       "e14z": {

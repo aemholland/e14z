@@ -1,0 +1,419 @@
+version: '3.8'
+
+# E14Z Production Docker Compose Configuration
+# Includes full monitoring, logging, and security stack
+
+services:
+  # ===================================
+  # MAIN APPLICATION
+  # ===================================
+  e14z-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+      args:
+        NODE_ENV: production
+    container_name: e14z-production
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    env_file:
+      - .env.production
+    volumes:
+      - app-logs:/app/logs
+      - app-uploads:/app/uploads
+    networks:
+      - e14z-network
+      - monitoring-network
+    depends_on:
+      redis:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+        labels: "service=e14z-app"
+
+  # ===================================
+  # REDIS CACHE & RATE LIMITING
+  # ===================================
+  redis:
+    image: redis:7-alpine
+    container_name: e14z-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-secure_redis_password}
+    volumes:
+      - redis-data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - e14z-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # NGINX REVERSE PROXY
+  # ===================================
+  nginx:
+    image: nginx:alpine
+    container_name: e14z-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx-logs:/var/log/nginx
+    networks:
+      - e14z-network
+    depends_on:
+      - e14z-app
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # ===================================
+  # PROMETHEUS MONITORING
+  # ===================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: e14z-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # GRAFANA DASHBOARDS
+  # ===================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: e14z-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/dashboard-definitions:/var/lib/grafana/dashboards:ro
+    networks:
+      - monitoring-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # NODE EXPORTER (SYSTEM METRICS)
+  # ===================================
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: e14z-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - monitoring-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+  # ===================================
+  # LOKI LOG AGGREGATION
+  # ===================================
+  loki:
+    image: grafana/loki:latest
+    container_name: e14z-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./config/loki/loki.yml:/etc/loki/local-config.yaml:ro
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3100/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # PROMTAIL LOG SHIPPER
+  # ===================================
+  promtail:
+    image: grafana/promtail:latest
+    container_name: e14z-promtail
+    restart: unless-stopped
+    volumes:
+      - ./config/promtail/promtail.yml:/etc/promtail/config.yml:ro
+      - /var/log:/var/log:ro
+      - app-logs:/var/log/app:ro
+      - nginx-logs:/var/log/nginx:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - monitoring-network
+    depends_on:
+      - loki
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "2"
+
+  # ===================================
+  # JAEGER DISTRIBUTED TRACING
+  # ===================================
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: e14z-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger-data:/badger
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:16686/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # ALERTMANAGER
+  # ===================================
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: e14z-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./config/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - monitoring-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:9093/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # UPTIME MONITORING
+  # ===================================
+  uptime-kuma:
+    image: louislam/uptime-kuma:latest
+    container_name: e14z-uptime
+    restart: unless-stopped
+    ports:
+      - "3002:3001"
+    volumes:
+      - uptime-data:/app/data
+    networks:
+      - monitoring-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+  # ===================================
+  # BACKUP SERVICE
+  # ===================================
+  backup:
+    build:
+      context: ./docker/backup
+      dockerfile: Dockerfile
+    container_name: e14z-backup
+    restart: unless-stopped
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
+      - BACKUP_RETENTION_DAYS=30
+    env_file:
+      - .env.production
+    volumes:
+      - app-logs:/backup/logs:ro
+      - redis-data:/backup/redis:ro
+      - prometheus-data:/backup/prometheus:ro
+      - grafana-data:/backup/grafana:ro
+      - backup-storage:/backup/output
+    networks:
+      - e14z-network
+      - monitoring-network
+    depends_on:
+      - e14z-app
+      - redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+
+# ===================================
+# NETWORKS
+# ===================================
+networks:
+  e14z-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+  monitoring-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+# ===================================
+# VOLUMES
+# ===================================
+volumes:
+  # Application data
+  app-logs:
+    driver: local
+  app-uploads:
+    driver: local
+    
+  # Cache and database
+  redis-data:
+    driver: local
+    
+  # Monitoring data
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  loki-data:
+    driver: local
+  jaeger-data:
+    driver: local
+  alertmanager-data:
+    driver: local
+  uptime-data:
+    driver: local
+    
+  # Logs
+  nginx-logs:
+    driver: local
+    
+  # Backup storage
+  backup-storage:
+    driver: local

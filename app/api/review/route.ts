@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
+import { withAPM } from '@/lib/observability/apm-middleware'
 
-export async function POST(request: NextRequest) {
+async function reviewHandler(request: NextRequest) {
   try {
     const body = await request.json()
     
@@ -145,3 +146,10 @@ function extractAgentType(userAgent: string): string {
   
   return 'unknown'
 }
+
+// Export the handler wrapped with APM middleware
+export const POST = withAPM(reviewHandler, {
+  trackQueries: true,
+  trackCache: false,
+  sampleRate: 1.0
+});

@@ -1,0 +1,88 @@
+# E14Z Production Docker Configuration
+# Multi-stage build optimized for production deployment with security hardening
+
+# Stage 1: Dependencies with security scanning
+FROM node:18-alpine AS deps
+WORKDIR /app
+
+# Install security updates and tools
+RUN apk update && apk upgrade && \
+    apk add --no-cache dumb-init curl && \
+    rm -rf /var/cache/apk/*
+
+# Copy package files
+COPY package*.json ./
+RUN npm ci --only=production --ignore-scripts --audit
+
+# Stage 2: Builder with development dependencies
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Copy package files and install all dependencies
+COPY package*.json ./
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build the application with production optimizations
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+# Stage 3: Security scanner (optional but recommended)
+FROM aquasec/trivy:latest AS security-scan
+COPY --from=builder /app /app
+RUN trivy fs --exit-code 0 --no-progress --severity HIGH,CRITICAL /app
+
+# Stage 4: Production runtime
+FROM node:18-alpine AS runner
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# Install production runtime dependencies
+RUN apk update && apk upgrade && \
+    apk add --no-cache dumb-init curl tini && \
+    rm -rf /var/cache/apk/*
+
+# Copy built application
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy startup scripts
+COPY --chown=nextjs:nodejs docker/start-production.sh ./start.sh
+RUN chmod +x ./start.sh
+
+# Set security-focused file permissions
+RUN chown -R nextjs:nodejs /app && \
+    chmod -R 755 /app && \
+    chmod 644 /app/*.js
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Set production environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Health check with improved monitoring
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Use tini as init system for proper signal handling
+ENTRYPOINT ["tini", "--"]
+
+# Start the application with production optimizations
+CMD ["./start.sh"]

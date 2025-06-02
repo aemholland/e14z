@@ -1,29 +1,143 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 15+ has App Router enabled by default
-  output: 'standalone',
+  // Vercel deployment optimization
+  output: process.env.VERCEL ? undefined : 'standalone',
   
-  // Instrumentation is enabled by default in Next.js 15
+  // Performance optimizations
+  swcMinify: true,
+  compress: true,
   
-  // Exclude server-only packages from client bundle
-  serverExternalPackages: [
-    'pino',
-    'pino-pretty',
-    'next-logger',
-  ],
+  // Image optimization for Vercel
+  images: {
+    domains: ['githubusercontent.com', 'gravatar.com', 'avatars.githubusercontent.com'],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
   
-  // Webpack configuration for better package handling
-  webpack: (config, { isServer }) => {
+  // Experimental features for better performance
+  experimental: {
+    // Enable modern bundling
+    esmExternals: true,
+    // Optimize server components
+    serverComponentsExternalPackages: [
+      'pino',
+      'pino-pretty',
+      'next-logger',
+    ],
+    // Enable optimistic client cache
+    optimisticClientCache: true,
+  },
+  
+  // Headers for security and performance
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+        ],
+      },
+    ];
+  },
+  
+  // Redirects for clean URLs
+  async redirects() {
+    return [
+      {
+        source: '/mcp/:slug',
+        destination: '/mcp/:slug',
+        permanent: true,
+      },
+    ];
+  },
+  
+  // Webpack configuration optimized for Vercel
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Optimize bundle for serverless
     if (!isServer) {
-      // Exclude server-only modules from client bundle
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         path: false,
         os: false,
+        crypto: false,
+        stream: false,
+        buffer: require.resolve('buffer'),
+      };
+      
+      config.plugins.push(
+        new webpack.ProvidePlugin({
+          Buffer: ['buffer', 'Buffer'],
+        })
+      );
+    }
+    
+    // Optimize for production builds
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+            },
+          },
+        },
       };
     }
+    
     return config;
+  },
+  
+  // Environment variables configuration
+  env: {
+    CUSTOM_KEY: process.env.CUSTOM_KEY,
+    VERCEL_URL: process.env.VERCEL_URL,
+    VERCEL_REGION: process.env.VERCEL_REGION,
+  },
+  
+  // PoweredByHeader disabled for security
+  poweredByHeader: false,
+  
+  // Compression for better performance
+  compress: true,
+  
+  // Generate ETags for caching
+  generateEtags: true,
+  
+  // Page extensions for better organization
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  
+  // TypeScript configuration
+  typescript: {
+    // Dangerously allow production builds to successfully complete even if your project has TypeScript errors
+    ignoreBuildErrors: false,
+  },
+  
+  // ESLint configuration
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if your project has ESLint errors
+    ignoreDuringBuilds: false,
   },
 }
 
