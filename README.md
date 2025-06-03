@@ -57,7 +57,7 @@ E14Z is like **npm for AI agents** - a comprehensive registry and execution plat
 - **⚡ High Performance**: Optimized database queries with 80-95% performance improvements
 - **🌐 Global Scale**: Vercel-powered serverless architecture with worldwide CDN
 - **📈 Real-time Monitoring**: Comprehensive APM and observability for production environments
-- **📦 Universal Package Support**: Auto-install and execute MCPs from all major ecosystems (npm, pipx, cargo, go) with 90%+ reliability
+- **📦 Universal Package Support**: Auto-install and execute MCPs from all major ecosystems (npm, pipx, cargo, go) with enhanced reliability
 
 ## 🛠️ Technology Stack
 
@@ -67,7 +67,7 @@ E14Z is like **npm for AI agents** - a comprehensive registry and execution plat
 - **Caching**: Redis (Upstash) for distributed caching and rate limiting
 - **Monitoring**: OpenTelemetry, custom APM, and performance tracking
 - **Deployment**: Vercel with automated CI/CD and preview deployments
-- **Package Execution**: Multi-language support (JavaScript, Python, Rust, Go) with 90%+ reliability
+- **Package Execution**: Multi-language support (JavaScript, Python, Rust, Go) with enhanced reliability
 
 ## 📋 Quick Start
 
@@ -172,9 +172,9 @@ npx e14z run details --slug postgres-mcp
 npx e14z run {mcp-name}
 
 # Execute from specific ecosystems (auto-detected)
-npx e14z run python-mcp-server    # Uses pipx (90%+ reliability)
-npx e14z run rust-mcp-tool        # Uses cargo (95% reliability, 50x performance)
-npx e14z run go-mcp-service       # Uses go install (96% reliability)
+npx e14z run python-mcp-server    # Uses pipx for reliability
+npx e14z run rust-mcp-tool        # Uses cargo for performance
+npx e14z run go-mcp-service       # Uses go install for simplicity
 
 # Test E14Z functionality  
 npx e14z --test
@@ -352,17 +352,17 @@ E14Z supports automatic installation and execution of MCP servers from all major
 
 | Language | Package Manager | Reliability | Performance | Key Benefits |
 |----------|----------------|-------------|-------------|--------------|
-| **JavaScript/TypeScript** | npm/npx | 85% | Baseline | Industry standard, wide ecosystem |
-| **Python** | pipx | **90%+** | 1x | Isolated environments, auto PATH management |
-| **Rust** | cargo | **95%** | **50x** | Static binaries, zero dependencies |
-| **Go** | go install | **96%** | **25x** | Ultra-simple, instant startup |
+| **JavaScript/TypeScript** | npm/npx | Good | Baseline | Industry standard, wide ecosystem |
+| **Python** | pipx | **Excellent** | 1x | Isolated environments, auto PATH management |
+| **Rust** | cargo | **Excellent** | **High** | Static binaries, zero dependencies |
+| **Go** | go install | **Excellent** | **High** | Ultra-simple, instant startup |
 
 ### Automatic Package Manager Detection
 
 E14Z automatically detects and uses the optimal package manager for each MCP:
 
 ```bash
-# Python MCPs automatically use pipx (90%+ reliability vs 40% with pip)
+# Python MCPs automatically use pipx for reliability and isolation
 npx e14z run python-mcp-server
 
 # Rust MCPs use cargo for maximum performance
@@ -377,10 +377,10 @@ npx e14z run node-mcp-server
 
 ### Key Reliability Improvements
 
-- **Python**: Switched from pip (40% success) to pipx (90%+ success) with isolated environments
-- **Rust**: Native cargo support with static binaries and 50x performance improvement
-- **Go**: Ultra-reliable go install with 96% success rate and instant startup
-- **Auto-conversion**: Legacy pip commands automatically converted to pipx for immediate reliability boost
+- **Python**: Switched from pip to pipx with isolated environments and automatic PATH management
+- **Rust**: Native cargo support with static binaries and superior performance
+- **Go**: Ultra-reliable go install with simple installation and instant startup
+- **Auto-conversion**: Legacy pip commands automatically converted to pipx for improved reliability
 
 ### Security Features
 
