@@ -87,6 +87,18 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
           </div>
           
           <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+            {mcp.website_url && (
+              <a
+                href={mcp.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-primary"
+                style={{display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', padding: '8px 16px'}}
+              >
+                <ExternalLink size={16} />
+                Visit Website
+              </a>
+            )}
             {mcp.github_url && (
               <a
                 href={mcp.github_url}
@@ -298,6 +310,20 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
                   <div style={{display: 'flex', justifyContent: 'space-between'}}>
                     <span className="text-tertiary">Auth:</span>
                     <span className="text-secondary">{formatAuthMethod(mcp.auth_method)}</span>
+                  </div>
+                )}
+                
+                {mcp.stars !== undefined && mcp.stars > 0 && (
+                  <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                    <span className="text-tertiary">GitHub Stars:</span>
+                    <span className="text-secondary">{mcp.stars.toLocaleString()}</span>
+                  </div>
+                )}
+                
+                {mcp.language && (
+                  <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                    <span className="text-tertiary">Language:</span>
+                    <span className="text-secondary">{mcp.language}</span>
                   </div>
                 )}
               </div>

@@ -1,5 +1,5 @@
 export interface InstallationMethod {
-  type: 'npm' | 'pip' | 'git' | 'docker' | 'binary' | 'other'
+  type: 'npm' | 'pipx' | 'cargo' | 'go' | 'e14z'
   command: string
   description?: string
   priority: number
@@ -26,7 +26,7 @@ export interface MCP {
   name: string
   description?: string
   endpoint: string
-  install_type?: 'npm' | 'pip' | 'git' | 'docker' | 'binary' | 'other'
+  install_type?: 'npm' | 'pipx' | 'cargo' | 'go' | 'e14z'
   installation_methods?: InstallationMethod[]
   tools?: Tool[]
   connection_type: 'stdio' | 'http' | 'websocket'

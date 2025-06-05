@@ -148,6 +148,135 @@ const mcpServer = {
     }
   },
   
+  // Format comprehensive MCP data with all 12 categories
+  formatComprehensiveMCPData(mcp) {
+    const sections = [];
+    
+    // 1. 📊 Server Capabilities & Protocol Information
+    sections.push(`🔧 **${mcp.name}** (${mcp.slug})`);
+    sections.push(`   ${mcp.description}`);
+    
+    if (mcp.protocol_version || mcp.initialization_time_ms || mcp.connection_stability) {
+      sections.push(`\n📊 **Protocol Intelligence:**`);
+      if (mcp.protocol_version) sections.push(`   • Protocol: ${mcp.protocol_version}`);
+      if (mcp.initialization_time_ms) sections.push(`   • Startup: ${mcp.initialization_time_ms}ms`);
+      if (mcp.connection_stability) sections.push(`   • Stability: ${mcp.connection_stability}`);
+    }
+
+    // 2. 🛠️ Tool Intelligence (Enhanced)
+    if (mcp.working_tools_count || mcp.failing_tools_count || mcp.tool_success_rate) {
+      sections.push(`\n🛠️  **Tool Intelligence:**`);
+      sections.push(`   • Working: ${mcp.working_tools_count || 0}/${(mcp.working_tools_count || 0) + (mcp.failing_tools_count || 0)} tools`);
+      if (mcp.tool_success_rate) sections.push(`   • Success Rate: ${(mcp.tool_success_rate * 100).toFixed(1)}%`);
+      if (mcp.average_response_time_ms) sections.push(`   • Avg Response: ${mcp.average_response_time_ms}ms`);
+      
+      // Tool details with parameters
+      if (mcp.tools && Array.isArray(mcp.tools)) {
+        sections.push(`   • Tools Available:`);
+        mcp.tools.slice(0, 3).forEach(tool => {
+          const paramCount = tool.inputSchema?.properties ? Object.keys(tool.inputSchema.properties).length : 0;
+          sections.push(`     - ${tool.name} (${paramCount} params)`);
+        });
+        if (mcp.tools.length > 3) sections.push(`     - ...and ${mcp.tools.length - 3} more`);
+      }
+    }
+
+    // 3. ⚡ Performance Intelligence
+    if (mcp.min_response_time_ms || mcp.max_response_time_ms || mcp.reliability_score) {
+      sections.push(`\n⚡ **Performance Intelligence:**`);
+      if (mcp.min_response_time_ms && mcp.max_response_time_ms) {
+        sections.push(`   • Response Range: ${mcp.min_response_time_ms}ms - ${mcp.max_response_time_ms}ms`);
+      }
+      if (mcp.reliability_score) sections.push(`   • Reliability: ${(mcp.reliability_score * 100).toFixed(1)}%`);
+      if (mcp.overall_intelligence_score) sections.push(`   • Quality Score: ${(mcp.overall_intelligence_score * 100).toFixed(1)}%`);
+    }
+
+    // 4. 🔐 Authentication & Setup Intelligence
+    if (mcp.auth_required) {
+      sections.push(`\n🔐 **Authentication Intelligence:**`);
+      sections.push(`   • Auth Required: Yes`);
+      if (mcp.detected_env_vars && mcp.detected_env_vars.length > 0) {
+        sections.push(`   • Required Variables: ${mcp.detected_env_vars.join(', ')}`);
+      }
+      if (mcp.setup_complexity) sections.push(`   • Setup Complexity: ${mcp.setup_complexity}`);
+      if (mcp.auth_failure_mode) sections.push(`   • Failure Mode: ${mcp.auth_failure_mode}`);
+      
+      // Setup instructions
+      if (mcp.auth_setup_instructions && mcp.auth_setup_instructions.length > 0) {
+        sections.push(`   • Setup Steps:`);
+        mcp.auth_setup_instructions.forEach(instruction => {
+          sections.push(`     - ${instruction}`);
+        });
+      }
+    } else {
+      sections.push(`\n🔐 **Authentication Intelligence:**`);
+      sections.push(`   • Auth Required: No - Ready to use immediately!`);
+    }
+
+    // 5. 📈 Health & Status Intelligence
+    sections.push(`\n📈 **Health Intelligence:**`);
+    const healthEmoji = mcp.health_status === 'healthy' ? '🟢' : 
+                       mcp.health_status === 'degraded' ? '🟡' : 
+                       mcp.health_status === 'down' ? '🔴' : '⚪';
+    sections.push(`   • Status: ${healthEmoji} ${mcp.health_status || 'unknown'}`);
+    if (mcp.testing_strategy) sections.push(`   • Testing: ${mcp.testing_strategy.replace(/_/g, ' ')}`);
+    if (mcp.intelligence_collection_date) {
+      const date = new Date(mcp.intelligence_collection_date);
+      sections.push(`   • Last Analyzed: ${date.toLocaleDateString()}`);
+    }
+
+    // 6. 🎯 Usage Intelligence
+    if (mcp.use_cases && mcp.use_cases.length > 0) {
+      sections.push(`\n🎯 **Usage Intelligence:**`);
+      sections.push(`   • Use Cases: ${mcp.use_cases.slice(0, 3).join(', ')}`);
+      if (mcp.use_cases.length > 3) sections.push(`     ...and ${mcp.use_cases.length - 3} more`);
+    }
+
+    // 7. 🚨 Error Intelligence & Troubleshooting
+    if (mcp.auth_error_messages && mcp.auth_error_messages.length > 0) {
+      sections.push(`\n🚨 **Error Intelligence:**`);
+      sections.push(`   • Common Issues: Authentication setup required`);
+      sections.push(`   • Quick Fix: Configure environment variables`);
+    } else if (mcp.failing_tools_count > 0) {
+      sections.push(`\n🚨 **Error Intelligence:**`);
+      sections.push(`   • Tools Failing: ${mcp.failing_tools_count}`);
+      sections.push(`   • Troubleshooting: Check tool parameters and auth`);
+    }
+
+    // 8. 💻 Installation Intelligence
+    sections.push(`\n💻 **Installation:**`);
+    sections.push(`   • Command: ${mcp.endpoint || `npx ${mcp.slug}`}`);
+    if (mcp.package_manager) sections.push(`   • Manager: ${mcp.package_manager}`);
+    
+    // 9. 📊 Quality Assessment
+    if (mcp.documentation_quality_score || mcp.user_experience_rating) {
+      sections.push(`\n📊 **Quality Assessment:**`);
+      if (mcp.documentation_quality_score) sections.push(`   • Documentation: ${mcp.documentation_quality_score}`);
+      if (mcp.user_experience_rating) sections.push(`   • User Experience: ${mcp.user_experience_rating}`);
+    }
+
+    // 10. 🏷️ Classification
+    sections.push(`\n🏷️  **Classification:**`);
+    sections.push(`   • Category: ${mcp.category}`);
+    if (mcp.tags && mcp.tags.length > 0) {
+      sections.push(`   • Tags: ${mcp.tags.slice(0, 5).join(', ')}`);
+    }
+
+    // 11. 📝 Review ID for feedback
+    sections.push(`\n📝 **Review ID:** ${mcp.id}`);
+
+    // 12. 🔗 Resources (if available)
+    const resources = [];
+    if (mcp.github_url) resources.push(`📦 [Code](${mcp.github_url})`);
+    if (mcp.documentation_url) resources.push(`📚 [Docs](${mcp.documentation_url})`);
+    if (mcp.website_url) resources.push(`🌐 [Website](${mcp.website_url})`);
+    if (resources.length > 0) {
+      sections.push(`\n🔗 **Resources:** ${resources.join(' | ')}`);
+    }
+
+    return sections.join('\n');
+  }
+
   async handleToolCall({ name, arguments: args }) {
     const baseUrl = process.env.E14Z_API_URL || 'https://www.e14z.com';
     
@@ -182,54 +311,11 @@ const mcpServer = {
           return {
             content: [{
               type: "text",
-              text: `Found ${discoverData.results?.length || 0} MCP servers:\n\n` +
+              text: `Found ${discoverData.results?.length || 0} MCP servers with comprehensive intelligence:\n\n` +
                     (discoverData.results || []).map(mcp => {
-                      // Installation methods
-                      const primaryInstall = mcp.installation?.primary_method?.command || mcp.endpoint;
-                      const altMethods = mcp.installation?.alternative_methods?.length > 0 ? 
-                        `\n   📋 Alternatives: ${mcp.installation.alternative_methods.map(m => m.command).join(', ')}` : '';
-                      
-                      // Tools information with parameters
-                      const toolsList = mcp.tools?.list?.length > 0 ? 
-                        `\n   🔧 Tools (${mcp.tools.count}): ${mcp.tools.list.slice(0,3).map(t => {
-                          const hasParams = t.parameters && (Array.isArray(t.parameters) ? t.parameters.length > 0 : Object.keys(t.parameters).length > 0);
-                          let paramInfo = '';
-                          if (hasParams) {
-                            if (Array.isArray(t.parameters)) {
-                              paramInfo = `(${t.parameters.length}p)`;
-                            } else {
-                              const paramNames = Object.keys(t.parameters);
-                              paramInfo = `(${paramNames.slice(0,2).join(',')}${paramNames.length > 2 ? '...' : ''})`;
-                            }
-                          }
-                          return `${t.name}${paramInfo}`;
-                        }).join(', ')}${mcp.tools.count > 3 ? '...' : ''}` : 
-                        `\n   🔧 Tools: ${mcp.tools?.count || 0} available`;
-                      
-                      // Auth info if needed
-                      const authInfo = mcp.installation?.auth_method && mcp.installation.auth_method !== 'none' ? 
-                        `\n   🔐 Auth: ${mcp.installation.auth_method} required` : '';
-                      
-                      // Quality indicators
-                      const qualityStatus = mcp.verified ? '✅ Verified' : '🔄 Community';
-                      const healthStatus = mcp.quality?.health_status ? ` | 🔋 ${mcp.quality.health_status}` : '';
-                      
-                      // Resources
-                      const resources = [];
-                      if (mcp.resources?.github_url) resources.push(`📦 Code: ${mcp.resources.github_url}`);
-                      if (mcp.resources?.documentation_url) resources.push(`📚 Docs: ${mcp.resources.documentation_url}`);
-                      const resourceLinks = resources.length > 0 ? `\n   ${resources.join(' | ')}` : '';
-                      
-                      // Use cases
-                      const useCases = mcp.use_cases?.length > 0 ? 
-                        `\n   💡 Use cases: ${mcp.use_cases.slice(0,2).join(', ')}${mcp.use_cases.length > 2 ? '...' : ''}` : '';
-                      
-                      return `\n🔧 **${mcp.name}** (${mcp.slug})\n` +
-                      `   ${mcp.description}\n` +
-                      `   Status: ${qualityStatus}${healthStatus} | Category: ${mcp.category}\n` +
-                      `   💻 Install: ${primaryInstall}${altMethods}${toolsList}${authInfo}${resourceLinks}${useCases}\n` +
-                      `   📝 Review ID: ${mcp.id}\n`;
-                    }).join('') + 
+                      // Enhanced MCP display with 12 categories of data
+                      return this.formatComprehensiveMCPData(mcp);
+                    }).join('\n' + '='.repeat(80) + '\n') + 
                     '\n\n🌟 **ENHANCED AGENT REVIEW SYSTEM**\n' +
                     'Submit structured performance data to improve discovery for other agents:\n\n' +
                     '```json\n' +
@@ -379,9 +465,9 @@ const mcpServer = {
           };
           
         case 'run':
-          // Import ExecutionEngine for running MCPs
-          const { ExecutionEngine } = require('../lib/execution/engine');
-          const executionEngine = new ExecutionEngine();
+          // Import EnhancedExecutionEngine with auto-install for running MCPs
+          const { EnhancedExecutionEngine } = require('../lib/execution/enhanced-engine');
+          const executionEngine = new EnhancedExecutionEngine({ enableAutoInstall: true });
           
           const runResult = await executionEngine.executeMCP(args.slug, {
             skipAuthCheck: args.skip_auth_check || false,

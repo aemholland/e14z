@@ -68,3 +68,60 @@ logs/
 *.tmp
 *.temp
 /tmp/
+
+# MCP Crawler - KEEP PRIVATE/LOCAL ONLY
+mcp-crawler-server.js
+mcp-crawler-server.ts
+run-crawler-mcp.js
+test-mcp-connection.js
+test-dry-run.js
+
+# Test files that might contain sensitive data
+test-*.js
+test-*.ts
+
+# Temporary MCP server files
+/mcp-servers/
+/.mcp-cache/
+
+# Local crawler data
+/crawler-data/
+/crawler-logs/
+/crawler-results/
+
+# Claude Desktop config (contains your private MCP configs)
+claude_desktop_config.json
+claude_desktop_config_example.json
+
+# Project documentation (except allowed files)
+*.md
+!README.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+!LICENSE
+
+# Development and test scripts
+*-test.js
+*-test-*.js
+debug-*.js
+analyze-*.js
+crawl-*.js
+run-*.js
+verify-*.js
+go-live-*.js
+store-*.js
+direct-*.js
+clean-*.js
+comprehensive-*.js
+realistic-*.js
+e14z-mcp-*.js
+mcp-crawler-*.js
+mcp-systems-*.js
+production-crawler-*.js
+
+# Data files
+*-data.json
+*.db
+
+# Private MCP server files
+*-private.js

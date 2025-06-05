@@ -156,6 +156,20 @@ export function validateAndNormalizeCategory(input: string | null | undefined): 
 }
 
 /**
+ * Get the formatted display name for a category
+ */
+export function formatCategoryName(category: ValidCategory): string {
+  const formatted = category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  
+  // Handle special cases for proper capitalization
+  return formatted
+    .replace(/\bAi\b/g, 'AI')   // "Ai Tools" → "AI Tools"
+    .replace(/\bIot\b/g, 'IoT') // "Iot" → "IoT"
+    .replace(/\bApis\b/g, 'APIs') // "Web Apis" → "Web APIs"
+    .replace(/\bApi\b/g, 'API'); // "Api" → "API"
+}
+
+/**
  * Get category display information
  */
 export function getCategoryInfo(category: ValidCategory) {
@@ -184,7 +198,7 @@ export function getCategoryInfo(category: ValidCategory) {
   
   return {
     id: category,
-    name: category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    name: formatCategoryName(category),
     description: descriptions[category]
   };
 }

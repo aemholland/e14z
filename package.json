@@ -4,7 +4,8 @@
   "description": "Comprehensive Model Context Protocol (MCP) server registry and discovery platform that enables AI agents to find, evaluate, and integrate with MCP tools seamlessly.",
   "main": "bin/cli.js",
   "bin": {
-    "e14z": "bin/cli.js"
+    "e14z": "bin/cli.js",
+    "e14z-crawler": "bin/crawler.js"
   },
   "scripts": {
     "dev": "next dev",
@@ -41,7 +42,12 @@
     "vercel:env:setup": "cp .env.production.vercel .env.local && echo 'Please update .env.local with your actual values'",
     "vercel:health": "curl -s https://e14z.com/api/health/vercel | jq",
     "vercel:logs": "vercel logs",
-    "postbuild": "echo 'Build completed successfully for Vercel deployment'"
+    "postbuild": "echo 'Build completed successfully for Vercel deployment'",
+    "crawler": "node bin/crawler.js",
+    "crawler:npm": "node bin/crawler.js crawl --source npm",
+    "crawler:dry-run": "node bin/crawler.js crawl --dry-run",
+    "crawler:test": "node bin/crawler.js test",
+    "crawler:update": "node bin/crawler.js update"
   },
   "keywords": [
     "mcp",
@@ -81,13 +87,21 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.45.0",
+    "@opentelemetry/resources": "^2.0.1",
+    "@opentelemetry/sdk-node": "^0.45.0",
+    "@opentelemetry/semantic-conventions": "^2.0.1",
     "@types/pino": "^7.0.4",
     "@upstash/ratelimit": "^2.0.5",
     "@vercel/kv": "^3.0.0",
+    "bottleneck": "^2.19.5",
     "chalk": "^4.1.2",
+    "cheerio": "^1.0.0",
     "commander": "^12.0.0",
     "dotenv": "^16.5.0",
     "inquirer": "^8.2.6",
+    "ioredis": "^5.3.2",
     "js-yaml": "^4.1.0",
     "next-logger": "^5.0.1",
     "node-fetch": "^3.3.2",
@@ -95,17 +109,17 @@
     "ora": "^5.4.1",
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
+    "playwright": "^1.52.0",
     "semver": "^7.6.3",
     "swagger-ui-react": "^5.22.0",
     "tar": "^7.4.3",
+    "turndown": "^7.2.0",
     "which": "^4.0.0"
   },
   "devDependencies": {
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.0.1",
-    "@opentelemetry/api": "^1.9.0",
-    "@opentelemetry/resources": "^2.0.1",
     "@playwright/test": "^1.49.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-avatar": "^1.1.10",
