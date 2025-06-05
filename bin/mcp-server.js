@@ -513,7 +513,7 @@ const mcpServer = {
           break;
           
         case 'details':
-          const detailsResponse = await fetch(`${baseUrl}/api/mcp/${args.slug}`, { 
+          const detailsResponse = await fetch(`${baseUrl}/api/mcp/${encodeURIComponent(args.slug)}`, { 
             timeout: 10000,
             redirect: 'follow'
           });
