@@ -1227,7 +1227,7 @@ async function main() {
   // Check if running as MCP server (stdin mode - piped input and no arguments)
   if ((process.stdin.isTTY === false || process.stdin.isTTY === undefined) && process.argv.length <= 2) {
     // Running as MCP server - delegate to MCP server implementation
-    const { MCPServer } = require('./mcp-server.js');
+    const { MCPServer } = require('./e14z.js');
     const server = new MCPServer();
     server.start().catch(error => {
       console.error('Failed to start E14Z MCP Server:', error);
