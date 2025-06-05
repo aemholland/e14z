@@ -21,39 +21,97 @@ export interface Tool {
 }
 
 export interface MCP {
+  // Core Identity
   id: string
   slug: string
   name: string
   description?: string
   endpoint: string
-  install_type?: 'npm' | 'pipx' | 'cargo' | 'go' | 'e14z'
-  installation_methods?: InstallationMethod[]
-  tools?: Tool[]
-  connection_type: 'stdio' | 'http' | 'websocket'
-  auth_method?: string
-  protocol_version: string
-  rating?: number
-  tool_endpoints: string[]
   category: string
-  tags: string[] // Keep in type but hide from UI
-  use_cases: string[]
+  
+  // Enhanced Installation Data
+  install_type?: 'npm' | 'pipx' | 'cargo' | 'go' | 'e14z'
+  auto_install_command?: string
+  installation_methods?: InstallationMethod[]
+  
+  // Real MCP Protocol Data (from actual connection)
+  tools?: Tool[]
+  available_resources?: any[]
+  prompt_templates?: any[]
+  mcp_protocol_data?: {
+    version?: string
+    connection_working?: boolean
+    tools_count?: number
+    resources_count?: number
+    prompts_count?: number
+    total_functionality?: number
+    functionality_breakdown?: any
+    server_info?: any
+    capabilities?: any
+    stderr_output?: string
+    raw_error_data?: string
+    additional_data?: any
+  }
+  
+  // Connection & Protocol
+  connection_type: 'stdio' | 'http' | 'websocket'
+  protocol_version: string
+  
+  // Enhanced Authentication (from real MCP connection)
+  auth_required?: boolean
+  auth_method?: string
+  required_env_vars?: string[]
+  setup_complexity?: string
+  
+  // AI-Generated Intelligence Scores
+  overall_intelligence_score?: number
+  reliability_score?: number
+  
+  // Enhanced Search & Discovery
+  tags: string[] // Enhanced with 20+ searchable terms
+  use_cases: string[] // Minimum 3-5 specific use cases
+  
+  // Verification & Quality
   verified: boolean
   verified_at?: string
   verification_notes?: string
+  quality_score?: number
+  quality_breakdown?: {
+    documentation_quality?: string
+    setup_complexity?: string
+    maintenance_level?: string
+    business_value?: string
+  }
+  
+  // URLs & Documentation
   github_url?: string
   documentation_url?: string
   website_url?: string
+  
+  // Business Information
   pricing_model: 'free' | 'usage' | 'subscription' | 'custom'
   pricing_details: Record<string, any>
   author?: string
   company?: string
   license?: string
+  
+  // Discovery Metadata
   auto_discovered: boolean
   discovery_source?: string
-  quality_score?: number
-  last_scraped_at?: string
-  health_status: 'healthy' | 'degraded' | 'down' | 'unknown'
+  discovery_confidence?: string
+  intelligence_collection_date?: string
+  
+  // Health & Performance
+  health_status: 'healthy' | 'degraded' | 'down' | 'unknown' | 'pending'
   last_health_check?: string
+  connection_stability?: string
+  
+  // Legacy/Deprecated Fields
+  rating?: number
+  tool_endpoints?: string[]
+  last_scraped_at?: string
+  
+  // System Fields
   created_at: string
   updated_at: string
   search_vector?: string

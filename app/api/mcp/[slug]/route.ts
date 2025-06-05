@@ -7,14 +7,18 @@ async function getMCPHandler(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = await params
+    const { slug: rawSlug } = await params
 
-    if (!slug) {
+    if (!rawSlug) {
       return NextResponse.json(
         { error: 'Slug parameter is required' },
         { status: 400 }
       )
     }
+
+    // Decode URL-encoded slug to handle @ and / characters
+    const slug = decodeURIComponent(rawSlug)
+    console.log('Looking up MCP with slug:', slug)
 
     const mcp = await getMCPBySlug(slug)
 

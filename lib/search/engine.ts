@@ -43,11 +43,11 @@ export async function searchMCPs(options: SearchOptions): Promise<{
 
     // Auth-aware filters for autonomous agents
     if (filters.noAuth) {
-      dbQuery = dbQuery.eq('auth_method', 'none')
+      dbQuery = dbQuery.eq('auth_required', false)
     }
     
     if (filters.authRequired) {
-      dbQuery = dbQuery.neq('auth_method', 'none')
+      dbQuery = dbQuery.eq('auth_required', true)
     }
     
     if (filters.executable) {
@@ -148,19 +148,46 @@ function calculateRelevanceScore(mcp: MCP, query: string): number {
 function calculateQualityScore(mcp: MCP): number {
   let score = 0
 
+  // Use enhanced AI-generated intelligence scores if available
+  if (mcp.overall_intelligence_score !== undefined && mcp.overall_intelligence_score !== null) {
+    score += mcp.overall_intelligence_score * 50 // 0.0-1.0 -> 0-50 points
+  }
+  
+  if (mcp.reliability_score !== undefined && mcp.reliability_score !== null) {
+    score += mcp.reliability_score * 30 // 0.0-1.0 -> 0-30 points
+  }
+
   // Verification bonus
-  if (mcp.verified) score += 30
+  if (mcp.verified) score += 20
+
+  // Real MCP connection data
+  if (mcp.mcp_protocol_data?.connection_working) score += 15
+  
+  // Tool count quality (from real MCP connection)
+  const toolCount = mcp.tools?.length || 0
+  if (toolCount > 20) score += 10
+  else if (toolCount > 10) score += 7
+  else if (toolCount > 5) score += 5
+  else if (toolCount > 0) score += 3
 
   // Documentation bonus
-  if (mcp.github_url) score += 20
-  if (mcp.documentation_url) score += 15
-  if (mcp.website_url) score += 10
+  if (mcp.github_url) score += 10
+  if (mcp.documentation_url) score += 8
+  if (mcp.website_url) score += 5
 
-  // Description quality
-  if (mcp.description && mcp.description.length > 50) score += 15
+  // Enhanced description quality (OpenAI-generated)
+  if (mcp.description && mcp.description.length >= 150) score += 8
 
-  // Tags indicate good categorization
-  if (mcp.tags.length >= 3) score += 10
+  // Enhanced tags (minimum 20 from our crawler)
+  const tagCount = mcp.tags?.length || 0
+  if (tagCount >= 20) score += 8
+  else if (tagCount >= 10) score += 5
+  else if (tagCount >= 3) score += 3
+
+  // Real auth detection confidence
+  if (mcp.auth_required === false && mcp.mcp_protocol_data?.connection_working) {
+    score += 5 // No auth needed and working = easier to use
+  }
 
   return Math.min(score, 100)
 }
