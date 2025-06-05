@@ -431,8 +431,8 @@ const mcpServer = {
               type: "text",
               text: `Found ${discoverData.results?.length || 0} MCP servers:\n\n` +
                     (discoverData.results || []).map(mcp => {
-                      // Installation methods
-                      const primaryInstall = mcp.installation?.primary_method?.command || mcp.endpoint;
+                      // Installation methods - Use e14z run format
+                      const primaryInstall = `e14z run ${mcp.slug}`;
                       const altMethods = mcp.installation?.alternative_methods?.length > 0 ? 
                         `\n   📋 Alternatives: ${mcp.installation.alternative_methods.map(m => m.command).join(', ')}` : '';
                       
@@ -459,7 +459,8 @@ const mcpServer = {
                       
                       // Quality indicators
                       const qualityStatus = mcp.verified ? '✅ Verified' : '🔄 Community';
-                      const healthStatus = mcp.quality?.health_status ? ` | 🔋 ${mcp.quality.health_status}` : '';
+                      const healthStatus = mcp.health_status ? ` | 🔋 ${mcp.health_status}` : '';
+                      const ratingStatus = mcp.average_rating ? ` | ⭐ ${mcp.average_rating}/10` : '';
                       
                       // Resources
                       const resources = [];
@@ -467,14 +468,25 @@ const mcpServer = {
                       if (mcp.resources?.documentation_url) resources.push(`📚 Docs: ${mcp.resources.documentation_url}`);
                       const resourceLinks = resources.length > 0 ? `\n   ${resources.join(' | ')}` : '';
                       
-                      // Use cases
+                      // Use cases and AI insights
                       const useCases = mcp.use_cases?.length > 0 ? 
                         `\n   💡 Use cases: ${mcp.use_cases.slice(0,2).join(', ')}${mcp.use_cases.length > 2 ? '...' : ''}` : '';
                       
+                      // AI Analysis insights
+                      const aiInsights = mcp.ai_analysis?.summary ? 
+                        `\n   🤖 AI Analysis: ${mcp.ai_analysis.summary.slice(0, 100)}${mcp.ai_analysis.summary.length > 100 ? '...' : ''}` : '';
+                      
+                      // Package manager and technical details
+                      const techDetails = [];
+                      if (mcp.package_manager) techDetails.push(`📦 ${mcp.package_manager}`);
+                      if (mcp.language) techDetails.push(`🔤 ${mcp.language}`);
+                      if (mcp.tags?.length > 0) techDetails.push(`🏷️ ${mcp.tags.slice(0,3).join(', ')}`);
+                      const techInfo = techDetails.length > 0 ? `\n   ${techDetails.join(' | ')}` : '';
+                      
                       return `\n🔧 **${mcp.name}** (${mcp.slug})\n` +
                       `   ${mcp.description}\n` +
-                      `   Status: ${qualityStatus}${healthStatus} | Category: ${mcp.category}\n` +
-                      `   💻 Install: ${primaryInstall}${altMethods}${toolsList}${authInfo}${resourceLinks}${useCases}\n` +
+                      `   Status: ${qualityStatus}${healthStatus}${ratingStatus} | Category: ${mcp.category}\n` +
+                      `   💻 Install: ${primaryInstall}${altMethods}${toolsList}${authInfo}${techInfo}${resourceLinks}${useCases}${aiInsights}\n` +
                       `   📝 Review ID: ${mcp.id}\n`;
                     }).join('') + 
                     '\n\n🌟 **ENHANCED AGENT REVIEW SYSTEM**\n' +
@@ -536,15 +548,24 @@ const mcpServer = {
             result = {
             content: [{
               type: "text", 
-              text: `# ${mcp.name}\n\n` +
+              text: `# ${mcp.name} (${mcp.slug})\n\n` +
                     `**Description:** ${mcp.description}\n\n` +
-                    `**Installation:** \`${mcp.endpoint}\`\n\n` +
-                    `**Category:** ${mcp.category}\n` +
+                    `**Installation:** \`e14z run ${mcp.slug}\`\n\n` +
+                    `## Status & Quality\n` +
                     `**Status:** ${mcp.verified ? '✅ Verified' : '🔄 Community'}\n` +
-                    `**Health:** ${mcp.health_status}\n\n` +
-                    `**Available Tools (${mcp.tools?.length || 0}):**\n` +
-                    (mcp.tools || []).map(tool => {
-                      let toolInfo = `- **${tool.name}**: ${tool.description || 'No description'}`;
+                    `**Health:** ${mcp.health_status || 'Unknown'}\n` +
+                    `**Rating:** ${mcp.average_rating ? `${mcp.average_rating}/10` : 'Not rated'} (${mcp.review_count || 0} reviews)\n` +
+                    `**Category:** ${mcp.category}\n` +
+                    `**Package Manager:** ${mcp.package_manager || 'Unknown'}\n` +
+                    `**Language:** ${mcp.language || 'Unknown'}\n` +
+                    (mcp.tags?.length > 0 ? `**Tags:** ${mcp.tags.join(', ')}\n` : '') +
+                    (mcp.auth_required !== undefined ? `**Auth Required:** ${mcp.auth_required ? 'Yes' : 'No'}\n` : '') +
+                    `\n## Technical Details\n` +
+                    `**Available Tools (${mcp.available_tools?.length || mcp.tools?.length || 0}):**\n` +
+                    ((mcp.available_tools || mcp.tools) || []).map(tool => {
+                      const toolName = tool.name || tool;
+                      const toolDesc = tool.description || 'No description available';
+                      let toolInfo = `- **${toolName}**: ${toolDesc}`;
                       
                       if (tool.parameters) {
                         if (Array.isArray(tool.parameters)) {
@@ -569,10 +590,29 @@ const mcpServer = {
                       }
                       return toolInfo;
                     }).join('\n\n') + '\n\n' +
-                    `**Use Cases:**\n` +
-                    (mcp.use_cases || []).map(useCase => `- ${useCase}`).join('\n') + '\n\n' +
+                    `## Use Cases\n` +
+                    (mcp.use_cases?.length > 0 ? 
+                      mcp.use_cases.map(useCase => `- ${useCase}`).join('\n') + '\n\n' : 
+                      'No specific use cases documented\n\n') +
+                    (mcp.ai_analysis?.summary ? 
+                      `## AI Analysis\n${mcp.ai_analysis.summary}\n\n` : '') +
+                    (mcp.ai_analysis?.use_cases?.length > 0 ?
+                      `**AI-Suggested Use Cases:**\n${mcp.ai_analysis.use_cases.map(uc => `- ${uc}`).join('\n')}\n\n` : '') +
+                    `## Installation Options\n` +
+                    `**Primary:** \`e14z run ${mcp.slug}\` (recommended)\n` +
+                    (mcp.installation?.alternative_methods?.length > 0 ?
+                      `**Alternatives:**\n${mcp.installation.alternative_methods.map(m => `- \`${m.command}\``).join('\n')}\n` : '') +
+                    (mcp.installation?.auth_method && mcp.installation.auth_method !== 'none' ?
+                      `**Auth Setup:** ${mcp.installation.auth_method}\n` : '') +
+                    '\n## Resources\n' +
+                    (mcp.repository_url ? `**Repository:** ${mcp.repository_url}\n` : '') +
+                    (mcp.package_url && mcp.package_url !== mcp.repository_url ? `**Package:** ${mcp.package_url}\n` : '') +
                     (mcp.documentation_url ? `**Documentation:** ${mcp.documentation_url}\n` : '') +
-                    (mcp.github_url ? `**GitHub:** ${mcp.github_url}\n` : '')
+                    (mcp.last_crawled ? `**Last Updated:** ${new Date(mcp.last_crawled).toLocaleDateString()}\n` : '') +
+                    `\n## Quality Metrics\n` +
+                    `**Review ID:** ${mcp.id} (use for submitting reviews)\n` +
+                    (mcp.quality_score ? `**Quality Score:** ${mcp.quality_score}/100\n` : '') +
+                    (mcp.performance_metrics ? `**Performance:** ${JSON.stringify(mcp.performance_metrics)}\n` : '')
             }]
             };
           }
