@@ -308,45 +308,128 @@ const mcpServer = {
             throw new Error(discoverData.error);
           }
           
+          // Return structured JSON data for agents, not formatted text
           return {
             content: [{
-              type: "text",
-              text: `Found ${discoverData.results?.length || 0} MCP servers with comprehensive intelligence:\n\n` +
-                    (discoverData.results || []).map(mcp => {
-                      // Enhanced MCP display with 12 categories of data
-                      return this.formatComprehensiveMCPData(mcp);
-                    }).join('\n' + '='.repeat(80) + '\n') + 
-                    '\n\n🌟 **ENHANCED AGENT REVIEW SYSTEM**\n' +
-                    'Submit structured performance data to improve discovery for other agents:\n\n' +
-                    '```json\n' +
-                    '{\n' +
-                    '  "name": "review",\n' +
-                    '  "arguments": {\n' +
-                    '    "mcp_id": "[Review ID from results above]",\n' +
-                    '    "rating": 8,\n' +
-                    '    "success": true,\n' +
-                    '    "tasks_completed": 5,\n' +
-                    '    "tasks_failed": 1,\n' +
-                    '    "error_count": 1,\n' +
-                    '    "rating_breakdown": {\n' +
-                    '      "setup_difficulty": 3,\n' +
-                    '      "documentation_quality": 2,\n' +
-                    '      "reliability": 3,\n' +
-                    '      "performance": 3\n' +
-                    '    },\n' +
-                    '    "use_case_category": "payments",\n' +
-                    '    "discovery_effectiveness": "perfect_match",\n' +
-                    '    "failure_categories": ["timeout"],\n' +
-                    '    "use_case": "Processing customer payments",\n' +
-                    '    "review_text": "Works well, minor timeout issue"\n' +
-                    '  }\n' +
-                    '}\n' +
-                    '```\n\n' +
-                    '📋 **Rating Scale**: setup/docs/reliability/performance: 1=poor, 2=adequate, 3=excellent\n' +
-                    '📂 **Categories**: payments, databases, content-creation, ai-tools, development-tools, etc.\n' +
-                    '🎯 **Discovery**: perfect_match, close_match, poor_match, wrong_result\n' +
-                    '💡 **Installation Issues?** Run `npx e14z --test` for diagnostics\n' +
-                    '📊 **Structured reviews create precise benchmarks for autonomous agent decision-making**'
+              type: "text", 
+              text: JSON.stringify({
+                summary: {
+                  found: discoverData.results?.length || 0,
+                  query: args.query || "",
+                  filters_applied: {
+                    verified: args.verified || false,
+                    no_auth: args.no_auth || false,
+                    auth_required: args.auth_required || false,
+                    executable: args.executable || false
+                  }
+                },
+                mcps: (discoverData.results || []).map(result => ({
+                  // Core Identity
+                  id: result.id,
+                  slug: result.slug,
+                  name: result.name,
+                  description: result.description,
+                  category: result.category,
+                  tags: result.tags,
+                  verified: result.verified,
+                  
+                  // Installation & Execution
+                  installation: {
+                    endpoint: result.endpoint,
+                    package_manager: result.package_manager,
+                    auto_install_command: result.auto_install_command,
+                    setup_complexity: result.setup_complexity
+                  },
+                  
+                  // Comprehensive Intelligence - Tool Testing Results
+                  tools: {
+                    total_count: (result.working_tools_count || 0) + (result.failing_tools_count || 0),
+                    working_count: result.working_tools_count || 0,
+                    failing_count: result.failing_tools_count || 0,
+                    success_rate: result.tool_success_rate || null,
+                    working_tools: result.working_tools || [],
+                    failing_tools: result.failing_tools || [],
+                    tool_schemas: result.tools || []
+                  },
+                  
+                  // Performance Intelligence - Real Metrics
+                  performance: {
+                    initialization_time_ms: result.initialization_time_ms || null,
+                    avg_response_time_ms: result.average_response_time_ms || null,
+                    min_response_time_ms: result.min_response_time_ms || null,
+                    max_response_time_ms: result.max_response_time_ms || null,
+                    connection_stability: result.connection_stability || "unknown",
+                    reliability_score: result.reliability_score || null,
+                    last_performance_check: result.intelligence_collection_date
+                  },
+                  
+                  // Health & Operational Status
+                  health: {
+                    status: result.health_status || "unknown",
+                    last_health_check: result.last_health_check,
+                    testing_strategy: result.testing_strategy,
+                    operational_score: result.overall_intelligence_score || null
+                  },
+                  
+                  // Authentication Intelligence
+                  authentication: {
+                    required: result.auth_required || false,
+                    methods: result.auth_methods || [],
+                    required_env_vars: result.detected_env_vars || [],
+                    setup_complexity: result.setup_complexity || "unknown",
+                    failure_mode: result.auth_failure_mode || "none",
+                    setup_instructions: result.auth_setup_instructions || [],
+                    error_messages: result.auth_error_messages || []
+                  },
+                  
+                  // Quality Intelligence
+                  quality: {
+                    overall_score: result.overall_intelligence_score || null,
+                    reliability_score: result.reliability_score || null,
+                    documentation_quality: result.documentation_quality_score || "unknown",
+                    user_experience_rating: result.user_experience_rating || "unknown",
+                    integration_complexity: result.integration_complexity || "unknown"
+                  },
+                  
+                  // Business Intelligence
+                  business: {
+                    use_cases: result.use_cases || [],
+                    value_proposition: result.value_proposition || result.description,
+                    pricing_model: result.pricing_model || "free",
+                    maintenance_level: result.maintenance_level || "unknown"
+                  },
+                  
+                  // Error & Troubleshooting Intelligence
+                  troubleshooting: {
+                    common_errors: result.error_patterns || [],
+                    troubleshooting_tips: result.troubleshooting_data || [],
+                    known_issues: result.common_issues || []
+                  },
+                  
+                  // Resource Intelligence
+                  resources: {
+                    available_resources: result.available_resources || [],
+                    prompt_templates: result.prompt_templates || [],
+                    github_url: result.github_url,
+                    documentation_url: result.documentation_url,
+                    website_url: result.website_url
+                  },
+                  
+                  // Ranking Scores (for agent decision-making)
+                  scoring: {
+                    relevance_score: result.relevanceScore || 0,
+                    quality_score: result.qualityScore || 0,
+                    total_score: result.totalScore || 0
+                  }
+                })),
+                
+                // Agent Instructions
+                next_actions: {
+                  run_mcp: "Use the 'run' tool with the slug to execute an MCP",
+                  submit_review: "Use the 'review' tool after testing to improve recommendations",
+                  get_details: "Use 'details' tool for more specific information about an MCP"
+                }
+              }, null, 2)
             }]
           };
           
@@ -366,52 +449,147 @@ const mcpServer = {
             return {
               content: [{
                 type: "text",
-                text: `Error: ${detailsData.error}\n\n💡 Run \`npx e14z --diagnose\` for troubleshooting.`
+                text: JSON.stringify({
+                  error: detailsData.error,
+                  troubleshooting_suggestion: "Run 'npx e14z --diagnose' for troubleshooting",
+                  success: false
+                }, null, 2)
               }]
             };
           }
           
           const mcp = detailsData.mcp;
+          
+          // Return structured JSON data for agents, not formatted text
           return {
             content: [{
               type: "text", 
-              text: `# ${mcp.name}\n\n` +
-                    `**Description:** ${mcp.description}\n\n` +
-                    `**Installation:** \`${mcp.endpoint}\`\n\n` +
-                    `**Category:** ${mcp.category}\n` +
-                    `**Status:** ${mcp.verified ? '✅ Verified' : '🔄 Community'}\n` +
-                    `**Health:** ${mcp.health_status}\n\n` +
-                    `**Available Tools (${mcp.tools?.length || 0}):**\n` +
-                    (mcp.tools || []).map(tool => {
-                      let toolInfo = `- **${tool.name}**: ${tool.description || 'No description'}`;
-                      
-                      if (tool.parameters) {
-                        if (Array.isArray(tool.parameters)) {
-                          // Simple array format (e.g., Stripe)
-                          if (tool.parameters.length > 0) {
-                            toolInfo += `\n  **Parameters**: ${tool.parameters.join(', ')}`;
-                          }
-                        } else if (typeof tool.parameters === 'object') {
-                          // Rich schema format (e.g., Bitcoin, Unity)
-                          const paramNames = Object.keys(tool.parameters);
-                          if (paramNames.length > 0) {
-                            toolInfo += '\n  **Parameters**:';
-                            paramNames.forEach(paramName => {
-                              const param = tool.parameters[paramName];
-                              const required = param.required ? ' (required)' : ' (optional)';
-                              const type = param.type ? ` [${param.type}]` : '';
-                              const desc = param.description ? ` - ${param.description}` : '';
-                              toolInfo += `\n    • ${paramName}${type}${required}${desc}`;
-                            });
-                          }
-                        }
-                      }
-                      return toolInfo;
-                    }).join('\n\n') + '\n\n' +
-                    `**Use Cases:**\n` +
-                    (mcp.use_cases || []).map(useCase => `- ${useCase}`).join('\n') + '\n\n' +
-                    (mcp.documentation_url ? `**Documentation:** ${mcp.documentation_url}\n` : '') +
-                    (mcp.github_url ? `**GitHub:** ${mcp.github_url}\n` : '')
+              text: JSON.stringify({
+                success: true,
+                mcp: {
+                  // Core Identity
+                  id: mcp.id,
+                  slug: mcp.slug,
+                  name: mcp.name,
+                  description: mcp.description,
+                  category: mcp.category,
+                  tags: mcp.tags || [],
+                  verified: mcp.verified || false,
+                  
+                  // Installation & Execution
+                  installation: {
+                    endpoint: mcp.endpoint,
+                    package_manager: mcp.package_manager,
+                    auto_install_command: mcp.auto_install_command,
+                    setup_complexity: mcp.setup_complexity,
+                    clean_command: mcp.clean_command
+                  },
+                  
+                  // Comprehensive Intelligence - Tool Testing Results
+                  tools: {
+                    total_count: (mcp.working_tools_count || 0) + (mcp.failing_tools_count || 0),
+                    working_count: mcp.working_tools_count || 0,
+                    failing_count: mcp.failing_tools_count || 0,
+                    success_rate: mcp.tool_success_rate || null,
+                    working_tools: mcp.working_tools || [],
+                    failing_tools: mcp.failing_tools || [],
+                    tool_schemas: mcp.tools || [],
+                    detailed_tools: (mcp.tools || []).map(tool => ({
+                      name: tool.name,
+                      description: tool.description || 'No description',
+                      parameters: tool.parameters || {},
+                      input_schema: tool.inputSchema || tool.input_schema,
+                      examples: tool.examples || []
+                    }))
+                  },
+                  
+                  // Performance Intelligence - Real Metrics
+                  performance: {
+                    initialization_time_ms: mcp.initialization_time_ms || null,
+                    avg_response_time_ms: mcp.average_response_time_ms || null,
+                    min_response_time_ms: mcp.min_response_time_ms || null,
+                    max_response_time_ms: mcp.max_response_time_ms || null,
+                    connection_stability: mcp.connection_stability || "unknown",
+                    reliability_score: mcp.reliability_score || null,
+                    last_performance_check: mcp.intelligence_collection_date,
+                    protocol_version: mcp.protocol_version
+                  },
+                  
+                  // Health & Operational Status
+                  health: {
+                    status: mcp.health_status || "unknown",
+                    last_health_check: mcp.last_health_check,
+                    testing_strategy: mcp.testing_strategy,
+                    operational_score: mcp.overall_intelligence_score || null,
+                    uptime_percentage: mcp.uptime_percentage || null
+                  },
+                  
+                  // Authentication Intelligence
+                  authentication: {
+                    required: mcp.auth_required || false,
+                    methods: mcp.auth_methods || [],
+                    required_env_vars: mcp.detected_env_vars || [],
+                    setup_complexity: mcp.setup_complexity || "unknown",
+                    failure_mode: mcp.auth_failure_mode || "none",
+                    setup_instructions: mcp.auth_setup_instructions || [],
+                    error_messages: mcp.auth_error_messages || []
+                  },
+                  
+                  // Quality Intelligence
+                  quality: {
+                    overall_score: mcp.overall_intelligence_score || null,
+                    reliability_score: mcp.reliability_score || null,
+                    documentation_quality: mcp.documentation_quality_score || "unknown",
+                    user_experience_rating: mcp.user_experience_rating || "unknown",
+                    integration_complexity: mcp.integration_complexity || "unknown"
+                  },
+                  
+                  // Business Intelligence
+                  business: {
+                    use_cases: mcp.use_cases || [],
+                    value_proposition: mcp.value_proposition || mcp.description,
+                    pricing_model: mcp.pricing_model || "free",
+                    maintenance_level: mcp.maintenance_level || "unknown",
+                    popularity_score: mcp.popularity_score || null
+                  },
+                  
+                  // Error & Troubleshooting Intelligence
+                  troubleshooting: {
+                    common_errors: mcp.error_patterns || [],
+                    troubleshooting_tips: mcp.troubleshooting_data || [],
+                    known_issues: mcp.common_issues || [],
+                    support_availability: mcp.support_availability || "community"
+                  },
+                  
+                  // Resource Intelligence
+                  resources: {
+                    available_resources: mcp.available_resources || [],
+                    prompt_templates: mcp.prompt_templates || [],
+                    github_url: mcp.github_url,
+                    documentation_url: mcp.documentation_url,
+                    website_url: mcp.website_url,
+                    example_configs: mcp.example_configs || []
+                  },
+                  
+                  // Metadata
+                  metadata: {
+                    created_at: mcp.created_at,
+                    updated_at: mcp.updated_at,
+                    last_crawled: mcp.last_crawled,
+                    intelligence_collection_date: mcp.intelligence_collection_date,
+                    crawl_version: mcp.crawl_version || "unknown"
+                  }
+                },
+                
+                // Agent Instructions
+                next_actions: {
+                  run_mcp: `Use the 'run' tool with slug '${mcp.slug}' to execute this MCP`,
+                  submit_review: "Use the 'review' tool after testing to improve recommendations",
+                  check_authentication: mcp.auth_required ? 
+                    "This MCP requires authentication - check the authentication section for setup instructions" :
+                    "This MCP requires no authentication and can be used immediately"
+                }
+              }, null, 2)
             }]
           };
           

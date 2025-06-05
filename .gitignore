@@ -112,6 +112,8 @@ go-live-*.js
 store-*.js
 direct-*.js
 clean-*.js
+# Don't ignore lib/crawler files
+!/lib/crawler/**/*.js
 comprehensive-*.js
 realistic-*.js
 e14z-mcp-*.js

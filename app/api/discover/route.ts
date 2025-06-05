@@ -199,33 +199,112 @@ async function discoverHandler(request: NextRequest) {
           auth_method: result.mcp.auth_method
         },
         
-        // Tools & Capabilities
+        // Auto-install command for EnhancedExecutionEngine
+        auto_install_command: result.mcp.auto_install_command,
+        endpoint: result.mcp.endpoint,
+        
+        // Tools & Capabilities (Enhanced with comprehensive intelligence)
         tools: {
           count: result.mcp.tools?.length || 0,
+          working_count: result.mcp.working_tools_count || 0,
+          failing_count: result.mcp.failing_tools_count || 0,
+          success_rate: result.mcp.tool_success_rate,
           list: result.mcp.tools?.map(tool => ({
             name: tool.name,
             description: tool.description,
             category: tool.category,
-            parameters: tool.parameters || []
-          })) || []
+            parameters: tool.parameters || [],
+            inputSchema: tool.inputSchema,
+            // Enhanced tool data from comprehensive testing
+            response_time: result.mcp.tool_response_times?.[tool.name],
+            working: result.mcp.successful_executions?.some(exec => exec.tool === tool.name),
+            auth_required: tool.auth_required || false,
+            complexity: Object.keys(tool.inputSchema?.properties || {}).length > 5 ? 'complex' : 
+                       Object.keys(tool.inputSchema?.properties || {}).length > 2 ? 'moderate' : 'simple'
+          })) || [],
+          execution_examples: result.mcp.successful_executions?.slice(0, 3) || [],
+          common_failures: result.mcp.failed_executions?.slice(0, 3) || []
         },
         
-        // Quality & Trust Signals
+        // Quality & Trust Signals (Enhanced with comprehensive intelligence)
         quality: {
           verified: result.mcp.verified,
           health_status: result.mcp.health_status,
           last_health_check: result.mcp.last_health_check,
           relevance_score: Math.round(result.relevanceScore),
           quality_score: Math.round(result.qualityScore),
-          total_score: Math.round(result.totalScore)
+          total_score: Math.round(result.totalScore),
+          overall_intelligence_score: result.mcp.overall_intelligence_score,
+          reliability_score: result.mcp.reliability_score,
+          documentation_quality: result.mcp.documentation_quality_score,
+          user_experience_rating: result.mcp.user_experience_rating
         },
         
-        // Performance (placeholder for future pulse data)
+        // Performance Intelligence (Real data from comprehensive testing)
         performance: {
-          avg_response_time_ms: null, // From pulse
-          success_rate: null, // From pulse
-          uptime_percentage: null, // From pulse
-          last_performance_check: null
+          initialization_time_ms: result.mcp.initialization_time_ms,
+          avg_response_time_ms: result.mcp.average_response_time_ms,
+          min_response_time_ms: result.mcp.min_response_time_ms,
+          max_response_time_ms: result.mcp.max_response_time_ms,
+          connection_stability: result.mcp.connection_stability,
+          tool_success_rate: result.mcp.tool_success_rate,
+          working_tools_count: result.mcp.working_tools_count,
+          failing_tools_count: result.mcp.failing_tools_count,
+          last_performance_check: result.mcp.intelligence_collection_date
+        },
+        
+        // Authentication Intelligence
+        authentication: {
+          required: result.mcp.auth_required,
+          methods: result.mcp.auth_methods || [],
+          required_env_vars: result.mcp.detected_env_vars || [],
+          setup_complexity: result.mcp.setup_complexity,
+          failure_mode: result.mcp.auth_failure_mode,
+          setup_instructions: result.mcp.auth_setup_instructions || [],
+          error_messages: result.mcp.auth_error_messages || []
+        },
+        
+        // Tool Intelligence (Enhanced with execution results)
+        toolIntelligence: {
+          total_tools: (result.mcp.working_tools_count || 0) + (result.mcp.failing_tools_count || 0),
+          working_tools: result.mcp.working_tools_count || 0,
+          failing_tools: result.mcp.failing_tools_count || 0,
+          success_rate: result.mcp.tool_success_rate,
+          execution_results: result.mcp.tool_execution_results || [],
+          response_times: result.mcp.tool_response_times || {},
+          complexity_analysis: result.mcp.tool_complexity_analysis || {},
+          parameter_patterns: result.mcp.parameter_patterns || {}
+        },
+        
+        // Testing Intelligence
+        testing: {
+          strategy: result.mcp.testing_strategy,
+          last_tested: result.mcp.intelligence_collection_date,
+          server_version: result.mcp.mcp_server_version,
+          server_vendor: result.mcp.server_vendor,
+          protocol_capabilities: result.mcp.server_capabilities || {}
+        },
+        
+        // Error Intelligence & Troubleshooting
+        errorIntelligence: {
+          patterns: result.mcp.error_patterns || [],
+          troubleshooting: result.mcp.troubleshooting_data || [],
+          common_issues: result.mcp.common_issues || [],
+          recovery_strategies: []
+        },
+        
+        // Usage Examples (Real execution data)
+        usageExamples: {
+          successful_executions: result.mcp.successful_executions || [],
+          failed_executions: result.mcp.failed_executions || [],
+          usage_examples: result.mcp.usage_examples || []
+        },
+        
+        // Business Intelligence
+        businessIntelligence: {
+          integration_complexity: result.mcp.integration_complexity,
+          maintenance_level: result.mcp.maintenance_level,
+          value_proposition: result.mcp.value_proposition
         },
         
         // Reviews & Community (placeholder for future review data)

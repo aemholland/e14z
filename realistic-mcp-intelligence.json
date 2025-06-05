@@ -1,0 +1,296 @@
+{
+  "context7": {
+    "packageName": "@upstash/context7-mcp",
+    "authRequired": false,
+    "testingStrategy": "comprehensive_execution",
+    "protocol": {
+      "version": "2024-11-05",
+      "serverInfo": {
+        "name": "Context7",
+        "description": "Retrieves up-to-date documentation and code examples for any library.",
+        "version": "v1.0.12",
+        "capabilities": {
+          "resources": {},
+          "tools": {}
+        }
+      },
+      "capabilities": {
+        "tools": {
+          "listChanged": true
+        }
+      },
+      "initializationTime": 4857,
+      "connectionStability": "stable"
+    },
+    "tools": {
+      "count": 2,
+      "schemas": [
+        {
+          "name": "resolve-library-id",
+          "description": "Resolves a package/product name to a Context7-compatible library ID and returns a list of matching libraries.\n\nYou MUST call this function before 'get-library-docs' to obtain a valid Context7-compatible library ID UNLESS the user explicitly provides a library ID in the format '/org/project' or '/org/project/version' in their query.\n\nSelection Process:\n1. Analyze the query to understand what library/package the user is looking for\n2. Return the most relevant match based on:\n- Name similarity to the query (exact matches prioritized)\n- Description relevance to the query's intent\n- Documentation coverage (prioritize libraries with higher Code Snippet counts)\n- Trust score (consider libraries with scores of 7-10 more authoritative)\n\nResponse Format:\n- Return the selected library ID in a clearly marked section\n- Provide a brief explanation for why this library was chosen\n- If multiple good matches exist, acknowledge this but proceed with the most relevant one\n- If no good matches exist, clearly state this and suggest query refinements\n\nFor ambiguous queries, request clarification before proceeding with a best-guess match.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "libraryName": {
+                "type": "string",
+                "description": "Library name to search for and retrieve a Context7-compatible library ID."
+              }
+            },
+            "required": [
+              "libraryName"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+          }
+        },
+        {
+          "name": "get-library-docs",
+          "description": "Fetches up-to-date documentation for a library. You must call 'resolve-library-id' first to obtain the exact Context7-compatible library ID required to use this tool, UNLESS the user explicitly provides a library ID in the format '/org/project' or '/org/project/version' in their query.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "context7CompatibleLibraryID": {
+                "type": "string",
+                "description": "Exact Context7-compatible library ID (e.g., '/mongodb/docs', '/vercel/next.js', '/supabase/supabase', '/vercel/next.js/v14.3.0-canary.87') retrieved from 'resolve-library-id' or directly from user query in the format '/org/project' or '/org/project/version'."
+              },
+              "topic": {
+                "type": "string",
+                "description": "Topic to focus documentation on (e.g., 'hooks', 'routing')."
+              },
+              "tokens": {
+                "type": "number",
+                "description": "Maximum number of tokens of documentation to retrieve (default: 10000). Higher values provide more context but consume more tokens."
+              }
+            },
+            "required": [
+              "context7CompatibleLibraryID"
+            ],
+            "additionalProperties": false,
+            "$schema": "http://json-schema.org/draft-07/schema#"
+          }
+        }
+      ],
+      "executionResults": [
+        {
+          "success": true,
+          "tool": "resolve-library-id",
+          "responseTime": 5328,
+          "output": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Available Libraries (top matches):\n\nEach result includes:\n- Library ID: Context7-compatible identifier (format: /org/project)\n- Name: Library or package name\n- Description: Short summary\n- Code Snippets: Number of available code examples\n- Trust Score: Authority indicator\n- Versions: List of versions if available. Use one of those versions if and only if the user explicitly provides a version in their query.\n\nFor best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.\n\n----------\n\n- Title: React-XR\n- Context7-compatible library ID: /pmndrs/xr\n- Description: 🤳 VR/AR for react-three-fiber\n- Code Snippets: 68\n- Trust Score: 9.6\n----------\n- Title: React95\n- Context7-compatible library ID: /react95/react95\n- Description: A React components library with Win95 UI\n- Code Snippets: 18\n- Trust Score: 7.8\n----------\n- Title: React\n- Context7-compatible library ID: /reactjs/react.dev\n- Description: The React documentation website\n- Code Snippets: 2841\n- Trust Score: 9\n----------\n- Title: React Flow\n- Context7-compatible library ID: /xyflow/xyflow\n- Description: React Flow | Svelte Flow - Powerful open source libraries for building node-based UIs with React (https://reactflow.dev) or Svelte (https://svelteflow.dev). Ready out-of-the-box and infinitely customizable.\n- Code Snippets: 21\n- Trust Score: 9.5\n----------\n- Title: Reactor\n- Context7-compatible library ID: /ash-project/reactor\n- Description: Reactor is a dynamic, concurrent, dependency resolving saga orchestrator.\n- Code Snippets: 58\n- Trust Score: 8.4\n----------\n- Title: React RND\n- Context7-compatible library ID: /bokuweb/react-rnd\n- Description: 🖱  A resizable and draggable component for React.\n- Code Snippets: 16\n- Trust Score: 10\n- Versions: v10.4.13\n----------\n- Title: ReactGrid\n- Context7-compatible library ID: /silevis/reactgrid\n- Description: Add spreadsheet-like behavior to your React app\n- Code Snippets: 5\n- Trust Score: 6.8\n----------\n- Title: React Lua\n- Context7-compatible library ID: /jsdotlua/react-lua\n- Description: A comprehensive, but not exhaustive, translation of upstream ReactJS 17.x into Lua.\n- Code Snippets: 106\n- Trust Score: 6.6\n----------\n- Title: React PDF\n- Context7-compatible library ID: /diegomura/react-pdf\n- Description: 📄  Create PDF files using React\n- Code Snippets: 31\n- Trust Score: 9.3\n----------\n- Title: Reactive\n- Context7-compatible library ID: /kutlugsahin/reactive\n- Description: Supercharge react.js with reactivity\n- Code Snippets: 3\n- Trust Score: 9.4\n----------\n- Title: React CSV\n- Context7-compatible library ID: /react-csv/react-csv\n- Description: React components to build CSV files on the fly basing on Array/literal object of data\n- Code Snippets: 31\n- Trust Score: 4.6\n----------\n- Title: React DnD\n- Context7-compatible library ID: /react-dnd/react-dnd\n- Description: Drag and Drop for React\n- Code Snippets: 71\n- Trust Score: 8.3\n----------\n- Title: React Sigma\n- Context7-compatible library ID: /sim51/react-sigma\n- Description: Sigma React component\n- Code Snippets: 31\n- Trust Score: 9.2\n----------\n- Title: React Use\n- Context7-compatible library ID: /streamich/react-use\n- Description: React Hooks — 👍\n- Code Snippets: 221\n- Trust Score: 9.4\n----------\n- Title: React Color\n- Context7-compatible library ID: /uiwjs/react-color\n- Description: 🎨 Is a tiny color picker widget component for React apps.\n- Code Snippets: 95\n- Trust Score: 9.9\n----------\n- Title: React PDF\n- Context7-compatible library ID: /wojtekmaj/react-pdf\n- Description: Display PDFs in your React app as easily as if they were images.\n- Code Snippets: 91\n- Trust Score: 10\n----------\n- Title: React Email\n- Context7-compatible library ID: /resend/react-email\n- Description: 💌 Build and send emails using React\n- Code Snippets: 214\n- Trust Score: 9.5\n----------\n- Title: React Tweet\n- Context7-compatible library ID: /vercel/react-tweet\n- Description: Embed tweets in your React application.\n- Code Snippets: 46\n- Trust Score: 10\n----------\n- Title: React Scan\n- Context7-compatible library ID: /aidenybai/react-scan\n- Description: Scan for React performance issues and eliminate slow renders in your app\n- Code Snippets: 51\n- Trust Score: 9.2\n----------\n- Title: React Plock\n- Context7-compatible library ID: /askides/react-plock\n- Description: The 1kB Masonry Grid for React.\n- Code Snippets: 6\n- Trust Score: 8.8\n----------\n- Title: React Magma\n- Context7-compatible library ID: /cengage/react-magma\n- Description: \n- Code Snippets: 748\n- Trust Score: 7.1\n----------\n- Title: React Bits\n- Context7-compatible library ID: /davidhdev/react-bits\n- Description: An open source collection of animated, interactive & fully customizable React components for building stunning, memorable user interfaces.\n- Code Snippets: 2\n- Trust Score: 8.8\n----------\n- Title: React Share\n- Context7-compatible library ID: /nygardk/react-share\n- Description: Social media share buttons and share counts for React\n- Code Snippets: 10\n----------\n- Title: React Tree\n- Context7-compatible library ID: /react-component/tree\n- Description: React Tree\n- Code Snippets: 5\n- Trust Score: 9.6\n----------\n- Title: React Hookz Web\n- Context7-compatible library ID: /react-hookz/web\n- Description: React hooks done right, for browser and SSR.\n- Code Snippets: 6\n- Trust Score: 7\n----------\n- Title: Reactleaf Modal\n- Context7-compatible library ID: /reactleaf/modal\n- Description: react modal with context and hooks\n- Code Snippets: 29\n- Trust Score: 3.5\n----------\n- Title: React Redux\n- Context7-compatible library ID: /reduxjs/react-redux\n- Description: Official React bindings for Redux\n- Code Snippets: 585\n- Trust Score: 9.2\n----------\n- Title: React Map GL\n- Context7-compatible library ID: /visgl/react-map-gl\n- Description: React friendly API wrapper around MapboxGL JS\n- Code Snippets: 210\n- Trust Score: 7.7\n----------\n- Title: React Cmdk\n- Context7-compatible library ID: /albingroen/react-cmdk\n- Description: A fast, accessible, and pretty command palette for React\n- Code Snippets: 10\n- Trust Score: 9.5\n----------\n- Title: React DSFR\n- Context7-compatible library ID: /codegouvfr/react-dsfr\n- Description: 🇫🇷 The French Government Design system React toolkit\n- Code Snippets: 19\n- Trust Score: 9.6\n----------\n- Title: React Admin\n- Context7-compatible library ID: /marmelab/react-admin\n- Description: A frontend Framework for single-page applications on top of REST/GraphQL APIs, using TypeScript, React and Material Design\n- Code Snippets: 2320\n- Trust Score: 9.5\n----------\n- Title: React Spring\n- Context7-compatible library ID: /pmndrs/react-spring\n- Description: ✌️ A spring physics based React animation library\n- Code Snippets: 167\n- Trust Score: 9.6\n----------\n- Title: ReactorKit\n- Context7-compatible library ID: /reactorkit/reactorkit\n- Description: A library for reactive and unidirectional Swift applications\n- Code Snippets: 51\n- Trust Score: 7.7\n----------\n- Title: React Slider\n- Context7-compatible library ID: /zillow/react-slider\n- Description: Accessible, CSS agnostic, slider component for React.\n- Code Snippets: 25\n- Trust Score: 9.2\n----------\n- Title: React Window\n- Context7-compatible library ID: /bvaughn/react-window\n- Description: React components for efficiently rendering large lists and tabular data\n- Code Snippets: 6\n- Trust Score: 10\n----------\n- Title: ReactPlayer\n- Context7-compatible library ID: /cookpete/react-player\n- Description: A React component for playing a variety of URLs, including file paths, YouTube, Facebook, Twitch, SoundCloud, Streamable, Vimeo, Wistia and DailyMotion\n- Code Snippets: 17\n- Trust Score: 9.2\n----------\n- Title: React Native\n- Context7-compatible library ID: /discord/react-native\n- Description: A framework for building native apps with React.\n- Code Snippets: 608\n- Trust Score: 9.2\n- Versions: v0.62.3\n----------\n- Title: Reactor Core\n- Context7-compatible library ID: /reactor/reactor-core\n- Description: Non-Blocking Reactive Foundation for the JVM\n- Code Snippets: 33\n- Trust Score: 8.7\n----------\n- Title: ReactPHP Promise\n- Context7-compatible library ID: /reactphp/promise\n- Description: Promises/A implementation for PHP.\n- Code Snippets: 29\n- Trust Score: 9\n----------\n- Title: React Uploady\n- Context7-compatible library ID: /rpldy/react-uploady\n- Description: Modern file uploading - components & hooks for React\n- Code Snippets: 110\n- Trust Score: 5.7\n----------\n- Title: React Remark\n- Context7-compatible library ID: /remarkjs/react-remark\n- Description: React component and hook to use remark to render markdown\n- Code Snippets: 9\n- Trust Score: 8.9\n----------\n- Title: React Spectrum\n- Context7-compatible library ID: /adobe/react-spectrum\n- Description: A collection of libraries and tools that help you build adaptive, accessible, and robust user experiences.\n- Code Snippets: 3658\n- Trust Score: 8.2\n----------\n- Title: React i18next\n- Context7-compatible library ID: /i18next/react-i18next\n- Description: Internationalization for react done right. Using the i18next i18n ecosystem.\n- Code Snippets: 302\n- Trust Score: 8.1\n----------\n- Title: React Select\n- Context7-compatible library ID: /jedwatson/react-select\n- Description: The Select Component for React.js\n- Code Snippets: 18\n- Trust Score: 8.1\n----------\n- Title: React Icons\n- Context7-compatible library ID: /react-icons/react-icons\n- Description: svg react icons of popular icon packs\n- Code Snippets: 19\n- Trust Score: 7.2\n----------\n- Title: React Router\n- Context7-compatible library ID: /remix-run/react-router\n- Description: Declarative routing for React\n- Code Snippets: 830\n- Trust Score: 7.5\n----------\n- Title: React Ace\n- Context7-compatible library ID: /securingsincity/react-ace\n- Description: React Ace Component\n- Code Snippets: 16\n- Trust Score: 9.9\n----------\n- Title: React VNC Lib\n- Context7-compatible library ID: /sepandy/react-vnc-lib\n- Description: \n- Code Snippets: 29\n- Trust Score: 6.3\n----------\n- Title: React Dragula\n- Context7-compatible library ID: /bevacqua/react-dragula\n- Description: :ok_hand: Drag and drop so simple it hurts\n- Code Snippets: 8\n- Trust Score: 9.6\n----------\n- Title: React Color\n- Context7-compatible library ID: /casesandberg/react-color\n- Description: :art: Color Pickers from Sketch, Photoshop, Chrome, Github, Twitter & more\n- Code Snippets: 32\n- Trust Score: 8.6"
+              }
+            ]
+          },
+          "outputSize": 10692,
+          "example": {
+            "input": {
+              "libraryName": "react"
+            },
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Available Libraries (top matches):\n\nEach result includes:\n- Library ID: Context7-compatible identifier (format: /org/project)\n- Name: Library or package name\n- Description: Short summary\n- Code Snippets: Number of available code examples\n- Trust Score: Authority indicator\n- Versions: List of versions if available. Use one of those versions if and only if the user explicitly provides a version in their query.\n\nFor best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.\n\n----------\n\n- Title: React-XR\n- Context7-compatible library ID: /pmndrs/xr\n- Description: 🤳 VR/AR for react-three-fiber\n- Code Snippets: 68\n- Trust Score: 9.6\n----------\n- Title: React95\n- Context7-compatible library ID: /react95/react95\n- Description: A React components library with Win95 UI\n- Code Snippets: 18\n- Trust Score: 7.8\n----------\n- Title: React\n- Context7-compatible library ID: /reactjs/react.dev\n- Description: The React documentation website\n- Code Snippets: 2841\n- Trust Score: 9\n----------\n- Title: React Flow\n- Context7-compatible library ID: /xyflow/xyflow\n- Description: React Flow | Svelte Flow - Powerful open source libraries for building node-based UIs with React (https://reactflow.dev) or Svelte (https://svelteflow.dev). Ready out-of-the-box and infinitely customizable.\n- Code Snippets: 21\n- Trust Score: 9.5\n----------\n- Title: Reactor\n- Context7-compatible library ID: /ash-project/reactor\n- Description: Reactor is a dynamic, concurrent, dependency resolving saga orchestrator.\n- Code Snippets: 58\n- Trust Score: 8.4\n----------\n- Title: React RND\n- Context7-compatible library ID: /bokuweb/react-rnd\n- Description: 🖱  A resizable and draggable component for React.\n- Code Snippets: 16\n- Trust Score: 10\n- Versions: v10.4.13\n----------\n- Title: ReactGrid\n- Context7-compatible library ID: /silevis/reactgrid\n- Description: Add spreadsheet-like behavior to your React app\n- Code Snippets: 5\n- Trust Score: 6.8\n----------\n- Title: React Lua\n- Context7-compatible library ID: /jsdotlua/react-lua\n- Description: A comprehensive, but not exhaustive, translation of upstream ReactJS 17.x into Lua.\n- Code Snippets: 106\n- Trust Score: 6.6\n----------\n- Title: React PDF\n- Context7-compatible library ID: /diegomura/react-pdf\n- Description: 📄  Create PDF files using React\n- Code Snippets: 31\n- Trust Score: 9.3\n----------\n- Title: Reactive\n- Context7-compatible library ID: /kutlugsahin/reactive\n- Description: Supercharge react.js with reactivity\n- Code Snippets: 3\n- Trust Score: 9.4\n----------\n- Title: React CSV\n- Context7-compatible library ID: /react-csv/react-csv\n- Description: React components to build CSV files on the fly basing on Array/literal object of data\n- Code Snippets: 31\n- Trust Score: 4.6\n----------\n- Title: React DnD\n- Context7-compatible library ID: /react-dnd/react-dnd\n- Description: Drag and Drop for React\n- Code Snippets: 71\n- Trust Score: 8.3\n----------\n- Title: React Sigma\n- Context7-compatible library ID: /sim51/react-sigma\n- Description: Sigma React component\n- Code Snippets: 31\n- Trust Score: 9.2\n----------\n- Title: React Use\n- Context7-compatible library ID: /streamich/react-use\n- Description: React Hooks — 👍\n- Code Snippets: 221\n- Trust Score: 9.4\n----------\n- Title: React Color\n- Context7-compatible library ID: /uiwjs/react-color\n- Description: 🎨 Is a tiny color picker widget component for React apps.\n- Code Snippets: 95\n- Trust Score: 9.9\n----------\n- Title: React PDF\n- Context7-compatible library ID: /wojtekmaj/react-pdf\n- Description: Display PDFs in your React app as easily as if they were images.\n- Code Snippets: 91\n- Trust Score: 10\n----------\n- Title: React Email\n- Context7-compatible library ID: /resend/react-email\n- Description: 💌 Build and send emails using React\n- Code Snippets: 214\n- Trust Score: 9.5\n----------\n- Title: React Tweet\n- Context7-compatible library ID: /vercel/react-tweet\n- Description: Embed tweets in your React application.\n- Code Snippets: 46\n- Trust Score: 10\n----------\n- Title: React Scan\n- Context7-compatible library ID: /aidenybai/react-scan\n- Description: Scan for React performance issues and eliminate slow renders in your app\n- Code Snippets: 51\n- Trust Score: 9.2\n----------\n- Title: React Plock\n- Context7-compatible library ID: /askides/react-plock\n- Description: The 1kB Masonry Grid for React.\n- Code Snippets: 6\n- Trust Score: 8.8\n----------\n- Title: React Magma\n- Context7-compatible library ID: /cengage/react-magma\n- Description: \n- Code Snippets: 748\n- Trust Score: 7.1\n----------\n- Title: React Bits\n- Context7-compatible library ID: /davidhdev/react-bits\n- Description: An open source collection of animated, interactive & fully customizable React components for building stunning, memorable user interfaces.\n- Code Snippets: 2\n- Trust Score: 8.8\n----------\n- Title: React Share\n- Context7-compatible library ID: /nygardk/react-share\n- Description: Social media share buttons and share counts for React\n- Code Snippets: 10\n----------\n- Title: React Tree\n- Context7-compatible library ID: /react-component/tree\n- Description: React Tree\n- Code Snippets: 5\n- Trust Score: 9.6\n----------\n- Title: React Hookz Web\n- Context7-compatible library ID: /react-hookz/web\n- Description: React hooks done right, for browser and SSR.\n- Code Snippets: 6\n- Trust Score: 7\n----------\n- Title: Reactleaf Modal\n- Context7-compatible library ID: /reactleaf/modal\n- Description: react modal with context and hooks\n- Code Snippets: 29\n- Trust Score: 3.5\n----------\n- Title: React Redux\n- Context7-compatible library ID: /reduxjs/react-redux\n- Description: Official React bindings for Redux\n- Code Snippets: 585\n- Trust Score: 9.2\n----------\n- Title: React Map GL\n- Context7-compatible library ID: /visgl/react-map-gl\n- Description: React friendly API wrapper around MapboxGL JS\n- Code Snippets: 210\n- Trust Score: 7.7\n----------\n- Title: React Cmdk\n- Context7-compatible library ID: /albingroen/react-cmdk\n- Description: A fast, accessible, and pretty command palette for React\n- Code Snippets: 10\n- Trust Score: 9.5\n----------\n- Title: React DSFR\n- Context7-compatible library ID: /codegouvfr/react-dsfr\n- Description: 🇫🇷 The French Government Design system React toolkit\n- Code Snippets: 19\n- Trust Score: 9.6\n----------\n- Title: React Admin\n- Context7-compatible library ID: /marmelab/react-admin\n- Description: A frontend Framework for single-page applications on top of REST/GraphQL APIs, using TypeScript, React and Material Design\n- Code Snippets: 2320\n- Trust Score: 9.5\n----------\n- Title: React Spring\n- Context7-compatible library ID: /pmndrs/react-spring\n- Description: ✌️ A spring physics based React animation library\n- Code Snippets: 167\n- Trust Score: 9.6\n----------\n- Title: ReactorKit\n- Context7-compatible library ID: /reactorkit/reactorkit\n- Description: A library for reactive and unidirectional Swift applications\n- Code Snippets: 51\n- Trust Score: 7.7\n----------\n- Title: React Slider\n- Context7-compatible library ID: /zillow/react-slider\n- Description: Accessible, CSS agnostic, slider component for React.\n- Code Snippets: 25\n- Trust Score: 9.2\n----------\n- Title: React Window\n- Context7-compatible library ID: /bvaughn/react-window\n- Description: React components for efficiently rendering large lists and tabular data\n- Code Snippets: 6\n- Trust Score: 10\n----------\n- Title: ReactPlayer\n- Context7-compatible library ID: /cookpete/react-player\n- Description: A React component for playing a variety of URLs, including file paths, YouTube, Facebook, Twitch, SoundCloud, Streamable, Vimeo, Wistia and DailyMotion\n- Code Snippets: 17\n- Trust Score: 9.2\n----------\n- Title: React Native\n- Context7-compatible library ID: /discord/react-native\n- Description: A framework for building native apps with React.\n- Code Snippets: 608\n- Trust Score: 9.2\n- Versions: v0.62.3\n----------\n- Title: Reactor Core\n- Context7-compatible library ID: /reactor/reactor-core\n- Description: Non-Blocking Reactive Foundation for the JVM\n- Code Snippets: 33\n- Trust Score: 8.7\n----------\n- Title: ReactPHP Promise\n- Context7-compatible library ID: /reactphp/promise\n- Description: Promises/A implementation for PHP.\n- Code Snippets: 29\n- Trust Score: 9\n----------\n- Title: React Uploady\n- Context7-compatible library ID: /rpldy/react-uploady\n- Description: Modern file uploading - components & hooks for React\n- Code Snippets: 110\n- Trust Score: 5.7\n----------\n- Title: React Remark\n- Context7-compatible library ID: /remarkjs/react-remark\n- Description: React component and hook to use remark to render markdown\n- Code Snippets: 9\n- Trust Score: 8.9\n----------\n- Title: React Spectrum\n- Context7-compatible library ID: /adobe/react-spectrum\n- Description: A collection of libraries and tools that help you build adaptive, accessible, and robust user experiences.\n- Code Snippets: 3658\n- Trust Score: 8.2\n----------\n- Title: React i18next\n- Context7-compatible library ID: /i18next/react-i18next\n- Description: Internationalization for react done right. Using the i18next i18n ecosystem.\n- Code Snippets: 302\n- Trust Score: 8.1\n----------\n- Title: React Select\n- Context7-compatible library ID: /jedwatson/react-select\n- Description: The Select Component for React.js\n- Code Snippets: 18\n- Trust Score: 8.1\n----------\n- Title: React Icons\n- Context7-compatible library ID: /react-icons/react-icons\n- Description: svg react icons of popular icon packs\n- Code Snippets: 19\n- Trust Score: 7.2\n----------\n- Title: React Router\n- Context7-compatible library ID: /remix-run/react-router\n- Description: Declarative routing for React\n- Code Snippets: 830\n- Trust Score: 7.5\n----------\n- Title: React Ace\n- Context7-compatible library ID: /securingsincity/react-ace\n- Description: React Ace Component\n- Code Snippets: 16\n- Trust Score: 9.9\n----------\n- Title: React VNC Lib\n- Context7-compatible library ID: /sepandy/react-vnc-lib\n- Description: \n- Code Snippets: 29\n- Trust Score: 6.3\n----------\n- Title: React Dragula\n- Context7-compatible library ID: /bevacqua/react-dragula\n- Description: :ok_hand: Drag and drop so simple it hurts\n- Code Snippets: 8\n- Trust Score: 9.6\n----------\n- Title: React Color\n- Context7-compatible library ID: /casesandberg/react-color\n- Description: :art: Color Pickers from Sketch, Photoshop, Chrome, Github, Twitter & more\n- Code Snippets: 32\n- Trust Score: 8.6"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "success": true,
+          "tool": "get-library-docs",
+          "responseTime": 5481,
+          "output": {
+            "content": [
+              {
+                "type": "text",
+                "text": "Documentation not found or not finalized for this library. This might have happened because you used an invalid Context7-compatible library ID. To get a valid Context7-compatible library ID, use the 'resolve-library-id' with the package name you wish to retrieve documentation for."
+              }
+            ]
+          },
+          "outputSize": 320,
+          "example": {
+            "input": {
+              "context7CompatibleLibraryID": "/facebook/react",
+              "topic": "hooks",
+              "tokens": 5000
+            },
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Documentation not found or not finalized for this library. This might have happened because you used an invalid Context7-compatible library ID. To get a valid Context7-compatible library ID, use the 'resolve-library-id' with the package name you wish to retrieve documentation for."
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "workingTools": [
+        {
+          "name": "resolve-library-id",
+          "responseTime": 5328,
+          "outputSize": 10692,
+          "example": {
+            "input": {
+              "libraryName": "react"
+            },
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Available Libraries (top matches):\n\nEach result includes:\n- Library ID: Context7-compatible identifier (format: /org/project)\n- Name: Library or package name\n- Description: Short summary\n- Code Snippets: Number of available code examples\n- Trust Score: Authority indicator\n- Versions: List of versions if available. Use one of those versions if and only if the user explicitly provides a version in their query.\n\nFor best results, select libraries based on name match, trust score, snippet coverage, and relevance to your use case.\n\n----------\n\n- Title: React-XR\n- Context7-compatible library ID: /pmndrs/xr\n- Description: 🤳 VR/AR for react-three-fiber\n- Code Snippets: 68\n- Trust Score: 9.6\n----------\n- Title: React95\n- Context7-compatible library ID: /react95/react95\n- Description: A React components library with Win95 UI\n- Code Snippets: 18\n- Trust Score: 7.8\n----------\n- Title: React\n- Context7-compatible library ID: /reactjs/react.dev\n- Description: The React documentation website\n- Code Snippets: 2841\n- Trust Score: 9\n----------\n- Title: React Flow\n- Context7-compatible library ID: /xyflow/xyflow\n- Description: React Flow | Svelte Flow - Powerful open source libraries for building node-based UIs with React (https://reactflow.dev) or Svelte (https://svelteflow.dev). Ready out-of-the-box and infinitely customizable.\n- Code Snippets: 21\n- Trust Score: 9.5\n----------\n- Title: Reactor\n- Context7-compatible library ID: /ash-project/reactor\n- Description: Reactor is a dynamic, concurrent, dependency resolving saga orchestrator.\n- Code Snippets: 58\n- Trust Score: 8.4\n----------\n- Title: React RND\n- Context7-compatible library ID: /bokuweb/react-rnd\n- Description: 🖱  A resizable and draggable component for React.\n- Code Snippets: 16\n- Trust Score: 10\n- Versions: v10.4.13\n----------\n- Title: ReactGrid\n- Context7-compatible library ID: /silevis/reactgrid\n- Description: Add spreadsheet-like behavior to your React app\n- Code Snippets: 5\n- Trust Score: 6.8\n----------\n- Title: React Lua\n- Context7-compatible library ID: /jsdotlua/react-lua\n- Description: A comprehensive, but not exhaustive, translation of upstream ReactJS 17.x into Lua.\n- Code Snippets: 106\n- Trust Score: 6.6\n----------\n- Title: React PDF\n- Context7-compatible library ID: /diegomura/react-pdf\n- Description: 📄  Create PDF files using React\n- Code Snippets: 31\n- Trust Score: 9.3\n----------\n- Title: Reactive\n- Context7-compatible library ID: /kutlugsahin/reactive\n- Description: Supercharge react.js with reactivity\n- Code Snippets: 3\n- Trust Score: 9.4\n----------\n- Title: React CSV\n- Context7-compatible library ID: /react-csv/react-csv\n- Description: React components to build CSV files on the fly basing on Array/literal object of data\n- Code Snippets: 31\n- Trust Score: 4.6\n----------\n- Title: React DnD\n- Context7-compatible library ID: /react-dnd/react-dnd\n- Description: Drag and Drop for React\n- Code Snippets: 71\n- Trust Score: 8.3\n----------\n- Title: React Sigma\n- Context7-compatible library ID: /sim51/react-sigma\n- Description: Sigma React component\n- Code Snippets: 31\n- Trust Score: 9.2\n----------\n- Title: React Use\n- Context7-compatible library ID: /streamich/react-use\n- Description: React Hooks — 👍\n- Code Snippets: 221\n- Trust Score: 9.4\n----------\n- Title: React Color\n- Context7-compatible library ID: /uiwjs/react-color\n- Description: 🎨 Is a tiny color picker widget component for React apps.\n- Code Snippets: 95\n- Trust Score: 9.9\n----------\n- Title: React PDF\n- Context7-compatible library ID: /wojtekmaj/react-pdf\n- Description: Display PDFs in your React app as easily as if they were images.\n- Code Snippets: 91\n- Trust Score: 10\n----------\n- Title: React Email\n- Context7-compatible library ID: /resend/react-email\n- Description: 💌 Build and send emails using React\n- Code Snippets: 214\n- Trust Score: 9.5\n----------\n- Title: React Tweet\n- Context7-compatible library ID: /vercel/react-tweet\n- Description: Embed tweets in your React application.\n- Code Snippets: 46\n- Trust Score: 10\n----------\n- Title: React Scan\n- Context7-compatible library ID: /aidenybai/react-scan\n- Description: Scan for React performance issues and eliminate slow renders in your app\n- Code Snippets: 51\n- Trust Score: 9.2\n----------\n- Title: React Plock\n- Context7-compatible library ID: /askides/react-plock\n- Description: The 1kB Masonry Grid for React.\n- Code Snippets: 6\n- Trust Score: 8.8\n----------\n- Title: React Magma\n- Context7-compatible library ID: /cengage/react-magma\n- Description: \n- Code Snippets: 748\n- Trust Score: 7.1\n----------\n- Title: React Bits\n- Context7-compatible library ID: /davidhdev/react-bits\n- Description: An open source collection of animated, interactive & fully customizable React components for building stunning, memorable user interfaces.\n- Code Snippets: 2\n- Trust Score: 8.8\n----------\n- Title: React Share\n- Context7-compatible library ID: /nygardk/react-share\n- Description: Social media share buttons and share counts for React\n- Code Snippets: 10\n----------\n- Title: React Tree\n- Context7-compatible library ID: /react-component/tree\n- Description: React Tree\n- Code Snippets: 5\n- Trust Score: 9.6\n----------\n- Title: React Hookz Web\n- Context7-compatible library ID: /react-hookz/web\n- Description: React hooks done right, for browser and SSR.\n- Code Snippets: 6\n- Trust Score: 7\n----------\n- Title: Reactleaf Modal\n- Context7-compatible library ID: /reactleaf/modal\n- Description: react modal with context and hooks\n- Code Snippets: 29\n- Trust Score: 3.5\n----------\n- Title: React Redux\n- Context7-compatible library ID: /reduxjs/react-redux\n- Description: Official React bindings for Redux\n- Code Snippets: 585\n- Trust Score: 9.2\n----------\n- Title: React Map GL\n- Context7-compatible library ID: /visgl/react-map-gl\n- Description: React friendly API wrapper around MapboxGL JS\n- Code Snippets: 210\n- Trust Score: 7.7\n----------\n- Title: React Cmdk\n- Context7-compatible library ID: /albingroen/react-cmdk\n- Description: A fast, accessible, and pretty command palette for React\n- Code Snippets: 10\n- Trust Score: 9.5\n----------\n- Title: React DSFR\n- Context7-compatible library ID: /codegouvfr/react-dsfr\n- Description: 🇫🇷 The French Government Design system React toolkit\n- Code Snippets: 19\n- Trust Score: 9.6\n----------\n- Title: React Admin\n- Context7-compatible library ID: /marmelab/react-admin\n- Description: A frontend Framework for single-page applications on top of REST/GraphQL APIs, using TypeScript, React and Material Design\n- Code Snippets: 2320\n- Trust Score: 9.5\n----------\n- Title: React Spring\n- Context7-compatible library ID: /pmndrs/react-spring\n- Description: ✌️ A spring physics based React animation library\n- Code Snippets: 167\n- Trust Score: 9.6\n----------\n- Title: ReactorKit\n- Context7-compatible library ID: /reactorkit/reactorkit\n- Description: A library for reactive and unidirectional Swift applications\n- Code Snippets: 51\n- Trust Score: 7.7\n----------\n- Title: React Slider\n- Context7-compatible library ID: /zillow/react-slider\n- Description: Accessible, CSS agnostic, slider component for React.\n- Code Snippets: 25\n- Trust Score: 9.2\n----------\n- Title: React Window\n- Context7-compatible library ID: /bvaughn/react-window\n- Description: React components for efficiently rendering large lists and tabular data\n- Code Snippets: 6\n- Trust Score: 10\n----------\n- Title: ReactPlayer\n- Context7-compatible library ID: /cookpete/react-player\n- Description: A React component for playing a variety of URLs, including file paths, YouTube, Facebook, Twitch, SoundCloud, Streamable, Vimeo, Wistia and DailyMotion\n- Code Snippets: 17\n- Trust Score: 9.2\n----------\n- Title: React Native\n- Context7-compatible library ID: /discord/react-native\n- Description: A framework for building native apps with React.\n- Code Snippets: 608\n- Trust Score: 9.2\n- Versions: v0.62.3\n----------\n- Title: Reactor Core\n- Context7-compatible library ID: /reactor/reactor-core\n- Description: Non-Blocking Reactive Foundation for the JVM\n- Code Snippets: 33\n- Trust Score: 8.7\n----------\n- Title: ReactPHP Promise\n- Context7-compatible library ID: /reactphp/promise\n- Description: Promises/A implementation for PHP.\n- Code Snippets: 29\n- Trust Score: 9\n----------\n- Title: React Uploady\n- Context7-compatible library ID: /rpldy/react-uploady\n- Description: Modern file uploading - components & hooks for React\n- Code Snippets: 110\n- Trust Score: 5.7\n----------\n- Title: React Remark\n- Context7-compatible library ID: /remarkjs/react-remark\n- Description: React component and hook to use remark to render markdown\n- Code Snippets: 9\n- Trust Score: 8.9\n----------\n- Title: React Spectrum\n- Context7-compatible library ID: /adobe/react-spectrum\n- Description: A collection of libraries and tools that help you build adaptive, accessible, and robust user experiences.\n- Code Snippets: 3658\n- Trust Score: 8.2\n----------\n- Title: React i18next\n- Context7-compatible library ID: /i18next/react-i18next\n- Description: Internationalization for react done right. Using the i18next i18n ecosystem.\n- Code Snippets: 302\n- Trust Score: 8.1\n----------\n- Title: React Select\n- Context7-compatible library ID: /jedwatson/react-select\n- Description: The Select Component for React.js\n- Code Snippets: 18\n- Trust Score: 8.1\n----------\n- Title: React Icons\n- Context7-compatible library ID: /react-icons/react-icons\n- Description: svg react icons of popular icon packs\n- Code Snippets: 19\n- Trust Score: 7.2\n----------\n- Title: React Router\n- Context7-compatible library ID: /remix-run/react-router\n- Description: Declarative routing for React\n- Code Snippets: 830\n- Trust Score: 7.5\n----------\n- Title: React Ace\n- Context7-compatible library ID: /securingsincity/react-ace\n- Description: React Ace Component\n- Code Snippets: 16\n- Trust Score: 9.9\n----------\n- Title: React VNC Lib\n- Context7-compatible library ID: /sepandy/react-vnc-lib\n- Description: \n- Code Snippets: 29\n- Trust Score: 6.3\n----------\n- Title: React Dragula\n- Context7-compatible library ID: /bevacqua/react-dragula\n- Description: :ok_hand: Drag and drop so simple it hurts\n- Code Snippets: 8\n- Trust Score: 9.6\n----------\n- Title: React Color\n- Context7-compatible library ID: /casesandberg/react-color\n- Description: :art: Color Pickers from Sketch, Photoshop, Chrome, Github, Twitter & more\n- Code Snippets: 32\n- Trust Score: 8.6"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "get-library-docs",
+          "responseTime": 5481,
+          "outputSize": 320,
+          "example": {
+            "input": {
+              "context7CompatibleLibraryID": "/facebook/react",
+              "topic": "hooks",
+              "tokens": 5000
+            },
+            "output": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Documentation not found or not finalized for this library. This might have happened because you used an invalid Context7-compatible library ID. To get a valid Context7-compatible library ID, use the 'resolve-library-id' with the package name you wish to retrieve documentation for."
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "failingTools": [],
+      "complexityAnalysis": {
+        "averageParams": 2,
+        "complexToolsPercent": 0,
+        "totalParams": 4,
+        "simpleTools": 2,
+        "complexTools": 0
+      },
+      "realWorldExamples": []
+    },
+    "auth": {
+      "required": false,
+      "methods": [],
+      "requiredEnvVars": [],
+      "errorMessages": [],
+      "setupComplexity": "unknown",
+      "setupInstructions": []
+    },
+    "performance": {
+      "initTime": 4857,
+      "toolResponseTimes": {
+        "resolve-library-id": 5328,
+        "get-library-docs": 5481
+      },
+      "averageResponseTime": 5404.5,
+      "maxResponseTime": 5481,
+      "minResponseTime": 5328,
+      "reliability": 1
+    },
+    "resources": {
+      "available": [],
+      "prompts": [],
+      "notifications": false
+    },
+    "errors": {
+      "patterns": [],
+      "troubleshooting": [],
+      "commonIssues": [],
+      "recovery": []
+    },
+    "business": {
+      "useCases": [],
+      "valueProposition": "",
+      "integrationComplexity": "unknown",
+      "maintenanceLevel": "unknown"
+    },
+    "quality": {
+      "reliabilityScore": 1,
+      "documentationQuality": "excellent",
+      "userExperience": "excellent",
+      "overallScore": 0.8333333333333334
+    }
+  },
+  "hubspot": {
+    "packageName": "@hubspot/mcp-server",
+    "authRequired": true,
+    "testingStrategy": "schema_plus_auth_intelligence",
+    "protocol": {
+      "version": null,
+      "serverInfo": {},
+      "capabilities": {},
+      "initializationTime": null,
+      "connectionStability": "unknown"
+    },
+    "tools": {
+      "count": 0,
+      "schemas": [],
+      "executionResults": [],
+      "workingTools": [],
+      "failingTools": [],
+      "complexityAnalysis": {},
+      "realWorldExamples": [],
+      "schemaAnalysis": {
+        "totalTools": 0,
+        "parametersAnalysis": {},
+        "complexityDistribution": {
+          "simple": 0,
+          "moderate": 0,
+          "complex": 0
+        },
+        "authRequirements": {
+          "none": 0,
+          "optional": 0,
+          "required": 0
+        }
+      }
+    },
+    "auth": {
+      "required": true,
+      "methods": [],
+      "requiredEnvVars": [],
+      "errorMessages": [],
+      "setupComplexity": "simple",
+      "setupInstructions": []
+    },
+    "performance": {
+      "initTime": null,
+      "toolResponseTimes": {},
+      "resourceUsage": {},
+      "reliability": "unknown"
+    },
+    "resources": {
+      "available": [],
+      "prompts": [],
+      "notifications": false
+    },
+    "errors": {
+      "patterns": [],
+      "troubleshooting": [],
+      "commonIssues": [],
+      "recovery": []
+    },
+    "business": {
+      "useCases": [],
+      "valueProposition": "",
+      "integrationComplexity": "unknown",
+      "maintenanceLevel": "unknown"
+    },
+    "quality": {
+      "reliabilityScore": null,
+      "documentationQuality": "unknown",
+      "userExperience": "unknown",
+      "overallScore": 0
+    }
+  }
+}
