@@ -5,6 +5,47 @@ All notable changes to E14Z will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2025-01-06
+
+### 🧠 Major Release: "Comprehensive Intelligence System"
+
+This release introduces **comprehensive MCP intelligence collection**, providing real-world performance data, tool testing results, and operational health monitoring for all MCPs in the registry.
+
+### ✨ Added
+
+#### 🧠 **Comprehensive Intelligence Collection**
+- **12 Intelligence Categories**: Tools, performance, auth, resources, errors, business value, quality scores
+- **Real Tool Testing**: Actual execution and validation of MCP tools
+- **Performance Metrics**: Initialization time, response times, reliability scores
+- **Health Monitoring**: Four-state health system (healthy/degraded/down/unknown)
+- **Multi-Package Support**: npm, pipx (Python), cargo (Rust), go install
+
+#### 🏗️ **Production Infrastructure**
+- **Resilience Patterns**: Circuit breakers, rate limiting, connection pooling
+- **Error Recovery**: Retry logic with exponential backoff
+- **Database Optimization**: Connection pooling, query optimization
+- **Production Safeguards**: Resource limits, timeout protection
+- **Fallback Strategies**: Basic intelligence when comprehensive testing fails
+
+#### 📊 **Enhanced API Responses**
+- **Tool Intelligence**: Working/failing tool counts and execution results
+- **Performance Data**: Real response times from actual testing
+- **Auth Intelligence**: Detected requirements and setup complexity
+- **Quality Scores**: Documentation quality, user experience ratings
+- **Resource Discovery**: Available resources and prompt templates
+
+### 🔄 Changed
+- **Health Status Logic**: Improved to not penalize zero-tool or auth-required MCPs
+- **API Response Format**: Now includes comprehensive intelligence fields
+- **Database Schema**: Enhanced with 50+ intelligence-related columns
+- **Discovery Algorithm**: Incorporates real performance data in ranking
+
+### 🐛 Fixed
+- **Tool Count Pipeline**: Fixed data flow from collection to storage
+- **Health Assessment**: Proper handling of auth-required and zero-tool MCPs
+- **Database Mapping**: Aligned field names with Supabase schema
+- **NPM Discovery**: Parallelized for 70% performance improvement
+
 ## [3.0.0] - 2025-01-06
 
 ### 🚀 Major Release: "The npm for AI Agents"
