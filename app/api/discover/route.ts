@@ -213,7 +213,13 @@ async function discoverHandler(request: NextRequest) {
             name: tool.name,
             description: tool.description,
             category: tool.category,
-            parameters: tool.parameters || [],
+            parameters: tool.inputSchema?.properties ? 
+              Object.keys(tool.inputSchema.properties).map(paramName => ({
+                name: paramName,
+                type: tool.inputSchema.properties[paramName].type || 'string',
+                required: tool.inputSchema.required?.includes(paramName) || false,
+                description: tool.inputSchema.properties[paramName].description || ''
+              })) : [],
             inputSchema: tool.inputSchema,
             // Enhanced tool data from comprehensive testing
             response_time: result.mcp.tool_response_times?.[tool.name],
