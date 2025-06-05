@@ -278,7 +278,7 @@ const mcpServer = {
     }
 
     return sections.join('\n');
-  }
+  },
 
   async handleToolCall({ name, arguments: args }) {
     const baseUrl = process.env.E14Z_API_URL || 'https://www.e14z.com';
