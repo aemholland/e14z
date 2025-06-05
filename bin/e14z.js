@@ -10,6 +10,9 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
+// Read version from package.json
+const packageJson = require('../package.json');
+
 // Generate session ID for tracking user reviews
 const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
@@ -17,7 +20,7 @@ const sessionId = `mcp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 const mcpServer = {
   name: "e14z",
   description: "AI Tool Discovery Platform - Discover 50+ MCP servers",
-  version: "3.1.1",
+  version: packageJson.version,
   
   // MCP Protocol handlers
   async handleRequest(request) {

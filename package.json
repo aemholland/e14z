@@ -1,6 +1,6 @@
 {
   "name": "e14z",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "Comprehensive Model Context Protocol (MCP) server registry and discovery platform that enables AI agents to find, evaluate, and integrate with MCP tools seamlessly.",
   "main": "bin/cli.js",
   "bin": {
@@ -93,13 +93,19 @@
   },
   "type": "commonjs",
   "dependencies": {
+    "bottleneck": "^2.19.5",
     "chalk": "^4.1.2",
+    "cheerio": "^1.0.0",
     "commander": "^12.0.0",
     "dotenv": "^16.5.0",
     "inquirer": "^8.2.6",
+    "js-yaml": "^4.1.0",
     "node-fetch": "^3.3.2",
+    "node-machine-id": "^1.1.12",
     "ora": "^5.4.1",
     "semver": "^7.6.3",
+    "tar": "^7.4.3",
+    "turndown": "^7.2.0",
     "which": "^4.0.0"
   },
   "devDependencies": {
