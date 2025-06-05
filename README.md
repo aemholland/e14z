@@ -35,7 +35,7 @@ E14Z is the **universal runtime for MCP tools** - both a discovery platform and 
   "mcpServers": {
     "e14z": {
       "command": "npx",
-      "args": ["e14z"]
+      "args": ["e14z@latest"]
     }
   }
 }
@@ -182,7 +182,7 @@ Add E14Z to your `claude_desktop_config.json`:
   "mcpServers": {
     "e14z": {
       "command": "npx",
-      "args": ["e14z"]
+      "args": ["e14z@latest"]
     }
   }
 }
