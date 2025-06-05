@@ -1,11 +1,10 @@
 {
   "name": "e14z",
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "Comprehensive Model Context Protocol (MCP) server registry and discovery platform that enables AI agents to find, evaluate, and integrate with MCP tools seamlessly.",
   "main": "bin/cli.js",
   "bin": {
-    "e14z": "bin/cli.js",
-    "e14z-crawler": "bin/crawler.js"
+    "e14z": "bin/cli.js"
   },
   "scripts": {
     "dev": "next dev",
@@ -77,8 +76,15 @@
     "url": "https://github.com/aemholland/e14z/issues"
   },
   "files": [
-    "bin/",
-    "lib/",
+    "bin/cli.js",
+    "bin/e14z.js",
+    "bin/mcp-server.js",
+    "lib/auth/",
+    "lib/execution/",
+    "lib/publishing/",
+    "lib/claiming/",
+    "lib/supabase/client.js",
+    "lib/utils/",
     "README.md",
     "LICENSE"
   ],
