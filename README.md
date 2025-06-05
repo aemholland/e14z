@@ -1,15 +1,16 @@
 # E14Z MCP Registry
 
-**The intelligent MCP discovery platform for AI agents** - Find, evaluate, and execute 50+ Model Context Protocol tools instantly.
+**The intelligent MCP discovery platform for AI agents** - Find, evaluate, and execute 50+ Model Context Protocol tools with comprehensive intelligence about their capabilities, performance, and reliability.
 
 ## 🎯 What is E14Z?
 
 E14Z is like **npm for AI agents** - a comprehensive registry and execution platform for Model Context Protocol (MCP) tools. Instead of manually searching for and configuring MCP servers, agents can use E14Z to:
 
-- **🔍 Discover** relevant MCP tools through intelligent search
-- **⚡ Execute** MCP tools directly without manual setup  
-- **📊 Evaluate** tool quality through community reviews and performance metrics
-- **🔄 Stay Updated** with the latest MCP tools and their capabilities
+- **🔍 Discover** relevant MCP tools through intelligent search with real performance data
+- **⚡ Execute** MCP tools directly without manual setup across npm, pipx, cargo, and go
+- **📊 Evaluate** tool quality through comprehensive intelligence: tool testing, performance metrics, and health status
+- **🧠 Intelligence** Real-world data from testing thousands of tool executions
+- **🔄 Stay Updated** with continuous monitoring of MCP tool health and capabilities
 
 ### Why Use E14Z?
 
@@ -187,7 +188,7 @@ npx e14z --help
 
 Once connected, agents can use these tools:
 
-**🔍 Discover MCP Tools:**
+**🔍 Discover MCP Tools with Intelligence:**
 ```json
 {
   "name": "discover",
@@ -199,6 +200,13 @@ Once connected, agents can use these tools:
   }
 }
 ```
+
+Returns comprehensive intelligence including:
+- ✅ Working/failing tool counts
+- ⚡ Average response times (ms)
+- 🏥 Health status (healthy/degraded/down/unknown)
+- 📊 Overall intelligence score
+- 🔐 Authentication requirements
 
 **📋 Get Detailed Information:**
 ```json
