@@ -1,30 +1,31 @@
-# E14Z MCP Registry
+# E14Z - Universal MCP Runtime
 
-**The intelligent MCP discovery platform for AI agents** - Find, evaluate, and execute 50+ Model Context Protocol tools with comprehensive intelligence about their capabilities, performance, and reliability.
+**The npm for AI agents** - Discover, execute, and publish 50+ Model Context Protocol tools with comprehensive intelligence about their capabilities, performance, and reliability.
 
 ## 🎯 What is E14Z?
 
-E14Z is like **npm for AI agents** - a comprehensive registry and execution platform for Model Context Protocol (MCP) tools. Instead of manually searching for and configuring MCP servers, agents can use E14Z to:
+E14Z is the **universal runtime for MCP tools** - both a discovery platform and execution engine that makes MCPs as easy to use as npm packages. Instead of manually searching and configuring MCP servers, agents can use E14Z to:
 
 - **🔍 Discover** relevant MCP tools through intelligent search with real performance data
-- **⚡ Execute** MCP tools directly without manual setup across npm, pipx, cargo, and go
-- **📊 Evaluate** tool quality through comprehensive intelligence: tool testing, performance metrics, and health status
-- **🧠 Intelligence** Real-world data from testing thousands of tool executions
-- **🔄 Stay Updated** with continuous monitoring of MCP tool health and capabilities
+- **⚡ Execute** MCP tools directly with auto-installation across npm, pipx, cargo, and go
+- **📊 Evaluate** tool quality through comprehensive intelligence from actual testing
+- **🧠 Get Intelligence** Real-world performance data, tool success rates, and health monitoring
+- **📦 Publish** your own MCP tools to the registry with GitHub integration
+- **🏷️ Claim** ownership of existing community MCPs you maintain
 
 ### Why Use E14Z?
 
 **For AI Agents:**
 - Find the right MCP tool for any task in seconds
-- Get tools that actually work (community-tested and reviewed)
-- Execute tools directly without complex installation
-- Access performance metrics and success rates
+- Get tools that actually work (tested with real performance data)
+- Execute tools directly with automatic installation
+- Access comprehensive intelligence: performance, reliability, authentication needs
 
 **For Developers:**
-- Discover MCP tools for your projects
-- Contribute tools to the registry
+- Publish and manage your MCP tools with GitHub integration
+- Claim ownership of community-wrapped tools you maintain
 - Get analytics on tool usage and performance
-- Build on a production-ready platform
+- Build on a production-ready platform with global CDN
 
 ## 🚀 Quick Start for Agents
 
@@ -45,20 +46,57 @@ E14Z is like **npm for AI agents** - a comprehensive registry and execution plat
 {"name": "discover", "arguments": {"query": "database tools"}}
 ```
 
-**3. Execute tools directly:**
+**3. Get detailed information:**
+```json
+{"name": "details", "arguments": {"slug": "postgres-mcp"}}
+```
+
+**4. Execute tools directly:**
 ```json
 {"name": "run", "arguments": {"slug": "postgres-mcp"}}
 ```
 
+## 🛠️ CLI Usage
+
+**For Developers and Direct Use:**
+
+```bash
+# Install globally for direct access
+npm install -g e14z
+
+# Discover MCP tools
+e14z discover "database tools" --verified --limit 5
+
+# Get detailed information about a specific MCP
+e14z info postgres-mcp
+
+# Execute an MCP directly (auto-installs if needed)
+e14z run postgres-mcp
+
+# List all available MCPs
+e14z list --executable-only
+
+# Publish your own MCP
+e14z auth login
+e14z publish new my-awesome-mcp
+
+# Claim ownership of community MCP
+e14z claim mcp existing-tool
+
+# Cache management
+e14z cache list
+e14z cache clear --all
+```
+
 ### Key Features
 
-- **🔍 Intelligent Discovery**: Advanced search and filtering for MCP servers with semantic matching
-- **📊 Performance Analytics**: Real-time performance metrics and quality scoring for MCP tools
+- **🔍 Intelligent Discovery**: Advanced search with comprehensive intelligence data from real testing
+- **📊 Performance Analytics**: Real-time metrics including tool success rates and response times
 - **🛡️ Security Hardened**: 2025 MCP security standards with comprehensive input validation
-- **⚡ High Performance**: Optimized database queries with 80-95% performance improvements
+- **⚡ Auto-Installation**: NPX-like execution with automatic package management (npm, pipx, cargo, go)
 - **🌐 Global Scale**: Vercel-powered serverless architecture with worldwide CDN
-- **📈 Real-time Monitoring**: Comprehensive APM and observability for production environments
-- **📦 Universal Package Support**: Auto-install and execute MCPs from all major ecosystems (npm, pipx, cargo, go) with enhanced reliability
+- **📦 Publishing Platform**: GitHub-integrated publishing and ownership claiming system
+- **🧠 Comprehensive Intelligence**: 12 categories of real-world data from actual MCP testing
 
 ## 🛠️ Technology Stack
 
@@ -158,31 +196,34 @@ Add E14Z to your `claude_desktop_config.json`:
 
 E14Z works with any MCP-compatible client. Use the same configuration format or connect directly via the JSON-RPC protocol.
 
-## 🛠️ Command Line Usage
+## 🔧 Comprehensive Intelligence System
 
-### Direct MCP Execution
+E14Z provides **12 categories of intelligence** collected from real-world MCP testing:
 
-```bash
-# Discover MCP tools
-npx e14z run discover --query "database tools" --limit 5
+### Intelligence Categories
 
-# Get details about a specific MCP
-npx e14z run details --slug postgres-mcp
+1. **🛠️ Tool Intelligence**: Working/failing tool counts, success rates, schemas
+2. **⚡ Performance Intelligence**: Response times, initialization speed, reliability scores  
+3. **🔐 Authentication Intelligence**: Requirements, setup complexity, error patterns
+4. **🏥 Health Intelligence**: Operational status, uptime, testing strategies
+5. **📊 Quality Intelligence**: Documentation quality, user experience ratings
+6. **💼 Business Intelligence**: Use cases, value propositions, pricing models
+7. **🚨 Error Intelligence**: Common issues, troubleshooting guides, support availability
+8. **📦 Resource Intelligence**: Available resources, prompt templates, example configs
+9. **🔗 Protocol Intelligence**: MCP version compatibility, connection stability
+10. **📈 Usage Intelligence**: Popularity scores, community adoption
+11. **🧪 Testing Intelligence**: Validation strategies, compatibility checks
+12. **📋 Metadata Intelligence**: Collection timestamps, crawler versions, data freshness
 
-# Execute an MCP directly (auto-installs from any package manager)
-npx e14z run {mcp-name}
+### Real-World Testing
 
-# Execute from specific ecosystems (auto-detected)
-npx e14z run python-mcp-server    # Uses pipx for reliability
-npx e14z run rust-mcp-tool        # Uses cargo for performance
-npx e14z run go-mcp-service       # Uses go install for simplicity
+Unlike other registries that rely on static descriptions, E14Z **actually tests each MCP**:
 
-# Test E14Z functionality  
-npx e14z --test
-
-# Get help
-npx e14z --help
-```
+- **Tool Execution**: Tests each tool with sample parameters to verify functionality
+- **Performance Measurement**: Records real initialization and response times
+- **Health Monitoring**: Continuous monitoring of MCP operational status
+- **Authentication Detection**: Identifies auth requirements through actual testing
+- **Error Pattern Analysis**: Captures and categorizes common failure modes
 
 ### Agent Integration Examples
 
@@ -201,12 +242,14 @@ Once connected, agents can use these tools:
 }
 ```
 
-Returns comprehensive intelligence including:
-- ✅ Working/failing tool counts
-- ⚡ Average response times (ms)
-- 🏥 Health status (healthy/degraded/down/unknown)
-- 📊 Overall intelligence score
-- 🔐 Authentication requirements
+Returns **structured JSON data** with comprehensive intelligence including:
+- ✅ Working/failing tool counts and success rates
+- ⚡ Real performance metrics (response times, initialization speed)
+- 🏥 Health status (healthy/degraded/down/unknown) 
+- 📊 Quality scores and reliability ratings
+- 🔐 Authentication requirements and setup instructions
+- 💼 Business information (use cases, value propositions)
+- 🚨 Error patterns and troubleshooting guides
 
 **📋 Get Detailed Information:**
 ```json
@@ -217,6 +260,8 @@ Returns comprehensive intelligence including:
   }
 }
 ```
+
+Returns **complete structured data** including all 12 intelligence categories, tool schemas, performance metrics, and operational insights.
 
 **▶️ Execute MCP Server:**
 ```json
@@ -229,27 +274,11 @@ Returns comprehensive intelligence including:
 }
 ```
 
-**🔧 Execute MCP Tools (after running):**
-```json
-{
-  "name": "call",
-  "arguments": {
-    "session_id": "mcp_session_123",
-    "tool_name": "query_database",
-    "tool_arguments": {
-      "query": "SELECT * FROM users LIMIT 10"
-    }
-  }
-}
-```
-
-**📋 List Active Sessions:**
-```json
-{
-  "name": "sessions",
-  "arguments": {}
-}
-```
+The `run` tool automatically:
+- **Auto-installs** the MCP if not locally available
+- **Detects** the best package manager (npm, pipx, cargo, go)
+- **Validates** authentication requirements
+- **Returns** execution status and any auth setup needed
 
 **⭐ Submit Performance Review:**
 ```json
@@ -371,16 +400,16 @@ E14Z automatically detects and uses the optimal package manager for each MCP:
 
 ```bash
 # Python MCPs automatically use pipx for reliability and isolation
-npx e14z run python-mcp-server
+e14z run python-mcp-server
 
 # Rust MCPs use cargo for maximum performance
-npx e14z run rust-mcp-tool  
+e14z run rust-mcp-tool  
 
 # Go MCPs use go install for simplicity and reliability
-npx e14z run go-mcp-service
+e14z run go-mcp-service
 
 # Node.js MCPs use npm/npx as standard
-npx e14z run node-mcp-server
+e14z run node-mcp-server
 ```
 
 ### Key Reliability Improvements

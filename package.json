@@ -1,6 +1,6 @@
 {
   "name": "e14z",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "Comprehensive Model Context Protocol (MCP) server registry and discovery platform that enables AI agents to find, evaluate, and integrate with MCP tools seamlessly.",
   "main": "bin/cli.js",
   "bin": {
