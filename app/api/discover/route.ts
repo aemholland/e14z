@@ -214,16 +214,31 @@ async function discoverHandler(request: NextRequest) {
             description: tool.description,
             category: tool.category,
             parameters: (() => {
+              // DEBUG: Log the actual tool structure
+              const debugInfo = {
+                toolName: tool.name,
+                hasInputSchema: !!tool.inputSchema,
+                inputSchemaType: typeof tool.inputSchema,
+                inputSchemaKeys: tool.inputSchema ? Object.keys(tool.inputSchema) : [],
+                hasProperties: !!(tool.inputSchema?.properties),
+                propertiesKeys: tool.inputSchema?.properties ? Object.keys(tool.inputSchema.properties) : [],
+                fullTool: JSON.stringify(tool, null, 2).substring(0, 500)
+              };
+              
               // CRITICAL FIX: Direct parameter extraction from tool inputSchema with fallback for legacy schema property
               const inputSchema = tool.inputSchema || (tool as any).schema;
-              if (!inputSchema || typeof inputSchema !== 'object') return [];
+              if (!inputSchema || typeof inputSchema !== 'object') {
+                return []; // Return debug as first parameter to see what's wrong
+              }
               
               const properties = inputSchema.properties;
-              if (!properties || typeof properties !== 'object') return [];
+              if (!properties || typeof properties !== 'object') {
+                return []; // Return debug as first parameter to see what's wrong  
+              }
               
               const required = inputSchema.required || [];
               
-              return Object.keys(properties).map(paramName => {
+              const extractedParams = Object.keys(properties).map(paramName => {
                 const param = properties[paramName];
                 return {
                   name: paramName,
@@ -232,6 +247,18 @@ async function discoverHandler(request: NextRequest) {
                   description: param?.description || ''
                 };
               });
+              
+              // If we got parameters, return them, otherwise return debug info as a parameter
+              if (extractedParams.length > 0) {
+                return extractedParams;
+              } else {
+                return [{
+                  name: 'DEBUG_INFO',
+                  type: 'debug',
+                  required: false,
+                  description: JSON.stringify(debugInfo)
+                }];
+              }
             })(),
             inputSchema: tool.inputSchema || (tool as any).schema,
             response_time: (result.mcp as any).tool_response_times?.[tool.name],
