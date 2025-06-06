@@ -9,6 +9,32 @@ export async function GET(request: NextRequest) {
   
   try {
     console.log('🔍 DISCOVER API: Starting query for:', query)
+    console.log('🔍 DISCOVER API: Filters:', {
+      verified: searchParams.get('verified'),
+      no_auth: searchParams.get('no_auth'), 
+      auth_required: searchParams.get('auth_required'),
+      executable: searchParams.get('executable')
+    })
+    console.log('🔍 DISCOVER API: Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30))
+    
+    // Test basic connection first
+    const { data: testData, error: testError } = await supabase
+      .from('mcps')
+      .select('count')
+      .limit(1)
+    
+    console.log('🔍 DISCOVER API: Test query result:', { testData, testError })
+    
+    if (testError) {
+      console.error('🔍 DISCOVER API: Test query failed:', testError)
+      return NextResponse.json({ 
+        error: `Database connection failed: ${testError.message}`,
+        debug: {
+          supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30),
+          has_anon_key: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        }
+      }, { status: 500 })
+    }
     
     // Direct database query (simplified for now)
     let dbQuery = supabase
@@ -18,23 +44,34 @@ export async function GET(request: NextRequest) {
     // Apply basic filters
     if (searchParams.get('verified') === 'true') {
       dbQuery = dbQuery.eq('verified', true)
+      console.log('🔍 DISCOVER API: Applied verified=true filter')
     }
     
     if (searchParams.get('no_auth') === 'true') {
       dbQuery = dbQuery.eq('auth_required', false)
+      console.log('🔍 DISCOVER API: Applied no_auth=true filter')
     }
     
     if (searchParams.get('auth_required') === 'true') {
       dbQuery = dbQuery.eq('auth_required', true)
+      console.log('🔍 DISCOVER API: Applied auth_required=true filter')
     }
+    
+    console.log('🔍 DISCOVER API: About to execute main query with limit:', limit, 'offset:', offset)
     
     // Execute query with pagination
     const { data: mcps, error } = await dbQuery
       .range(offset, offset + limit - 1)
       .order('created_at', { ascending: false })
     
+    console.log('🔍 DISCOVER API: Main query result:', { 
+      mcps_count: mcps?.length || 0, 
+      error, 
+      first_mcp: mcps?.[0]?.name 
+    })
+    
     if (error) {
-      console.error('Database error:', error)
+      console.error('🔍 DISCOVER API: Database error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
     
