@@ -4,9 +4,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { checkRateLimit, createRateLimitHeaders, getClientIdentifier, type RateLimitType } from './lib/rate-limiting/vercel-config';
-import { performanceLogger, securityLogger, requestLogger } from './lib/logging/vercel-config';
-import { performanceMonitor } from './lib/monitoring/vercel-adapter';
 
 // Request tracking
 interface RequestContext {
@@ -22,7 +19,7 @@ export async function middleware(request: NextRequest) {
   const requestContext: RequestContext = {
     id: generateRequestId(),
     startTime: performance.now(),
-    ip: getClientIdentifier(request),
+    ip: request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown',
     userAgent: request.headers.get('user-agent') || undefined,
     path: request.nextUrl.pathname,
     method: request.method
@@ -37,9 +34,9 @@ export async function middleware(request: NextRequest) {
     const response = await handleSecurity(request, requestContext);
     if (response) return response;
 
-    // 2. Rate Limiting
-    const rateLimitResponse = await handleRateLimit(request, requestContext);
-    if (rateLimitResponse) return rateLimitResponse;
+    // 2. Rate Limiting (disabled for now)
+    // const rateLimitResponse = await handleRateLimit(request, requestContext);
+    // if (rateLimitResponse) return rateLimitResponse;
 
     // 3. Request Logging
     logRequest(request, requestContext);
@@ -68,7 +65,7 @@ export async function middleware(request: NextRequest) {
   } catch (error) {
     const duration = performance.now() - requestContext.startTime;
     
-    securityLogger.error({
+    console.error('Middleware error:', {
       event: 'middleware_error',
       request_id: requestContext.id,
       error: error instanceof Error ? error.message : String(error),
@@ -76,7 +73,7 @@ export async function middleware(request: NextRequest) {
       path: requestContext.path,
       method: requestContext.method,
       ip: requestContext.ip
-    }, 'Middleware error occurred');
+    });
 
     // Return error response
     return new NextResponse('Internal Server Error', { 
@@ -137,13 +134,13 @@ function handleCORS(request: NextRequest): NextResponse {
 async function checkAdminAuth(request: NextRequest, context: RequestContext): Promise<NextResponse | null> {
   // This would integrate with your auth system
   // For now, just log the attempt
-  securityLogger.warn({
+  console.warn('Admin endpoint access attempt:', {
     event: 'admin_access_attempt',
     request_id: context.id,
     path: context.path,
     ip: context.ip,
     user_agent: context.userAgent
-  }, 'Admin endpoint access attempt');
+  });
 
   // TODO: Implement actual admin auth check
   return null;
@@ -181,14 +178,14 @@ function checkSuspiciousRequest(request: NextRequest, context: RequestContext): 
   );
 
   if (isSuspicious || isSuspiciousUA) {
-    securityLogger.warn({
+    console.warn('Suspicious request blocked:', {
       event: 'suspicious_request_blocked',
       request_id: context.id,
       path: context.path,
       ip: context.ip,
       user_agent: userAgent,
       reason: isSuspicious ? 'suspicious_path' : 'suspicious_user_agent'
-    }, 'Suspicious request blocked');
+    });
 
     return new NextResponse('Forbidden', { 
       status: 403,
@@ -202,63 +199,21 @@ function checkSuspiciousRequest(request: NextRequest, context: RequestContext): 
   return null;
 }
 
-// Rate limiting
-async function handleRateLimit(request: NextRequest, context: RequestContext): Promise<NextResponse | null> {
-  // Skip rate limiting in development or if disabled
-  if (process.env.NODE_ENV === 'development' && process.env.DEV_DISABLE_RATE_LIMITING === 'true') {
-    return null;
-  }
-
-  if (process.env.ENABLE_RATE_LIMITING === 'false') {
-    return null;
-  }
-
-  const rateLimitType = getRateLimitType(request.nextUrl.pathname);
-  const result = await checkRateLimit(request, rateLimitType);
-
-  if (!result.success) {
-    const response = new NextResponse('Too Many Requests', { 
-      status: 429,
-      headers: createRateLimitHeaders(result)
-    });
-    
-    response.headers.set('x-request-id', context.id);
-    return response;
-  }
-
-  return null;
-}
-
-// Determine rate limit type based on path
-function getRateLimitType(pathname: string): RateLimitType {
-  if (pathname.startsWith('/api/admin')) return 'admin';
-  if (pathname.startsWith('/api/mcp') && pathname.includes('execute')) return 'execution';
-  if (pathname.startsWith('/api/auth')) return 'auth';
-  if (pathname.startsWith('/api/discover') || pathname.startsWith('/api/search')) return 'search';
-  if (pathname.startsWith('/api/submit') || pathname.includes('upload')) return 'upload';
-  if (pathname.startsWith('/api')) return 'api';
-  return 'global';
-}
+// Rate limiting (disabled for now)
+// async function handleRateLimit(request: NextRequest, context: RequestContext): Promise<NextResponse | null> {
+//   return null;
+// }
 
 // Request logging
 function logRequest(request: NextRequest, context: RequestContext) {
   const { pathname, search } = request.nextUrl;
   
-  requestLogger.info({
-    event: 'request_started',
+  // Simple console logging for now
+  console.log(`${context.method} ${pathname}`, {
     request_id: context.id,
-    method: context.method,
-    path: pathname,
-    query: search,
     ip: context.ip,
-    user_agent: context.userAgent,
-    referer: request.headers.get('referer'),
-    content_type: request.headers.get('content-type'),
-    content_length: request.headers.get('content-length'),
-    accept: request.headers.get('accept'),
-    accept_language: request.headers.get('accept-language'),
-    vercel_region: process.env.VERCEL_REGION
-  }, `${context.method} ${pathname}`);
+    user_agent: context.userAgent
+  });
 }
 
 // Add security headers

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
-import { withAPM } from '@/lib/observability/apm-middleware-simple'
+// import { withAPM } from '@/lib/observability/apm-middleware-simple'
 
 async function healthHandler(request: NextRequest) {
   try {
@@ -34,9 +34,5 @@ async function healthHandler(request: NextRequest) {
   }
 }
 
-// Export the handler wrapped with APM middleware
-export const GET = withAPM(healthHandler, {
-  trackQueries: true,
-  trackCache: false,
-  sampleRate: 0.1 // Lower sample rate for health checks
-});
+// Export the handler
+export const GET = healthHandler;

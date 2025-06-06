@@ -22,7 +22,7 @@ export const supabase = createClient(
       persistSession: false
     },
     global: {
-      fetch: (...args) => fetch(...args),
+      fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, init),
     },
     realtime: {
       params: {

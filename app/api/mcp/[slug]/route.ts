@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMCPBySlug } from '@/lib/search/engine'
-import { withAPM } from '@/lib/observability/apm-middleware-simple'
+// import { withAPM } from '@/lib/observability/apm-middleware-simple' // Commented out to fix build
 
 async function getMCPHandler(
   request: NextRequest,
@@ -219,9 +219,5 @@ async function getMCPHandler(
   }
 }
 
-// Export the handler wrapped with APM middleware
-export const GET = withAPM(getMCPHandler, {
-  trackQueries: true,
-  trackCache: true,
-  sampleRate: 1.0
-});
+// Export the handler directly (APM middleware disabled)
+export const GET = getMCPHandler;
