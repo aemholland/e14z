@@ -19,7 +19,7 @@ async function healthHandler(request: NextRequest) {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       database: 'connected',
-      version: '1.0.1-parameter-fix-applied'
+      version: '1.0.2-DEPLOYMENT-TEST'
     })
   } catch (error) {
     return NextResponse.json(
