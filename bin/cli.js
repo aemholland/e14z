@@ -821,22 +821,59 @@ publishCommand
               {
                 type: 'input',
                 name: 'name',
-                message: 'Tool name:'
+                message: 'Tool name (leave empty to finish adding tools):'
               },
               {
                 type: 'input',
                 name: 'description',
-                message: 'Tool description:'
+                message: 'Tool description:',
+                when: (answers) => answers.name,
               }
             ]);
 
             if (!toolAnswers.name) break;
+            
+            const tool = {
+                name: toolAnswers.name,
+                description: toolAnswers.description,
+                inputSchema: {
+                    type: "object",
+                    properties: {},
+                    required: []
+                }
+            };
 
-            packageData.tools.push({
-              name: toolAnswers.name,
-              description: toolAnswers.description,
-              parameters: {}
-            });
+            // Ask for parameters
+            const addParams = await inquirer.prompt([{
+                type: 'confirm',
+                name: 'continue',
+                message: 'Add parameters to this tool?',
+                default: true
+            }]);
+
+            if (addParams.continue) {
+                while (true) {
+                    const paramAnswers = await inquirer.prompt([
+                        { type: 'input', name: 'name', message: 'Parameter name (leave empty to finish):' },
+                        { type: 'list', name: 'type', message: 'Parameter type:', choices: ['string', 'number', 'boolean', 'object', 'array'], when: (answers) => answers.name },
+                        { type: 'input', name: 'description', message: 'Parameter description:', when: (answers) => answers.name },
+                        { type: 'confirm', name: 'required', message: 'Is this parameter required?', default: true, when: (answers) => answers.name },
+                    ]);
+
+                    if (!paramAnswers.name) break;
+
+                    tool.inputSchema.properties[paramAnswers.name] = {
+                        type: paramAnswers.type,
+                        description: paramAnswers.description
+                    };
+
+                    if (paramAnswers.required) {
+                        tool.inputSchema.required.push(paramAnswers.name);
+                    }
+                }
+            }
+
+            packageData.tools.push(tool);
 
             const addMore = await inquirer.prompt([{
               type: 'confirm',

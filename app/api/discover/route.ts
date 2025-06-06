@@ -42,42 +42,39 @@ export async function GET(request: NextRequest) {
           name: tool.name,
           description: tool.description,
           parameters: (() => {
-            // EMERGENCY PROOF-OF-CONCEPT: Hard-code known working parameters
-            if (tool.name === 'browser_resize') {
-              return [
-                { name: 'width', type: 'number', required: true, description: 'Width of the browser window' },
-                { name: 'height', type: 'number', required: true, description: 'Height of the browser window' }
-              ];
-            }
-            if (tool.name === 'browser_navigate') {
-              return [
-                { name: 'url', type: 'string', required: true, description: 'The URL to navigate to' }
-              ];
-            }
-            if (tool.name === 'browser_type') {
-              return [
-                { name: 'element', type: 'string', required: true, description: 'Human-readable element description' },
-                { name: 'ref', type: 'string', required: true, description: 'Exact target element reference' },
-                { name: 'text', type: 'string', required: true, description: 'Text to type into the element' }
-              ];
-            }
-            if (tool.name === 'browser_click') {
-              return [
-                { name: 'element', type: 'string', required: true, description: 'Human-readable element description' },
-                { name: 'ref', type: 'string', required: true, description: 'Exact target element reference' }
-              ];
+            // PROPER FIX: Universal parameter extraction that works for ALL tools
+            const inputSchema = tool.inputSchema || (tool as any).schema;
+            
+            // Debug logging for the first few tools to see what's wrong
+            if (['browser_resize', 'browser_navigate', 'browser_type'].includes(tool.name)) {
+              console.log(`🔧 PROCESSING ${tool.name}:`, {
+                hasInputSchema: !!inputSchema,
+                inputSchemaType: typeof inputSchema,
+                inputSchemaKeys: inputSchema ? Object.keys(inputSchema) : [],
+                hasProperties: !!(inputSchema?.properties),
+                propertiesKeys: inputSchema?.properties ? Object.keys(inputSchema.properties) : [],
+                fullInputSchema: JSON.stringify(inputSchema, null, 2).substring(0, 300)
+              });
             }
             
-            // For other tools, try the automatic extraction
-            const inputSchema = tool.inputSchema || (tool as any).schema;
-            if (!inputSchema || typeof inputSchema !== 'object') return [];
+            if (!inputSchema || typeof inputSchema !== 'object') {
+              if (['browser_resize', 'browser_navigate'].includes(tool.name)) {
+                console.log(`❌ ${tool.name}: No valid inputSchema`);
+              }
+              return [];
+            }
             
             const properties = inputSchema.properties;
-            if (!properties || typeof properties !== 'object') return [];
+            if (!properties || typeof properties !== 'object') {
+              if (['browser_resize', 'browser_navigate'].includes(tool.name)) {
+                console.log(`❌ ${tool.name}: No valid properties`);
+              }
+              return [];
+            }
             
             const required = inputSchema.required || [];
             
-            return Object.keys(properties).map(paramName => {
+            const extractedParams = Object.keys(properties).map(paramName => {
               const param = properties[paramName];
               return {
                 name: paramName,
@@ -86,6 +83,12 @@ export async function GET(request: NextRequest) {
                 description: param?.description || ''
               };
             });
+            
+            if (['browser_resize', 'browser_navigate'].includes(tool.name)) {
+              console.log(`✅ ${tool.name}: Extracted ${extractedParams.length} parameters:`, extractedParams);
+            }
+            
+            return extractedParams;
           })()
         })) || []
       }
