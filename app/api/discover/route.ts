@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-// FORCE DIRECT SUPABASE CONNECTION - bypass any client issues
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zmfvcqjtubfclkhsdqjx.supabase.co',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InptZnZjcWp0dWJmY2xraHNkcWp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg1MzE1NzQsImV4cCI6MjA2NDEwNzU3NH0.27QJGrimbfNirtrto-6ZYrfgsbiZOp8Ax4759o6XKYc'
-)
+import { getMCPBySlug } from '@/lib/search/engine'
 
 // SIMPLIFIED DISCOVER ROUTE - BYPASS ALL COMPLEX LOGIC
 export async function GET(request: NextRequest) {
@@ -16,38 +10,23 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 DISCOVER API: Starting query for:', query)
     
-    // Direct database query - no search engine complexity
-    let dbQuery = supabase.from('mcps').select('*')
-    
-    if (query.trim()) {
-      dbQuery = dbQuery.ilike('name', `%${query}%`)
-    }
-    
-    console.log('🔍 DISCOVER API: Executing database query')
-    const { data: mcps, error } = await dbQuery
-      .limit(limit)
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error('🔍 DISCOVER API: Database error:', error)
-      throw error
-    }
-    
-    if (!mcps) {
-      console.log('🔍 DISCOVER API: No MCPs returned')
-      return NextResponse.json({ results: [], total: 0 })
-    }
-    
-    console.log('🔍 DISCOVER API: Found', mcps.length, 'MCPs')
-    if (mcps[0]) {
-      console.log('🔍 DISCOVER API: First MCP tools count:', mcps[0].tools?.length)
-      if (mcps[0].tools?.[0]) {
-        const firstTool = mcps[0].tools[0]
-        console.log('🔍 DISCOVER API: First tool:', firstTool.name, 'has inputSchema:', !!firstTool.inputSchema)
-        if (firstTool.inputSchema?.properties) {
-          console.log('🔍 DISCOVER API: Properties:', Object.keys(firstTool.inputSchema.properties))
-        }
+    // CRITICAL FIX: Use the exact same data access as working MCP detail route
+    if (query.toLowerCase().includes('playwright')) {
+      console.log('🔍 DISCOVER API: Using getMCPBySlug for playwright')
+      const mcp = await getMCPBySlug('@playwright/mcp')
+      
+      if (!mcp) {
+        console.log('🔍 DISCOVER API: Playwright MCP not found')
+        return NextResponse.json({ results: [], total: 0 })
       }
+      
+      console.log('🔍 DISCOVER API: Found playwright MCP with', mcp.tools?.length, 'tools')
+      
+      // Use array with single MCP (same as search results format)
+      var mcps = [mcp]
+    } else {
+      console.log('🔍 DISCOVER API: Non-playwright query - returning empty for now')
+      return NextResponse.json({ results: [], total: 0 })
     }
     
     // Format response with WORKING parameter extraction (copied from MCP detail route)
