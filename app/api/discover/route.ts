@@ -178,6 +178,14 @@ async function discoverHandler(request: NextRequest) {
     // Format response
     const response = {
       query,
+      debug_search_info: {
+        first_mcp_id: results[0]?.mcp?.id,
+        first_mcp_tools_count: results[0]?.mcp?.tools?.length,
+        first_tool_name: results[0]?.mcp?.tools?.[0]?.name,
+        first_tool_has_inputSchema: !!(results[0]?.mcp?.tools?.[0]?.inputSchema),
+        first_tool_inputSchema_type: typeof results[0]?.mcp?.tools?.[0]?.inputSchema,
+        first_tool_properties_keys: results[0]?.mcp?.tools?.[0]?.inputSchema?.properties ? Object.keys(results[0]?.mcp?.tools?.[0]?.inputSchema.properties) : 'no_properties'
+      },
       results: results.map(result => ({
         // Core Identity
         id: result.mcp.id,
