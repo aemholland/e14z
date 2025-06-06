@@ -99,7 +99,7 @@ async function discoverHandler(request: NextRequest) {
   const authRequired = searchParams.get('auth_required') === 'true'
   const executable = searchParams.get('executable') === 'true'
 
-  // Generate session ID for tracking
+  // Generate session ID for tracking and analytics
   const sessionId = crypto.randomUUID()
 
   // Build search options
