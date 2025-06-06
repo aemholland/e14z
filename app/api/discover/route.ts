@@ -42,39 +42,16 @@ export async function GET(request: NextRequest) {
           name: tool.name,
           description: tool.description,
           parameters: (() => {
-            // PROPER FIX: Universal parameter extraction that works for ALL tools
+            // EXACT COPY of working parameter extraction from MCP detail endpoint
             const inputSchema = tool.inputSchema || (tool as any).schema;
-            
-            // Debug logging for the first few tools to see what's wrong
-            if (['browser_resize', 'browser_navigate', 'browser_type'].includes(tool.name)) {
-              console.log(`🔧 PROCESSING ${tool.name}:`, {
-                hasInputSchema: !!inputSchema,
-                inputSchemaType: typeof inputSchema,
-                inputSchemaKeys: inputSchema ? Object.keys(inputSchema) : [],
-                hasProperties: !!(inputSchema?.properties),
-                propertiesKeys: inputSchema?.properties ? Object.keys(inputSchema.properties) : [],
-                fullInputSchema: JSON.stringify(inputSchema, null, 2).substring(0, 300)
-              });
-            }
-            
-            if (!inputSchema || typeof inputSchema !== 'object') {
-              if (['browser_resize', 'browser_navigate'].includes(tool.name)) {
-                console.log(`❌ ${tool.name}: No valid inputSchema`);
-              }
-              return [];
-            }
+            if (!inputSchema || typeof inputSchema !== 'object') return [];
             
             const properties = inputSchema.properties;
-            if (!properties || typeof properties !== 'object') {
-              if (['browser_resize', 'browser_navigate'].includes(tool.name)) {
-                console.log(`❌ ${tool.name}: No valid properties`);
-              }
-              return [];
-            }
+            if (!properties || typeof properties !== 'object') return [];
             
             const required = inputSchema.required || [];
             
-            const extractedParams = Object.keys(properties).map(paramName => {
+            return Object.keys(properties).map(paramName => {
               const param = properties[paramName];
               return {
                 name: paramName,
@@ -83,12 +60,6 @@ export async function GET(request: NextRequest) {
                 description: param?.description || ''
               };
             });
-            
-            if (['browser_resize', 'browser_navigate'].includes(tool.name)) {
-              console.log(`✅ ${tool.name}: Extracted ${extractedParams.length} parameters:`, extractedParams);
-            }
-            
-            return extractedParams;
           })()
         })) || []
       }
