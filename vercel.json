@@ -154,9 +154,5 @@
     "iad1",
     "sfo1", 
     "fra1"
-  ],
-  
-  "framework": {
-    "version": "15.3.2"
-  }
+  ]
 }
