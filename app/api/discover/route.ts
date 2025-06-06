@@ -1,33 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getMCPBySlug } from '@/lib/search/engine'
+import { searchMCPs } from '@/lib/search/engine'
 
-// SIMPLIFIED DISCOVER ROUTE - BYPASS ALL COMPLEX LOGIC
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const query = searchParams.get('q') || ''
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 100)
+  const offset = parseInt(searchParams.get('offset') || '0')
   
   try {
     console.log('🔍 DISCOVER API: Starting query for:', query)
     
-    // CRITICAL FIX: Use the exact same data access as working MCP detail route
-    if (query.toLowerCase().includes('playwright')) {
-      console.log('🔍 DISCOVER API: Using getMCPBySlug for playwright')
-      const mcp = await getMCPBySlug('@playwright/mcp')
-      
-      if (!mcp) {
-        console.log('🔍 DISCOVER API: Playwright MCP not found')
-        return NextResponse.json({ results: [], total: 0 })
-      }
-      
-      console.log('🔍 DISCOVER API: Found playwright MCP with', mcp.tools?.length, 'tools')
-      
-      // Use array with single MCP (same as search results format)
-      var mcps = [mcp]
-    } else {
-      console.log('🔍 DISCOVER API: Non-playwright query - returning empty for now')
-      return NextResponse.json({ results: [], total: 0 })
+    // Use proper search engine instead of hardcoded Playwright logic
+    const searchResults = await searchMCPs({
+      query,
+      filters: {
+        verified: searchParams.get('verified') === 'true',
+        noAuth: searchParams.get('no_auth') === 'true',
+        authRequired: searchParams.get('auth_required') === 'true'
+      },
+      limit,
+      offset
+    })
+    
+    if (searchResults.error) {
+      return NextResponse.json({ error: searchResults.error }, { status: 500 })
     }
+    
+    const mcps = searchResults.results.map(result => result.mcp)
     
     // Format response with WORKING parameter extraction (copied from MCP detail route)
     const results = mcps.map(mcp => ({
@@ -68,10 +67,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       query,
       results,
-      total: mcps.length,
-      message: "NPM PACKAGE v4.3.6 PUBLISHED - PARAMETERS FIXED!",
-      deployment_test: new Date().toISOString(),
-      npm_version: "4.3.6"
+      total_results: searchResults.total,
+      pagination: {
+        limit,
+        offset,
+        has_more: searchResults.total > offset + limit
+      },
+      message: "PARAMETERS FIXED! v2.1.0",
+      deployment_test: new Date().toISOString()
     })
     
   } catch (err) {
