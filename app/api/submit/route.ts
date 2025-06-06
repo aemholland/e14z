@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
 import { checkForDuplicates, generateSlug } from '@/lib/utils/public-deduplication'
-import { withAPM } from '@/lib/observability/apm-middleware'
+import { withAPM } from '@/lib/observability/apm-middleware-simple'
 
 async function submitHandler(request: NextRequest) {
   try {

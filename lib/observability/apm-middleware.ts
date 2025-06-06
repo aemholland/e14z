@@ -102,13 +102,13 @@ class APMMiddleware {
         const responseText = await response.clone().text()
         metrics.responseSize = new Blob([responseText]).size
 
-        // Record telemetry
-        telemetry.recordHttpRequest(
-          metrics.method,
-          this.getRoutePattern(metrics.url),
-          metrics.statusCode,
-          metrics.duration
-        )
+        // Record telemetry (temporarily disabled)
+        // telemetry.recordHttpRequest(
+        //   metrics.method,
+        //   this.getRoutePattern(metrics.url),
+        //   metrics.statusCode,
+        //   metrics.duration
+        // )
 
         // Store metrics for analysis
         await this.storeRequestMetrics(metrics)
@@ -129,13 +129,13 @@ class APMMiddleware {
         }
         metrics.errors!.push(errorMetric)
 
-        // Record error telemetry
-        telemetry.recordHttpRequest(
-          metrics.method,
-          this.getRoutePattern(metrics.url),
-          500,
-          metrics.duration
-        )
+        // Record error telemetry (temporarily disabled)
+        // telemetry.recordHttpRequest(
+        //   metrics.method,
+        //   this.getRoutePattern(metrics.url),
+        //   500,
+        //   metrics.duration
+        // )
 
         // Store error metrics
         await this.storeRequestMetrics(metrics)

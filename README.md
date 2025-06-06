@@ -1,31 +1,29 @@
-# E14Z - Universal MCP Runtime
+# E14Z - MCP Discovery Platform
 
-**The npm for AI agents** - Discover, execute, and publish 50+ Model Context Protocol tools with comprehensive intelligence about their capabilities, performance, and reliability.
+**The universal registry for MCP tools** - Discover, evaluate, and submit Model Context Protocol servers with intelligent analysis of their capabilities, performance, and reliability.
 
 ## 🎯 What is E14Z?
 
-E14Z is the **universal runtime for MCP tools** - both a discovery platform and execution engine that makes MCPs as easy to use as npm packages. Instead of manually searching and configuring MCP servers, agents can use E14Z to:
+E14Z is a **focused MCP discovery platform** that makes finding and evaluating MCP tools as easy as searching npm. Instead of manually hunting through repositories, agents can use E14Z to:
 
-- **🔍 Discover** relevant MCP tools through intelligent search with real performance data
-- **⚡ Execute** MCP tools directly with auto-installation across npm, pipx, cargo, and go
-- **📊 Evaluate** tool quality through comprehensive intelligence from actual testing
-- **🧠 Get Intelligence** Real-world performance data, tool success rates, and health monitoring
-- **📦 Publish** your own MCP tools to the registry with GitHub integration
-- **🏷️ Claim** ownership of existing community MCPs you maintain
+- **🔍 Discover** relevant MCP tools through intelligent search with AI-powered analysis
+- **📊 Evaluate** tool quality through comprehensive metadata and community reviews
+- **🧠 Get Intelligence** Real-world performance data, authentication requirements, and health status
+- **📝 Submit** community MCP discoveries to grow the ecosystem
 
 ### Why Use E14Z?
 
 **For AI Agents:**
 - Find the right MCP tool for any task in seconds
-- Get tools that actually work (tested with real performance data)
-- Execute tools directly with automatic installation
-- Access comprehensive intelligence: performance, reliability, authentication needs
+- Get comprehensive intelligence: performance, reliability, authentication needs
+- Access community reviews and success rates
+- Discover tools with detailed parameter schemas
 
 **For Developers:**
-- Publish and manage your MCP tools with GitHub integration
-- Claim ownership of community-wrapped tools you maintain
-- Get analytics on tool usage and performance
-- Build on a production-ready platform with global CDN
+- Submit your MCP tools to the registry
+- Contribute to community tool discovery
+- Access detailed tool metadata and schemas
+- Build on a clean, focused platform
 
 ## 🚀 Quick Start for Agents
 
@@ -51,9 +49,9 @@ E14Z is the **universal runtime for MCP tools** - both a discovery platform and 
 {"name": "details", "arguments": {"slug": "postgres-mcp"}}
 ```
 
-**4. Execute tools directly:**
+**4. Review and rate tools:**
 ```json
-{"name": "run", "arguments": {"slug": "postgres-mcp"}}
+{"name": "review", "arguments": {"mcp_id": "mcp_123", "rating": 9, "success": true}}
 ```
 
 ## 🛠️ CLI Usage
@@ -61,52 +59,43 @@ E14Z is the **universal runtime for MCP tools** - both a discovery platform and 
 **For Developers and Direct Use:**
 
 ```bash
-# Install globally for direct access
+# Install the E14Z MCP server for Claude Desktop
+npx e14z@latest
+
+# Or install globally for direct access
 npm install -g e14z
 
 # Discover MCP tools
 e14z discover "database tools" --verified --limit 5
 
 # Get detailed information about a specific MCP
-e14z info postgres-mcp
+e14z details postgres-mcp
 
-# Execute an MCP directly (auto-installs if needed)
-e14z run postgres-mcp
+# Submit reviews for MCPs
+e14z review mcp_123 --rating 9 --success
 
-# List all available MCPs
-e14z list --executable-only
-
-# Publish your own MCP
-e14z auth login
-e14z publish new my-awesome-mcp
-
-# Claim ownership of community MCP
-e14z claim mcp existing-tool
-
-# Cache management
-e14z cache list
-e14z cache clear --all
+# Submit new MCP discoveries
+e14z submit my-awesome-mcp
 ```
 
-### Key Features
+### Core Features
 
-- **🔍 Intelligent Discovery**: Advanced search with comprehensive intelligence data from real testing
-- **📊 Performance Analytics**: Real-time metrics including tool success rates and response times
-- **🛡️ Security Hardened**: 2025 MCP security standards with comprehensive input validation
-- **⚡ Auto-Installation**: NPX-like execution with automatic package management (npm, pipx, cargo, go)
-- **🌐 Global Scale**: Vercel-powered serverless architecture with worldwide CDN
-- **📦 Publishing Platform**: GitHub-integrated publishing and ownership claiming system
-- **🧠 Comprehensive Intelligence**: 12 categories of real-world data from actual MCP testing
+- **🔍 Intelligent Discovery**: Advanced search with AI-powered analysis and tool categorization
+- **📊 Comprehensive Metadata**: Detailed tool schemas, authentication requirements, and performance data
+- **🛡️ Quality Assurance**: Community reviews, ratings, and reliability scores
+- **📝 Community Submissions**: Easy submission system for new MCP discoveries
+- **🌐 Production Ready**: Vercel-powered serverless architecture with global availability
+- **🔄 Real-time Updates**: Live health monitoring and status tracking
 
 ## 🛠️ Technology Stack
 
 - **Frontend**: Next.js 15, TypeScript, Tailwind CSS
-- **Backend**: Node.js serverless functions with edge runtime
-- **Database**: Supabase (PostgreSQL) with real-time capabilities
-- **Caching**: Redis (Upstash) for distributed caching and rate limiting
-- **Monitoring**: OpenTelemetry, custom APM, and performance tracking
-- **Deployment**: Vercel with automated CI/CD and preview deployments
-- **Package Execution**: Multi-language support (JavaScript, Python, Rust, Go) with enhanced reliability
+- **Backend**: Node.js serverless functions
+- **Database**: Supabase (PostgreSQL) with 9 core tables
+- **Search**: Full-text search with intelligent ranking
+- **Crawlers**: Multi-source discovery (npm, PyPI, Cargo, Go, GitHub)
+- **Deployment**: Vercel with automated CI/CD
+- **API**: 6 focused endpoints for core functionality
 
 ## 📋 Quick Start
 
@@ -136,10 +125,8 @@ e14z cache clear --all
    # Edit .env.local with your configuration
    ```
 
-4. **Run database migrations**
-   ```bash
-   npm run db:setup
-   ```
+4. **Database is ready** (9 core tables in Supabase)
+   - No local setup required
 
 5. **Start development server**
    ```bash
@@ -381,9 +368,9 @@ The `run` tool automatically:
 - **Session isolation** - Each MCP runs independently with proper cleanup
 - **Smart timeouts** - 30 minutes inactivity, 2 hours maximum session age
 
-## 📦 Universal Package Manager Support
+## 🤖 Multi-Source Discovery
 
-E14Z supports automatic installation and execution of MCP servers from all major programming language ecosystems with industry-leading reliability:
+E14Z discovers MCPs from multiple package ecosystems with intelligent analysis:
 
 ### Supported Package Managers
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase/client'
-import { withAPM } from '@/lib/observability/apm-middleware'
+import { withAPM } from '@/lib/observability/apm-middleware-simple'
 
 async function reviewHandler(request: NextRequest) {
   try {

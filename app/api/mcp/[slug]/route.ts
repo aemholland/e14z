@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getMCPBySlug } from '@/lib/search/engine'
-import { withAPM } from '@/lib/observability/apm-middleware'
+import { withAPM } from '@/lib/observability/apm-middleware-simple'
 
 async function getMCPHandler(
   request: NextRequest,
