@@ -95,8 +95,9 @@ export async function GET(request: NextRequest) {
       query,
       results,
       total: mcps.length,
-      message: "FINAL FIX APPLIED - PARAMETERS SHOULD WORK!",
-      deployment_test: new Date().toISOString()
+      message: "NPM PACKAGE v4.3.6 PUBLISHED - PARAMETERS FIXED!",
+      deployment_test: new Date().toISOString(),
+      npm_version: "4.3.6"
     })
     
   } catch (err) {
