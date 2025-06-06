@@ -216,14 +216,22 @@ async function discoverHandler(request: NextRequest) {
             parameters: (() => {
               // CRITICAL FIX: Direct parameter extraction from tool inputSchema with fallback for legacy schema property
               const inputSchema = tool.inputSchema || (tool as any).schema;
-              if (!inputSchema?.properties) return [];
+              if (!inputSchema || typeof inputSchema !== 'object') return [];
               
-              return Object.keys(inputSchema.properties).map(paramName => ({
-                name: paramName,
-                type: inputSchema.properties[paramName]?.type || 'string',
-                required: (inputSchema.required || []).includes(paramName),
-                description: inputSchema.properties[paramName]?.description || ''
-              }));
+              const properties = inputSchema.properties;
+              if (!properties || typeof properties !== 'object') return [];
+              
+              const required = inputSchema.required || [];
+              
+              return Object.keys(properties).map(paramName => {
+                const param = properties[paramName];
+                return {
+                  name: paramName,
+                  type: param?.type || 'string',
+                  required: Array.isArray(required) ? required.includes(paramName) : false,
+                  description: param?.description || ''
+                };
+              });
             })(),
             inputSchema: tool.inputSchema || (tool as any).schema,
             response_time: (result.mcp as any).tool_response_times?.[tool.name],
