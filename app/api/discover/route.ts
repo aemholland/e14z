@@ -93,7 +93,8 @@ export async function GET(request: NextRequest) {
       query,
       results,
       total: mcps.length,
-      message: "SIMPLIFIED ROUTE - SHOULD WORK!"
+      message: "FINAL FIX APPLIED - PARAMETERS SHOULD WORK!",
+      deployment_test: new Date().toISOString()
     })
     
   } catch (err) {
