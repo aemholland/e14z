@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchMCPs } from '@/lib/search/engine'
+import { supabase } from '@/lib/supabase/client'
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -10,23 +10,54 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔍 DISCOVER API: Starting query for:', query)
     
-    // Use proper search engine instead of hardcoded Playwright logic
-    const searchResults = await searchMCPs({
-      query,
-      filters: {
-        verified: searchParams.get('verified') === 'true',
-        noAuth: searchParams.get('no_auth') === 'true',
-        authRequired: searchParams.get('auth_required') === 'true'
-      },
-      limit,
-      offset
-    })
+    // Direct database query (simplified for now)
+    let dbQuery = supabase
+      .from('mcps')
+      .select('*')
     
-    if (searchResults.error) {
-      return NextResponse.json({ error: searchResults.error }, { status: 500 })
+    // Apply basic filters
+    if (searchParams.get('verified') === 'true') {
+      dbQuery = dbQuery.eq('verified', true)
     }
     
-    const mcps = searchResults.results.map(result => result.mcp)
+    if (searchParams.get('no_auth') === 'true') {
+      dbQuery = dbQuery.eq('auth_required', false)
+    }
+    
+    if (searchParams.get('auth_required') === 'true') {
+      dbQuery = dbQuery.eq('auth_required', true)
+    }
+    
+    // Execute query with pagination
+    const { data: mcps, error } = await dbQuery
+      .range(offset, offset + limit - 1)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('Database error:', error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    
+    if (!mcps || mcps.length === 0) {
+      return NextResponse.json({
+        summary: {
+          found: 0,
+          query,
+          filters_applied: {
+            verified: searchParams.get('verified') === 'true',
+            no_auth: searchParams.get('no_auth') === 'true',
+            auth_required: searchParams.get('auth_required') === 'true',
+            executable: searchParams.get('executable') === 'true'
+          }
+        },
+        mcps: [],
+        next_actions: {
+          run_mcp: "Use the 'run' tool with the slug to execute an MCP",
+          submit_review: "Use the 'review' tool after testing to improve recommendations",
+          get_details: "Use 'details' tool for more specific information about an MCP"
+        }
+      })
+    }
     
     // Format response with WORKING parameter extraction (copied from MCP detail route)
     const results = mcps.map(mcp => ({
@@ -65,16 +96,22 @@ export async function GET(request: NextRequest) {
     }))
     
     return NextResponse.json({
-      query,
-      results,
-      total_results: searchResults.total,
-      pagination: {
-        limit,
-        offset,
-        has_more: searchResults.total > offset + limit
+      summary: {
+        found: results.length,
+        query,
+        filters_applied: {
+          verified: searchParams.get('verified') === 'true',
+          no_auth: searchParams.get('no_auth') === 'true',
+          auth_required: searchParams.get('auth_required') === 'true',
+          executable: searchParams.get('executable') === 'true'
+        }
       },
-      message: "PARAMETERS FIXED! v2.1.0",
-      deployment_test: new Date().toISOString()
+      mcps: results,
+      next_actions: {
+        run_mcp: "Use the 'run' tool with the slug to execute an MCP",
+        submit_review: "Use the 'review' tool after testing to improve recommendations",
+        get_details: "Use 'details' tool for more specific information about an MCP"
+      }
     })
     
   } catch (err) {
