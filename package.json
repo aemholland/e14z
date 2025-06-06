@@ -1,6 +1,6 @@
 {
   "name": "e14z",
-  "version": "4.3.6",
+  "version": "4.3.7",
   "description": "Universal MCP registry and execution platform - The npm for AI agents",
   "main": "bin/e14z.js",
   "bin": {
