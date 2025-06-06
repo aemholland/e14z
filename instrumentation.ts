@@ -24,16 +24,16 @@ export async function register() {
 
       // Initialize Vercel monitoring adapters
       try {
-        const { vercelAnalytics, performanceMonitor, errorTracker } = await import('./lib/monitoring/vercel-adapter');
+        const { vercelAdapter, performanceMonitor, errorTracker } = await import('./lib/monitoring/vercel-adapter');
         
-        // Initialize Vercel Analytics
-        await vercelAnalytics.initialize();
+        // Initialize Vercel adapter
+        vercelAdapter.logMetrics({ event: 'startup' });
         
         performanceLogger.info({ event: 'vercel_monitoring_initialized' }, 'Vercel monitoring systems started');
         
         // Store in global scope for access
         global.vercelMonitoring = {
-          analytics: vercelAnalytics,
+          analytics: vercelAdapter,
           performance: performanceMonitor,
           errorTracker: errorTracker
         };
@@ -102,7 +102,7 @@ export async function register() {
         
         // Cleanup monitoring
         if (global.vercelMonitoring) {
-          delete global.vercelMonitoring;
+          (global as any).vercelMonitoring = undefined;
         }
         
         setTimeout(() => process.exit(0), 1000);

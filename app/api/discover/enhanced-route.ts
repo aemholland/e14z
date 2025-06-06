@@ -61,7 +61,7 @@ async function enhancedDiscoverHandler(request: NextRequest) {
     // Execute query with pagination
     const { data: mcps, error, count } = await dbQuery
       .range(offset, offset + limit - 1)
-      .order('overall_score', { ascending: false, nullsLast: true })
+      .order('overall_score', { ascending: false })
 
     if (error) {
       return NextResponse.json(
@@ -92,7 +92,7 @@ async function enhancedDiscoverHandler(request: NextRequest) {
     })
 
     // Log API call
-    await logEnhancedAPICall(request, query, category, filteredResults.length, sessionId)
+    await logEnhancedAPICall(request, query, category || undefined, filteredResults.length, sessionId)
 
     // Build enhanced response
     const response = {
@@ -136,7 +136,7 @@ async function enhancedDiscoverHandler(request: NextRequest) {
         ...(includeTools && {
           tools: {
             count: mcp.tools?.length || 0,
-            working_count: mcp.tools?.filter(t => t.working === true).length || 0,
+            working_count: mcp.tools?.filter((t: any) => t.working === true).length || 0,
             list: mcp.tools || [],
             server_capabilities: mcp.server_capabilities,
             available_resources: mcp.available_resources,

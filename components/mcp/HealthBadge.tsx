@@ -1,5 +1,5 @@
 interface HealthBadgeProps {
-  status: 'healthy' | 'degraded' | 'down' | 'unknown'
+  status: 'healthy' | 'degraded' | 'down' | 'unknown' | 'pending'
 }
 
 export function HealthBadge({ status }: HealthBadgeProps) {
@@ -23,6 +23,11 @@ export function HealthBadge({ status }: HealthBadgeProps) {
       color: 'bg-gray-100 text-gray-800',
       dot: 'bg-gray-400',
       label: 'Unknown'
+    },
+    pending: {
+      color: 'bg-blue-100 text-blue-800',
+      dot: 'bg-blue-400',
+      label: 'Pending'
     }
   }
 

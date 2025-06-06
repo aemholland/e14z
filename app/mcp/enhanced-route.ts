@@ -337,7 +337,7 @@ async function handleDiscoverMCPs(args: any, id: any, request: NextRequest) {
   // Execute query
   const { data: mcps, error } = await dbQuery
     .limit(Math.min(limit, 50))
-    .order('overall_score', { ascending: false, nullsLast: true })
+    .order('overall_score', { ascending: false, nullsFirst: false })
 
   if (error) {
     return createErrorResponse(-32603, `Search failed: ${error.message}`, id)
@@ -350,8 +350,8 @@ async function handleDiscoverMCPs(args: any, id: any, request: NextRequest) {
 
   // Filter by scores if specified
   const filteredResults = enhancedResults.filter(mcp => {
-    if (min_quality_score && (mcp.quality_score?.total_score || 0) < min_quality_score) return false
-    if (min_review_score && (mcp.review_score?.total_score || 0) < min_review_score) return false
+    if (min_quality_score && ((mcp as any).quality_score?.total_score || 0) < min_quality_score) return false
+    if (min_review_score && ((mcp as any).review_score?.total_score || 0) < min_review_score) return false
     return true
   })
 
@@ -461,8 +461,8 @@ async function enhanceMCPData(mcp: any, includePerformance = true, includeTools 
       quality_score: qualityScore?.total_score || mcp.pulse_quality_score || null,
       review_score: reviewScore?.total_score || mcp.review_score || null,
       overall_score: mcp.overall_score || null,
-      quality_tier: qualityScore?.tier || null,
-      review_tier: reviewScore?.tier || null
+      quality_tier: (qualityScore as any)?.tier || null,
+      review_tier: (reviewScore as any)?.tier || null
     },
 
     // === TOOLS & CAPABILITIES ===
@@ -498,7 +498,7 @@ async function enhanceMCPData(mcp: any, includePerformance = true, includeTools 
         avg_rating: reviewCalculator.calculateAverageRating(mcp.reviews || []),
         success_rate: reviewCalculator.calculateOverallSuccessRate(mcp.reviews || []),
         confidence: reviewScore.confidence,
-        recommendation: reviewScore.recommendation
+        recommendation: (reviewScore as any).recommendation || null
       }
     }),
 

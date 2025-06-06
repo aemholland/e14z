@@ -58,30 +58,46 @@ async function getMCPHandler(
       // Tools & Capabilities (Enhanced with comprehensive intelligence)
       tools: {
         count: mcp.tools?.length || 0,
-        working_count: mcp.working_tools_count || 0,
-        failing_count: mcp.failing_tools_count || 0,
-        success_rate: mcp.tool_success_rate,
+        working_count: (mcp as any).working_tools_count || 0,
+        failing_count: (mcp as any).failing_tools_count || 0,
+        success_rate: (mcp as any).tool_success_rate,
         list: mcp.tools?.map(tool => ({
           name: tool.name,
           description: tool.description,
           category: tool.category,
-          parameters: tool.inputSchema?.properties ? 
-            Object.keys(tool.inputSchema.properties).map(paramName => ({
-              name: paramName,
-              type: tool.inputSchema.properties[paramName].type || 'string',
-              required: tool.inputSchema.required?.includes(paramName) || false,
-              description: tool.inputSchema.properties[paramName].description || ''
-            })) : [],
-          inputSchema: tool.inputSchema,
+          parameters: (() => {
+            // More robust parameter extraction with fallback for legacy schema property
+            const inputSchema = tool.inputSchema || (tool as any).schema;
+            if (!inputSchema || typeof inputSchema !== 'object') return [];
+            
+            const properties = inputSchema.properties;
+            if (!properties || typeof properties !== 'object') return [];
+            
+            const required = inputSchema.required || [];
+            
+            return Object.keys(properties).map(paramName => {
+              const param = properties[paramName];
+              return {
+                name: paramName,
+                type: param?.type || 'string',
+                required: Array.isArray(required) ? required.includes(paramName) : false,
+                description: param?.description || ''
+              };
+            });
+          })(),
+          inputSchema: tool.inputSchema || (tool as any).schema,
           // Enhanced tool data from comprehensive testing
-          response_time: mcp.tool_response_times?.[tool.name],
-          working: mcp.successful_executions?.some(exec => exec.tool === tool.name),
+          response_time: (mcp as any).tool_response_times?.[tool.name],
+          working: (mcp as any).successful_executions?.some((exec: any) => exec.tool === tool.name),
           auth_required: tool.auth_required || false,
-          complexity: Object.keys(tool.inputSchema?.properties || {}).length > 5 ? 'complex' : 
-                     Object.keys(tool.inputSchema?.properties || {}).length > 2 ? 'moderate' : 'simple'
+          complexity: (() => {
+            const inputSchema = tool.inputSchema || (tool as any).schema;
+            const paramCount = inputSchema?.properties ? Object.keys(inputSchema.properties).length : 0;
+            return paramCount > 5 ? 'complex' : paramCount > 2 ? 'moderate' : 'simple';
+          })()
         })) || [],
-        execution_examples: mcp.successful_executions?.slice(0, 5) || [],
-        common_failures: mcp.failed_executions?.slice(0, 3) || []
+        execution_examples: (mcp as any).successful_executions?.slice(0, 5) || [],
+        common_failures: (mcp as any).failed_executions?.slice(0, 3) || []
       },
       
       // Quality & Trust Signals (Enhanced with comprehensive intelligence)
@@ -89,10 +105,10 @@ async function getMCPHandler(
         verified: mcp.verified,
         health_status: mcp.health_status,
         last_health_check: mcp.last_health_check,
-        overall_intelligence_score: mcp.overall_intelligence_score,
-        reliability_score: mcp.reliability_score,
-        documentation_quality: mcp.documentation_quality_score,
-        user_experience_rating: mcp.user_experience_rating
+        overall_intelligence_score: (mcp as any).overall_intelligence_score,
+        reliability_score: (mcp as any).reliability_score,
+        documentation_quality: (mcp as any).documentation_quality_score,
+        user_experience_rating: (mcp as any).user_experience_rating
       },
       
       // Performance Intelligence (Real data from comprehensive testing)

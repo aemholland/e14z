@@ -126,8 +126,8 @@ async function getDetailedHealth() {
   
   // Calculate overall health
   const allChecksHealthy = Object.values(healthChecks).every(check => check.success);
-  const memoryHealthy = (memorySnapshot.heapUsed / memorySnapshot.heapTotal) < 0.9;
-  const errorRateHealthy = errorStats.errorCount < 10; // Less than 10 errors is healthy
+  const memoryHealthy = (memorySnapshot.details.heap_used_mb / memorySnapshot.details.heap_total_mb) < 0.9;
+  const errorRateHealthy = errorStats.total_errors < 10; // Less than 10 errors is healthy
   
   const overallHealthy = allChecksHealthy && memoryHealthy && errorRateHealthy;
   
@@ -146,11 +146,11 @@ async function getDetailedHealth() {
       vercel_region: process.env.VERCEL_REGION,
       vercel_deployment: process.env.VERCEL_DEPLOYMENT_ID,
       memory_usage: {
-        heap_used_mb: Math.round(memorySnapshot.heapUsed / 1024 / 1024),
-        heap_total_mb: Math.round(memorySnapshot.heapTotal / 1024 / 1024),
-        heap_usage_percent: Math.round((memorySnapshot.heapUsed / memorySnapshot.heapTotal) * 100),
-        external_mb: Math.round(memorySnapshot.external / 1024 / 1024),
-        rss_mb: Math.round(memorySnapshot.rss / 1024 / 1024)
+        heap_used_mb: memorySnapshot.details.heap_used_mb,
+        heap_total_mb: memorySnapshot.details.heap_total_mb,
+        heap_usage_percent: memorySnapshot.details.usage_percent,
+        external_mb: memorySnapshot.details.external_mb,
+        rss_mb: memorySnapshot.details.rss_mb
       }
     },
     
@@ -201,7 +201,7 @@ function getPerformanceHealth() {
   
   // Check if any operations are running slow
   const slowOperations = Object.entries(metrics).filter(([name, stats]) => {
-    return stats && stats.avg > 5000; // 5 seconds is considered slow
+    return stats && (stats as any).avg > 5000; // 5 seconds is considered slow
   });
   
   return {

@@ -44,24 +44,26 @@ export async function middleware(request: NextRequest) {
     // 3. Request Logging
     logRequest(request, requestContext);
 
-    // 4. Performance Monitoring
-    const performanceTiming = performanceMonitor.startTiming(`middleware:${requestContext.path}`);
+    // 4. Performance Monitoring (simplified since full performance monitor not available)
+    const performanceTiming = { 
+      end: () => performance.now() - requestContext.startTime 
+    };
 
     // Continue to the application
-    const response = NextResponse.next({
+    const nextResponse = NextResponse.next({
       request: {
         headers: requestHeaders,
       },
     });
 
     // 5. Add security headers to response
-    addSecurityHeaders(response);
+    addSecurityHeaders(nextResponse);
 
     // 6. Performance logging
-    const duration = performanceTiming();
-    addPerformanceHeaders(response, duration, requestContext);
+    const duration = performanceTiming.end();
+    addPerformanceHeaders(nextResponse, duration, requestContext);
 
-    return response;
+    return nextResponse;
 
   } catch (error) {
     const duration = performance.now() - requestContext.startTime;

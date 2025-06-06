@@ -162,21 +162,21 @@ const customSerializers = {
   }
 };
 
-// Add serializers to all loggers
-Object.entries(customSerializers).forEach(([key, serializer]) => {
-  logger.addSerializers({ [key]: serializer });
-  performanceLogger.addSerializers({ [key]: serializer });
-  securityLogger.addSerializers({ [key]: serializer });
-  analyticsLogger.addSerializers({ [key]: serializer });
-  requestLogger.addSerializers({ [key]: serializer });
-  dbLogger.addSerializers({ [key]: serializer });
-});
+// Add serializers to all loggers (commented out as pino might not support addSerializers)
+// Object.entries(customSerializers).forEach(([key, serializer]) => {
+//   logger.addSerializers({ [key]: serializer });
+//   performanceLogger.addSerializers({ [key]: serializer });
+//   securityLogger.addSerializers({ [key]: serializer });
+//   analyticsLogger.addSerializers({ [key]: serializer });
+//   requestLogger.addSerializers({ [key]: serializer });
+//   dbLogger.addSerializers({ [key]: serializer });
+// });
 
 // Structured logging helpers
 export const logHelpers = {
   // Log with request context
-  withRequest: (req: any, logger: pino.Logger = logger) => {
-    return logger.child({
+  withRequest: (req: any, loggerInstance: pino.Logger = logger) => {
+    return loggerInstance.child({
       request_id: req.headers['x-request-id'] || generateRequestId(),
       user_id: req.user?.id,
       ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress,
@@ -228,7 +228,7 @@ function generateRequestId(): string {
 }
 
 // Export for instrumentation
-export const vercelLogConfig = {
+export const vercelConfigExport = {
   logger,
   performanceLogger,
   securityLogger,

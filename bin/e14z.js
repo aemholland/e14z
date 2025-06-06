@@ -346,13 +346,20 @@ const mcpServer = {
                   
                   // Comprehensive Intelligence - Tool Testing Results
                   tools: {
-                    total_count: (result.working_tools_count || 0) + (result.failing_tools_count || 0),
-                    working_count: result.working_tools_count || 0,
-                    failing_count: result.failing_tools_count || 0,
-                    success_rate: result.tool_success_rate || null,
+                    total_count: result.tools?.count || 0,
+                    working_count: result.tools?.working_count || 0,
+                    failing_count: result.tools?.failing_count || 0,
+                    success_rate: result.tools?.success_rate || null,
                     working_tools: result.working_tools || [],
                     failing_tools: result.failing_tools || [],
-                    tool_schemas: result.tools || []
+                    tool_schemas: {
+                      count: result.tools?.count || 0,
+                      list: (result.tools?.list || []).map(tool => ({
+                        name: tool.name,
+                        description: tool.description,
+                        parameters: tool.parameters || []
+                      }))
+                    }
                   },
                   
                   // Performance Intelligence - Real Metrics

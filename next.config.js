@@ -3,8 +3,7 @@ const nextConfig = {
   // Vercel deployment optimization
   output: process.env.VERCEL ? undefined : 'standalone',
   
-  // Performance optimizations
-  swcMinify: true,
+  // Performance optimizations  
   compress: true,
   
   // Image optimization for Vercel
@@ -16,16 +15,17 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
+  // Server external packages (moved from experimental)
+  serverExternalPackages: [
+    'pino',
+    'pino-pretty',
+    'next-logger',
+  ],
+  
   // Experimental features for better performance
   experimental: {
     // Enable modern bundling
     esmExternals: true,
-    // Optimize server components
-    serverComponentsExternalPackages: [
-      'pino',
-      'pino-pretty',
-      'next-logger',
-    ],
     // Enable optimistic client cache
     optimisticClientCache: true,
   },
@@ -119,8 +119,6 @@ const nextConfig = {
   // PoweredByHeader disabled for security
   poweredByHeader: false,
   
-  // Compression for better performance
-  compress: true,
   
   // Generate ETags for caching
   generateEtags: true,

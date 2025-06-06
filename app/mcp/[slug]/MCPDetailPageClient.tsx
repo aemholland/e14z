@@ -214,7 +214,7 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
           </div>
 
           {/* Tools */}
-          {(mcp.tools && mcp.tools.length > 0) || mcp.tool_endpoints.length > 0 ? (
+          {(mcp.tools && mcp.tools.length > 0) || (mcp.tool_endpoints && mcp.tool_endpoints.length > 0) ? (
             <div className="Box">
               <div className="Box-header">
                 <h2 className="text-subtitle">Available Tools</h2>
@@ -267,7 +267,7 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
                   </div>
                 ) : (
                   <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                    {mcp.tool_endpoints.map((endpoint, index) => (
+                    {mcp.tool_endpoints?.map((endpoint, index) => (
                       <div key={index} className="Box" style={{backgroundColor: 'var(--color-canvas-inset)'}}>
                         <div className="Box-body" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                           <Zap size={14} className="text-accent" />
@@ -313,17 +313,17 @@ export function MCPDetailPageClient({ mcp }: MCPDetailPageClientProps) {
                   </div>
                 )}
                 
-                {mcp.stars !== undefined && mcp.stars > 0 && (
+                {(mcp as any).stars !== undefined && (mcp as any).stars > 0 && (
                   <div style={{display: 'flex', justifyContent: 'space-between'}}>
                     <span className="text-tertiary">GitHub Stars:</span>
-                    <span className="text-secondary">{mcp.stars.toLocaleString()}</span>
+                    <span className="text-secondary">{(mcp as any).stars.toLocaleString()}</span>
                   </div>
                 )}
                 
-                {mcp.language && (
+                {(mcp as any).language && (
                   <div style={{display: 'flex', justifyContent: 'space-between'}}>
                     <span className="text-tertiary">Language:</span>
-                    <span className="text-secondary">{mcp.language}</span>
+                    <span className="text-secondary">{(mcp as any).language}</span>
                   </div>
                 )}
               </div>

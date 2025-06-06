@@ -16,7 +16,7 @@ const rateLimitConfigs = {
   // API endpoints
   api: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(100, '15 min'),
+    limiter: Ratelimit.slidingWindow(100, '15m'),
     analytics: true,
     prefix: 'e14z:api',
   }),
@@ -24,7 +24,7 @@ const rateLimitConfigs = {
   // Authentication endpoints (stricter)
   auth: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(10, '15 min'),
+    limiter: Ratelimit.slidingWindow(10, '15m'),
     analytics: true,
     prefix: 'e14z:auth',
   }),
@@ -32,7 +32,7 @@ const rateLimitConfigs = {
   // MCP execution endpoints (most strict)
   execution: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(20, '5 min'),
+    limiter: Ratelimit.slidingWindow(20, '5m'),
     analytics: true,
     prefix: 'e14z:exec',
   }),
@@ -40,7 +40,7 @@ const rateLimitConfigs = {
   // Search and discovery (moderate)
   search: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(50, '5 min'),
+    limiter: Ratelimit.slidingWindow(50, '5m'),
     analytics: true,
     prefix: 'e14z:search',
   }),
@@ -48,7 +48,7 @@ const rateLimitConfigs = {
   // File uploads (strict)
   upload: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(5, '15 min'),
+    limiter: Ratelimit.slidingWindow(5, '15m'),
     analytics: true,
     prefix: 'e14z:upload',
   }),
@@ -56,7 +56,7 @@ const rateLimitConfigs = {
   // Admin operations (very strict)
   admin: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(20, '1 h'),
+    limiter: Ratelimit.slidingWindow(20, '1h'),
     analytics: true,
     prefix: 'e14z:admin',
   }),
@@ -64,7 +64,7 @@ const rateLimitConfigs = {
   // Global rate limit (fallback)
   global: new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(200, '10 min'),
+    limiter: Ratelimit.slidingWindow(200, '10m'),
     analytics: true,
     prefix: 'e14z:global',
   })
@@ -166,8 +166,8 @@ export async function checkRateLimit(
       success: result.success,
       limit: result.limit,
       remaining: result.remaining,
-      reset: result.reset,
-      retryAfter: result.success ? undefined : Math.ceil((result.reset.getTime() - Date.now()) / 1000)
+      reset: new Date(result.reset),
+      retryAfter: result.success ? undefined : Math.ceil((new Date(result.reset).getTime() - Date.now()) / 1000)
     };
     
   } catch (error) {
@@ -202,8 +202,8 @@ export class AdvancedRateLimiter {
   // Burst protection: Allow short bursts but enforce longer-term limits
   async checkBurstLimit(
     identifier: string,
-    shortWindow: { requests: number; window: string },
-    longWindow: { requests: number; window: string }
+    shortWindow: { requests: number; window: '1m' | '5m' | '10m' | '15m' | '1h' },
+    longWindow: { requests: number; window: '1m' | '5m' | '10m' | '15m' | '1h' }
   ): Promise<{ success: boolean; reason?: string }> {
     
     const shortLimit = new Ratelimit({
@@ -246,7 +246,7 @@ export class AdvancedRateLimiter {
     
     const adaptiveRateLimit = new Ratelimit({
       redis: this.redis,
-      limiter: Ratelimit.slidingWindow(adjustedLimit, '5 min'),
+      limiter: Ratelimit.slidingWindow(adjustedLimit, '5m'),
       prefix: 'e14z:adaptive'
     });
     
@@ -283,7 +283,7 @@ export class AdvancedRateLimiter {
     
     const reputationRateLimit = new Ratelimit({
       redis: this.redis,
-      limiter: Ratelimit.slidingWindow(limit, '10 min'),
+      limiter: Ratelimit.slidingWindow(limit, '10m'),
       prefix: `e14z:reputation:${reputation}`
     });
     

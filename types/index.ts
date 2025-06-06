@@ -18,6 +18,17 @@ export interface Tool {
   description?: string
   category?: string
   parameters?: (string | ToolParameter)[]
+  auth_required?: boolean
+  inputSchema?: {
+    type?: string
+    properties?: Record<string, {
+      type?: string
+      description?: string
+      [key: string]: any
+    }>
+    required?: string[]
+    [key: string]: any
+  }
 }
 
 export interface MCP {
@@ -60,12 +71,36 @@ export interface MCP {
   // Enhanced Authentication (from real MCP connection)
   auth_required?: boolean
   auth_method?: string
+  auth_methods?: string[]
   required_env_vars?: string[]
+  detected_env_vars?: string[]
   setup_complexity?: string
+  auth_failure_mode?: string
+  auth_setup_instructions?: string[]
+  auth_error_messages?: string[]
   
   // AI-Generated Intelligence Scores
   overall_intelligence_score?: number
   reliability_score?: number
+  documentation_quality_score?: number
+  user_experience_rating?: number
+  mcp_server_version?: string
+  server_vendor?: string
+  server_capabilities?: Record<string, any>
+  testing_strategy?: string
+  error_patterns?: any[]
+  troubleshooting_data?: any[]
+  common_issues?: any[]
+  successful_executions?: any[]
+  failed_executions?: any[]
+  usage_examples?: any[]
+  tool_execution_results?: any[]
+  tool_response_times?: Record<string, number>
+  tool_complexity_analysis?: Record<string, any>
+  parameter_patterns?: Record<string, any>
+  integration_complexity?: string
+  maintenance_level?: string
+  value_proposition?: string
   
   // Enhanced Search & Discovery
   tags: string[] // Enhanced with 20+ searchable terms
@@ -105,6 +140,13 @@ export interface MCP {
   health_status: 'healthy' | 'degraded' | 'down' | 'unknown' | 'pending'
   last_health_check?: string
   connection_stability?: string
+  initialization_time_ms?: number
+  average_response_time_ms?: number
+  min_response_time_ms?: number
+  max_response_time_ms?: number
+  tool_success_rate?: number
+  working_tools_count?: number
+  failing_tools_count?: number
   
   // Legacy/Deprecated Fields
   rating?: number
