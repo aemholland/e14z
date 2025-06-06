@@ -20,6 +20,14 @@ export const supabase = createClient(
   {
     auth: {
       persistSession: false
+    },
+    global: {
+      fetch: (...args) => fetch(...args),
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2
+      }
     }
   }
 )
