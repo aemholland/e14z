@@ -76,6 +76,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (!mcps || mcps.length === 0) {
+      console.log('🔍 DISCOVER API: No MCPs found or mcps is null/undefined')
       return NextResponse.json({
         summary: {
           found: 0,
@@ -96,41 +97,70 @@ export async function GET(request: NextRequest) {
       })
     }
     
-    // Format response with WORKING parameter extraction (copied from MCP detail route)
-    const results = mcps.map(mcp => ({
-      id: mcp.id,
-      slug: mcp.slug,
-      name: mcp.name,
-      description: mcp.description,
-      
-      tools: {
-        count: mcp.tools?.length || 0,
-        list: mcp.tools?.map(tool => ({
-          name: tool.name,
-          description: tool.description,
-          parameters: (() => {
-            // EXACT COPY of working parameter extraction from MCP detail endpoint
-            const inputSchema = tool.inputSchema || (tool as any).schema;
-            if (!inputSchema || typeof inputSchema !== 'object') return [];
-            
-            const properties = inputSchema.properties;
-            if (!properties || typeof properties !== 'object') return [];
-            
-            const required = inputSchema.required || [];
-            
-            return Object.keys(properties).map(paramName => {
-              const param = properties[paramName];
+    console.log('🔍 DISCOVER API: Processing', mcps.length, 'MCPs for response formatting')
+    
+    // SIMPLIFIED response format to avoid any parameter extraction errors
+    let results;
+    try {
+      results = mcps.map(mcp => {
+        console.log('🔍 DISCOVER API: Processing MCP:', mcp.name, 'with', mcp.tools?.length || 0, 'tools')
+        
+        return {
+          id: mcp.id,
+          slug: mcp.slug,
+          name: mcp.name,
+          description: mcp.description,
+          
+          tools: {
+            count: mcp.tools?.length || 0,
+            list: (mcp.tools || []).map(tool => {
+              console.log('🔍 DISCOVER API: Processing tool:', tool.name)
+              
+              // Simple parameter extraction without complex logic
+              let parameters = [];
+              try {
+                const inputSchema = tool.inputSchema || tool.schema;
+                if (inputSchema?.properties) {
+                  const properties = inputSchema.properties;
+                  const required = inputSchema.required || [];
+                  
+                  parameters = Object.keys(properties).map(paramName => ({
+                    name: paramName,
+                    type: properties[paramName]?.type || 'string',
+                    required: required.includes(paramName),
+                    description: properties[paramName]?.description || ''
+                  }));
+                }
+              } catch (paramError) {
+                console.error('🔍 DISCOVER API: Parameter extraction error for tool', tool.name, ':', paramError)
+                parameters = [];
+              }
+              
               return {
-                name: paramName,
-                type: param?.type || 'string',
-                required: Array.isArray(required) ? required.includes(paramName) : false,
-                description: param?.description || ''
+                name: tool.name,
+                description: tool.description,
+                parameters
               };
-            });
-          })()
-        })) || []
-      }
-    }))
+            })
+          }
+        };
+      });
+      
+      console.log('🔍 DISCOVER API: Successfully formatted', results.length, 'MCPs')
+    } catch (formatError) {
+      console.error('🔍 DISCOVER API: Error formatting results:', formatError)
+      // Return simple format if formatting fails
+      results = mcps.map(mcp => ({
+        id: mcp.id,
+        slug: mcp.slug,
+        name: mcp.name,
+        description: mcp.description,
+        tools: {
+          count: mcp.tools?.length || 0,
+          list: []
+        }
+      }));
+    }
     
     return NextResponse.json({
       summary: {
